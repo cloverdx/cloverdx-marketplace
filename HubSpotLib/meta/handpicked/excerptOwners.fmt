@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Record fieldDelimiter="|" name="Owner" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="owner_id" type="string"/>
+<Field label="HubSpot record owner's email" name="owner_email" type="string"/>
+<Field label="HubSpot record owner's first name" name="owner_first_name" type="string"/>
+<Field label="HubSpot record owner's last name" name="owner_last_name" type="string"/>
+</Record>

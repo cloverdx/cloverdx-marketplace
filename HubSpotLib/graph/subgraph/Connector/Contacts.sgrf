@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="readers" created="Fri Mar 10 14:40:10 CET 2023" description="Reads data from HubSpot Contacts object." guiVersion="6.0.0.1519" id="1678467411964" largeIconPath="${PROJECT}/icons/HubSpot-64.png" licenseCode="CLCDSCLOVE24765514SP" mediumIconPath="${PROJECT}/icons/HubSpot-32.png" name="Connector" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/HubSpot-64.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" name="0"/>
+</outputPorts>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="debugInput1" recordDelimiter="\n" type="delimited">
+<Field name="field1" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter name="NUM_OF_PREVIEW_RECORDS"/>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="convert and handle preview" guiX="591" guiY="100" id="CONVERT_AND_HANDLE_PREVIEW" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+integer NUM_OF_PREVIEW_RECORDS = null;
+integer count = 0;
+
+function void init(){
+	
+	if (getParamValue("NUM_OF_PREVIEW_RECORDS") != null and trim(getParamValue("NUM_OF_PREVIEW_RECORDS")) != ""){
+		if (isInteger(getParamValue("NUM_OF_PREVIEW_RECORDS"))){
+			NUM_OF_PREVIEW_RECORDS = str2integer(getParamValue("NUM_OF_PREVIEW_RECORDS"));
+		}else{
+			raiseError(concat('Parameter for number of records in preview (NUM_OF_PREVIEW_RECORDS) is expected to be the whole number. Not "', getParamValue("NUM_OF_PREVIEW_RECORDS"), '"'));
+		}	
+	}
+	
+}
+
+
+function integer transform() {
+	//handling preview driven by NUM_OF_PREVIEW_RECORDS parameter
+	if (NUM_OF_PREVIEW_RECORDS != null and count >= NUM_OF_PREVIEW_RECORDS){
+		return SKIP;
+	}
+	count++;
+	
+	$out.0.* = $in.0.*;
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="Fail" guiX="619" guiY="229" id="FAIL" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = $in.0.error_message;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="GetAllContacts" guiX="304" guiY="100" id="GET_ALL_CONTACTS" jobURL="${SUBGRAPH_DIR}/GetAllContacts.sgrf" type="SUBGRAPH">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.NUM_OF_PREVIEW_RECORDS = getParamValue("NUM_OF_PREVIEW_RECORDS");
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="200" guiY="10" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="897" guiY="10" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Edge fromNode="CONVERT_AND_HANDLE_PREVIEW:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="GET_ALL_CONTACTS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="CONVERT_AND_HANDLE_PREVIEW:0"/>
+<Edge fromNode="GET_ALL_CONTACTS:1" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="FAIL:0"/>
+</Phase>
+</Graph>

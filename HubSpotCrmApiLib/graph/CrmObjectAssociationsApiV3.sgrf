@@ -1,0 +1,452 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Martin" category="others" created="Fri Mar 04 14:44:05 CET 2022" description="This graph enables creating,listing or deleting asociations between *instances* of HubSpot CRM objects. It does not alter the schema - you need another method to list. create or delete asocciations on schema level." guiVersion="6.7.1.5" id="1646745524523" largeIconPath="${PROJECT}/icons/HubSpot-association-64.png" licenseCode="CLP1DCLOVE28718064BY" mediumIconPath="${PROJECT}/icons/HubSpot-association-32.png" name="CrmObjectAssociationsApiV3" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/HubSpot-association-16.png">
+<Global>
+<inputPorts>
+<singlePort connected="true" name="0"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="false" keepEdge="true" name="0" required="false"/>
+<singlePort connected="false" keepEdge="true" name="1" required="false"/>
+</outputPorts>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="debugInput1" recordDelimiter="\r\n" type="delimited">
+<Field name="field1" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata5">
+<Record fieldDelimiter="|" name="Error" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="status_code" trim="true" type="integer"/>
+<Field name="response_body" type="string"/>
+<Field name="error_message" type="string"/>
+<Field name="object_id" type="string"/>
+<Field name="request_id" trim="true" type="long"/>
+<Field default="false" name="is_error" trim="true" type="boolean"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="ParsedResponseResult" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="object_id" type="string"/>
+<Field name="request_id" type="long"/>
+<Field name="parsed_result" type="variant"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter label="From object type" name="FROM_OBJECT_TYPE" public="true" required="true">
+<attr name="description"><![CDATA[Select association's source object type.]]></attr>
+<SingleType allowCustomValues="true" name="simpleEnum" values="companies;contacts;deals;line_items;products;tickets;quotes"/>
+</GraphParameter>
+<GraphParameter label="To object type" name="TO_OBJECT_TYPE" public="true">
+<attr name="description"><![CDATA[Select association's target object type.]]></attr>
+<SingleType allowCustomValues="true" name="simpleEnum" values="companies;contacts;deals;line_items;products;tickets;quotes"/>
+</GraphParameter>
+<GraphParameter label="Association type" name="ASSOCIATION_TYPE" public="true">
+<attr name="description"><![CDATA[Specify an association type in case this is not a list operation. Remember associations are directional. E.g. company_to_deal ]]></attr>
+</GraphParameter>
+<GraphParameter category="advanced" defaultHint="Optional - object name plus id suffix will be used automatically" label="From object ID field name" name="FROM_OBJECT_ID_FIELD_NAME" public="true" secure="false">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return lowerCase(singular(getParamValue("FROM_OBJECT_TYPE")))+"_id";
+}
+
+function string singular(string noun){
+	if(endsWith(noun,'ies')){
+		return left(noun, length(noun)-3) + "y";
+	}else if(endsWith(noun,'s')){
+		return left(noun, length(noun)-1);
+	}else{
+		return noun;
+	}
+}
+]]></attr>
+<attr name="description"><![CDATA[Clover field name mapped to the HubSpot ID. Optional, if no value provided, field name will be generated as lowercase object name + _id suffix.]]></attr>
+</GraphParameter>
+<GraphParameter category="advanced" defaultHint="Optional - object name plus id suffix will be used automatically" label="To object ID field name" name="TO_OBJECT_ID_FIELD_NAME" public="true" secure="false">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return lowerCase(singular(getParamValue("TO_OBJECT_TYPE")))+"_id";
+}
+
+function string singular(string noun){
+	if(endsWith(noun,'ies')){
+		return left(noun, length(noun)-3) + "y";
+	}else if(endsWith(noun,'s')){
+		return left(noun, length(noun)-1);
+	}else{
+		return noun;
+	}
+}
+
+]]></attr>
+<attr name="description"><![CDATA[Clover field name mapped to the HubSpot ID. Optional, if no value provided, field name will be generated as lowercase object name + _id suffix.]]></attr>
+</GraphParameter>
+<GraphParameter label="Operation" name="OPERATION" public="true" required="true" value="Create">
+<attr name="description"><![CDATA[Choose one of available operations:
+* create
+* list
+* remove]]></attr>
+<SingleType allowCustomValues="true" name="simpleEnum" values="Create|Create association;Remove|Remove association;List|List associations"/>
+</GraphParameter>
+<GraphParameter label="REQUEST_METHOD" name="REQUEST_METHOD" public="false" required="false">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	switch("${OPERATION}"){
+		case "Create":
+			return "PUT";
+		case "Remove":
+			return "DELETE";
+		case "List":
+			return "GET";
+		default: 
+			raiseError("Unknown operation parameter value when derriving request method");
+	}
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter label="DESIRED_RESPONSE_STATUS" name="DESIRED_RESPONSE_STATUS" public="false" required="false">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	switch("${OPERATION}"){
+		case "Create":
+			return "200";
+		case "Remove":
+			return "204";
+		case "List":
+			return "200";
+		default: 
+			raiseError("Unknown operation parameter value when derriving sucess response status");
+	}
+}
+
+]]></attr>
+</GraphParameter>
+<GraphParameter name="TRASHIFY_WHEN_NOT_LIST_OPERATION">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return "${OPERATION}" != "List"? "trash":"true";
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter name="API_CALL_SUBGRAPH">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	string api_call_subgraph;
+	
+	if (not isBlank(getParamValue("PRIVATE_APP_TOKEN"))){
+		api_call_subgraph = "${SUBGRAPH_DIR}/ApiCall-PrivateApp.sgrf";
+	} else {
+		api_call_subgraph = "${SUBGRAPH_DIR}/ApiCall-Oauth2.sgrf";
+	}
+	return api_call_subgraph;
+}
+]]></attr>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="DAD8C9" folded="false" fontSize="medium" height="460" id="Note0" textColor="444444" width="568" x="194" y="-397">
+<attr name="text"><![CDATA[h1. HubSpot CRM Object API V3 - associations
+
+This subgraph enables creating, listing or deleting asociations between *instances* of HubSpot CRM objects. It does not alter the schema - you need another method to list, create or delete associations on schema level.
+
+The subgraph supports two authorization methods accepted by HubSpot:
+* Private apps
+* OAuth2 - pass in URL of the .cfg file for CloverDX OAuth2 HubSpot connection
+
+If Private App token is not provided OAuth2 method is used.
+
+*Metadata*
+Input:
+* must contain a field (string) with the id of the "from" object. 
+* if not list operation, must contain a field (string) with the id of the "to" object. 
+Output:
+* must contain fields (string) with the ids of the "from" and "to" object.
+* optional field "association_type".
+
+The names of the fields can be set by parameters. Defaults to the object type name plus _id suffix, e.g. deal_id. Attempts a conversion of the name to singular.
+
+*Rate limit*
+The connector should be able to adapt to the API rate limit, however this is not properly tested yet.]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="F9EB81" folded="false" fontSize="medium" height="144" id="Note3" textColor="444444" width="329" x="810" y="-80">
+<attr name="text"><![CDATA[h3. TODO
+
+* check config
+** correct ports connected based on operation?
+** exactly one auth method provided
+** conditionally required parameters]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="FAF6D6" folded="false" fontSize="medium" height="288" id="Note1" textColor="444444" width="400" x="775" y="-395">
+<attr name="text"><![CDATA[h3. Operations
+* create
+* list
+* remove
+
+h3. Hint on association types
+
+In HubSpot objects cannot be associated arbitrarily but a relation needs to exist on the schema level first.
+
+Associations in HubSpot are directional but reverse association is usually created at the same time.
+
+The default association types usually have predictable names such as "contact_to_company".]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node __HTTP_CALL_RETRY_COUNT="${HTTP_CALL_RETRY_COUNT}" __HTTP_CALL_RETRY_DELAY="${HTTP_CALL_RETRY_DELAY}" __HTTP_CALL_SUCCESS_STATUS_CODE="${DESIRED_RESPONSE_STATUS}" __HTTP_CALL_TIMEOUT="${HTTP_CALL_TIMEOUT}" __O_AUTH2_CONNECTION="${O_AUTH2_CONNECTION}" __PRIVATE_APP_TOKEN="${PRIVATE_APP_TOKEN}" guiName="Call HubSpot API" guiX="615" guiY="308" id="CALL_HUB_SPOT_API" jobURL="${API_CALL_SUBGRAPH}" type="SUBGRAPH"/>
+<Node debugInput="true" guiName="DebugInput" guiX="-36" guiY="100" id="DATA_GENERATOR0" recordsNumber="1" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the generate. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if generate() throws an exception.
+// function integer generateOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Extract paging" guiX="819" guiY="308" id="EXTRACT_PAGING" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+integer DESIRED_RESPONSE_STATUS = str2integer(getParamValue("DESIRED_RESPONSE_STATUS"));
+string OPERATION = getParamValue("OPERATION");
+
+// Transforms input record into output record.
+function integer transform() {
+	
+	$out.0.* = $in.0.*;
+	
+	if( not isBlank($in.0.httpResponseErrorMessage)
+			or
+		$in.0.httpResponseStatusCode != DESIRED_RESPONSE_STATUS
+	){
+		$out.0.* = $in.0.*;
+		$out.0.is_error = true;
+		return 0;
+	}
+	
+	variant parsedResponseBody ;
+	
+	try{
+		parsedResponseBody = parseJson($in.0.httpResponseBody);
+	}catch (CTLException ex){
+		$out.0.is_error = true;
+		$out.0.httpResponseErrorMessage = "Parsing response failed with following error:" + ex.message;
+	}
+	
+	//this should not happen unless there is an error on HubSpot side	
+	if( (isnull(parsedResponseBody) or isEmpty(parsedResponseBody))
+			and 
+		$in.0.httpResponseStatusCode != 204) //204 = no content
+	{ 
+		$out.0.is_error = true;
+		$out.0.httpResponseErrorMessage = "Parsing response failed - no content";
+	}
+	
+	
+	
+	//=======PAGING==========
+	
+	if(OPERATION == "List"){
+	
+		/* Is there a next page? Parse the section of document that coul look like this
+		 * "paging": {
+		 *    "next": {
+		 *       "after": "...",
+		 *       "link": "..." <- this contains the whole url with all the parametermeters necessary to get next page
+		 */
+		if(	containsKey(parsedResponseBody,"paging")
+				and
+			containsKey(parsedResponseBody["paging"],"next")
+		){
+			$out.0.has_next = true;
+			//set url for next request to next page
+			$out.0.httpRequestUrl = cast(parsedResponseBody["paging"]["next"]["link"],string);
+		}else{
+			$out.0.has_next = false;
+		}
+	}else{
+		$out.0.has_next = false;
+	}
+	
+	//pass out result
+	
+	$out.1.object_id = $in.0.object_id;
+	$out.1.request_id = $in.0.request_id;
+	$out.1.parsed_result = parsedResponseBody;
+	
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="Loop" guiX="443" guiY="170" id="LOOP" loggingLevel="off" type="LOOP">
+<attr name="whileCondition"><![CDATA[//#CTL2
+$in.0.has_next and not $in.0.is_error]]></attr>
+</Node>
+<Node enabled="${TRASHIFY_WHEN_NOT_LIST_OPERATION}" guiName="Parse to records" guiX="1037" guiY="322" id="PARSE_TO_RECORDS" type="NORMALIZER">
+<attr name="normalize"><![CDATA[//#CTL2
+// This transformation defines the way in which a single input record is normalized
+// into multiple output records.
+string FROM_OBJECT_ID_FIELD_NAME = getParamValue("FROM_OBJECT_ID_FIELD_NAME");
+string TO_OBJECT_ID_FIELD_NAME = getParamValue("TO_OBJECT_ID_FIELD_NAME");
+variant results_list;
+
+// This function is called for all input records.
+// It parses each single input record and returns the number of records
+// that should be created from such input record.
+function integer count() {
+	results_list = $in.0.parsed_result["results"];
+	return length(results_list);
+}
+
+// This function creates new records for the output, based on single input record
+// that has been parsed by the count() function.
+// It is called count() times for each input record.
+// The idx argument specifies which output record is being created,
+// its values range is from 0 to count() - 1.
+function integer transform(integer idx) {
+	setStringValue($out.0,FROM_OBJECT_ID_FIELD_NAME,$in.0.object_id);
+	setStringValue($out.0,TO_OBJECT_ID_FIELD_NAME,cast(results_list[idx]["id"],string));
+	if(getFieldIndex($out.0,"association_type") != -1){
+		setStringValue($out.0,"association_type",cast(results_list[idx]["type"],string));
+	}
+	return OK;
+}
+]]></attr>
+</Node>
+<Node guiName="Prepare url" guiX="258" guiY="100" id="PREPARE_URL" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+string OPERATION = getParamValue("OPERATION");
+string FROM_OBJECT_TYPE = getParamValue("FROM_OBJECT_TYPE");
+string FROM_OBJECT_ID_FIELD_NAME = getParamValue("FROM_OBJECT_ID_FIELD_NAME");
+string TO_OBJECT_TYPE = getParamValue("TO_OBJECT_TYPE");
+string TO_OBJECT_ID_FIELD_NAME = getParamValue("TO_OBJECT_ID_FIELD_NAME");
+string ASSOCIATION_TYPE = getParamValue("ASSOCIATION_TYPE");
+string REQUEST_METHOD = getParamValue("REQUEST_METHOD");
+
+string base_api_url = "https://api.hubapi.com/crm/v3/objects/";
+
+// Transforms input record into output record.
+function integer transform() {
+	string from_object_id;
+	string to_object_id;
+	
+	$out.0.httpRequestCharset = "UTF-8";
+	$out.0.has_next = true;
+	$out.0.is_error = false;
+	$out.0.httpRequestMethod = REQUEST_METHOD;
+	
+	
+	switch(OPERATION){
+		case "Create":
+			from_object_id = getStringValue($in.0,FROM_OBJECT_ID_FIELD_NAME);
+			to_object_id = getStringValue($in.0,TO_OBJECT_ID_FIELD_NAME);
+			$out.0.httpRequestUrl = concat(
+				base_api_url,
+				FROM_OBJECT_TYPE,"/",
+				from_object_id,"/",
+				"associations/",
+				TO_OBJECT_TYPE,"/",
+				to_object_id,"/",
+				ASSOCIATION_TYPE
+			);
+			break;
+		case "List":
+			from_object_id = getStringValue($in.0,FROM_OBJECT_ID_FIELD_NAME);
+			$out.0.httpRequestUrl = concat(
+				base_api_url,
+				FROM_OBJECT_TYPE,"/",
+				from_object_id,"/",
+				"associations/",
+				TO_OBJECT_TYPE,"/"
+			);
+			break;
+		case "Remove":
+			from_object_id = getStringValue($in.0,FROM_OBJECT_ID_FIELD_NAME);
+			to_object_id = getStringValue($in.0,TO_OBJECT_ID_FIELD_NAME);
+			$out.0.httpRequestUrl = concat(
+				base_api_url,
+				FROM_OBJECT_TYPE,"/",
+				from_object_id,"/",
+				"associations/",
+				TO_OBJECT_TYPE,"/",
+				to_object_id,"/",
+				ASSOCIATION_TYPE
+			);
+			break;
+	}
+	
+	$out.0.object_id = from_object_id;
+	
+	return ALL;
+}]]></attr>
+</Node>
+<Node guiName="Raise error or send to port" guiX="794" guiY="170" id="RAISE_ERROR_OR_SEND_TO_PORT" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	if(not $in.0.is_error){
+		return SKIP;
+	}
+	
+	if(isSubgraphOutputPortConnected(1)){
+		$out.0.status_code = $in.0.httpResponseStatusCode;
+		$out.0.response_body = $in.0.httpResponseBody;
+		$out.0.error_message = $in.0.httpResponseErrorMessage;
+		$out.0.object_id = $in.0.object_id;
+		$out.0.request_id = $in.0.request_id;
+		$out.0.is_error = $in.0.is_error;
+		return 0;
+	}	
+	raiseError( "HubSpot API call failed. \n Status: " + num2str($in.0.httpResponseStatusCode)
+		+ "\n Error message: " +$in.0.httpResponseErrorMessage
+		+ "\n Response body: " +$in.0.httpResponseBody
+	);
+}
+
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="134" guiY="-392" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1224" guiY="-392" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+<Port guiY="257" name="2"/>
+</Node>
+<Edge fromNode="CALL_HUB_SPOT_API:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="EXTRACT_PAGING:0"/>
+<Edge fromNode="DATA_GENERATOR0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SUBGRAPH_INPUT0:0"/>
+<Edge fromNode="EXTRACT_PAGING:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 1 (back from loop)" outPort="Port 0 (out)" toNode="LOOP:1"/>
+<Edge fromNode="EXTRACT_PAGING:1" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 1 (out)" toNode="PARSE_TO_RECORDS:0"/>
+<Edge fromNode="LOOP:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" outPort="Port 0 (end of loop)" toNode="RAISE_ERROR_OR_SEND_TO_PORT:0"/>
+<Edge fromNode="LOOP:1" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 1 (continue loop)" toNode="CALL_HUB_SPOT_API:0"/>
+<Edge fromNode="PARSE_TO_RECORDS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="PREPARE_URL:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (input token)" outPort="Port 0 (out)" toNode="LOOP:0"/>
+<Edge fromNode="RAISE_ERROR_OR_SEND_TO_PORT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 1 (in)" metadata="Metadata5" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:1"/>
+<Edge fromNode="SUBGRAPH_INPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="PREPARE_URL:0"/>
+</Phase>
+</Graph>

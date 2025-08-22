@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GraphParameters>
+<GraphParameter category="advanced" label="CloverDX Server URL" name="CLOVERDX_SERVER" public="true" required="false" secure="false" value="http://localhost:8080/clover">
+<attr name="description"><![CDATA[URL of the CloverDX Server running the target Data Manager instance.]]></attr>
+</GraphParameter>
+<GraphParameter category="advanced" label="CloverDX Server user" name="CLOVERDX_USER" public="true" required="false" secure="false" value="clover">
+<attr name="description"><![CDATA[User name to access the CloverDX Server running the target Data Manager instance.]]></attr>
+</GraphParameter>
+<GraphParameter category="advanced" label="CloverDX Server pass" name="CLOVERDX_PASS" public="true" required="false" secure="true" value="enc#Mse8Q/UyHWPAe0hplQJCss5eC64E9jhE/LQjH0CTVmBf6GwTSxxnIKPapajL6oF4">
+<attr name="description"><![CDATA[Password to access the CloverDX Server running the target Data Manager instance.]]></attr>
+</GraphParameter>
+<GraphParameter category="advanced" label="Data Analitics Library (optional dependency)" name="DATA_ANALYTICS_BUNDLE_LIB" public="true" required="false" secure="false" value="sandbox://DataAnalyticsBundleLib_1.1.2">
+<attr name="description"><![CDATA[To use enable aditional functionality set URL to the Data Analytics Library .]]></attr>
+<SingleType multiple="false" name="file" selectionMode="directory_only"/>
+</GraphParameter>
+</GraphParameters>

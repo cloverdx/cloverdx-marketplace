@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GraphParameters>
+<GraphParameter label="Project ID" name="_PROJECT__ID" public="true" required="true">
+<attr name="description"><![CDATA[The ID of the Google Cloud project that owns the dataset. Required]]></attr>
+</GraphParameter>
+<GraphParameter label="Dataset Name" name="_DATASET__NAME" public="true" required="true">
+<attr name="description"><![CDATA[Name of the dataset where the table is]]></attr>
+</GraphParameter>
+<GraphParameter label="Path to JSON credentials" name="_PATH__TO__CREDENTIALS" public="true" required="true">
+<attr name="description"><![CDATA[Path to the JSON file that contains your service account key.]]></attr>
+<SingleType multiple="true" name="file" selectionMode="file_or_directory"/>
+</GraphParameter>
+</GraphParameters>

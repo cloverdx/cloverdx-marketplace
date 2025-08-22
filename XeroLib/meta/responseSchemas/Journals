@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="json_object" type="json_objectType"/>
+  <xs:complexType name="JournalLinesType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="JournalLineID"/>
+      <xs:element type="xs:string" name="AccountID"/>
+      <xs:element type="xs:string" name="AccountCode"/>
+      <xs:element type="xs:string" name="AccountType"/>
+      <xs:element type="xs:string" name="AccountName"/>
+      <xs:element type="xs:string" name="Description"/>
+      <xs:element type="xs:string" name="NetAmount"/>
+      <xs:element type="xs:string" name="GrossAmount"/>
+      <xs:element type="xs:string" name="TaxAmount"/>
+      <xs:element type="xs:string" name="TaxType" minOccurs="0"/>
+      <xs:element type="xs:string" name="TaxName" minOccurs="0"/>
+      <xs:element type="TrackingCategoriesType" name="TrackingCategories" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="arrayElem" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="JournalsType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="JournalID"/>
+      <xs:element type="xs:string" name="JournalDate"/>
+      <xs:element type="xs:string" name="JournalNumber"/>
+      <xs:element type="xs:string" name="CreatedDateUTC"/>
+      <xs:element type="xs:string" name="Reference" minOccurs="0"/>
+      <xs:element type="xs:string" name="SourceID" minOccurs="0"/>
+      <xs:element type="xs:string" name="SourceType" minOccurs="0"/>
+      <xs:element type="JournalLinesType" name="JournalLines" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="arrayElem" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="TrackingCategoriesType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="Name"/>
+      <xs:element type="xs:string" name="Option"/>
+      <xs:element type="xs:string" name="TrackingCategoryID"/>
+      <xs:element type="xs:string" name="TrackingOptionID"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="arrayElem" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="json_objectType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="Id"/>
+      <xs:element type="xs:string" name="Status"/>
+      <xs:element type="xs:string" name="ProviderName"/>
+      <xs:element type="xs:string" name="DateTimeUTC"/>
+      <xs:element type="JournalsType" name="Journals" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

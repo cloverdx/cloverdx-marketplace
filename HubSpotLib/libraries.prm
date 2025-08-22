@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GraphParameters>
+<GraphParameter name="DATA_ANALYTICS_BUNDLE_LIB" value="sandbox://DataAnalyticsBundleLib_1.1.1"/>
+<GraphParameter name="HUB_SPOT_CRM_API_LIB" value="sandbox://HubSpotCrmApiLib_1.2"/>
+</GraphParameters>

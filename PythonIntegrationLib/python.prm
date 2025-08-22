@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GraphParameters>
+<GraphParameter category="advanced" label="Python interpreter URL" name="PYTHON_INTERPRETER_URL" public="true">
+<SingleType name="string"/>
+</GraphParameter>
+</GraphParameters>

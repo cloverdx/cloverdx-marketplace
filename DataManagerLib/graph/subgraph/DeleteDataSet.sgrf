@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="others" created="Thu Jun 06 11:02:54 CEST 2024" description="Delete data set based on its code." guiVersion="7.0.0.15" id="1717720911726" largeIconPath="${PROJECT}/icons/DeleteDataSet64.png" licenseCode="Unlicensed" mediumIconPath="${PROJECT}/icons/DeleteDataSet48.png" name="DeleteDataSet" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/DeleteDataSet16.png">
+<Global>
+<inputPorts>
+<singlePort connected="false" name="0"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="false" keepEdge="true" name="0" required="false"/>
+<singlePort connected="false" keepEdge="false" name="1" required="false"/>
+</outputPorts>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="DataSetCode" recordDelimiter="\r\n" type="delimited">
+<Field name="dataSetCode" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata3">
+<Record fieldDelimiter="|" name="DeleteDataSetErrorOutput" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="dataSetCode" type="string"/>
+<Field name="errorMessage" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="DeletedDataSet" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="dataSetCode" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="DeleteResponse" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="dataSetCode" type="string"/>
+<Field name="content" type="string"/>
+<Field name="statusCode" trim="true" type="integer"/>
+<Field name="errorMessage" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter label="Input mapping" name="INPUT_MAPPING" public="true" required="true">
+<ComponentReference referencedComponent="MAP1" referencedProperty="transform"/>
+</GraphParameter>
+<GraphParameter category="basic" label="Ignore missing data sets" name="IGNORE_MISSING" public="true" required="false" value="false">
+<SingleType name="bool"/>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+<GraphParameterFile fileURL="data-manager-api.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="DELETE data-sets/&lt;code&gt;" guiX="620" guiY="125" id="DELETE_DATA_SETS_CODE" password="${CLOVERDX_PASS}" requestMethod="DELETE" type="HTTP_CONNECTOR" url="${API_URL}/data-sets/*{dataSetCode}" username="${CLOVERDX_USER}">
+<attr name="errorOutputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.1.errorMessage = $in.1.errorMessage;
+	$out.1.dataSetCode = $in.0.dataSetCode;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+<attr name="standardOutputMapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.* = $in.1.*;
+	$out.0.dataSetCode = $in.0.dataSetCode;
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node enabled="enableWhenOutputPort1IsDisconnected" guiName="Fail" guiX="1620" guiY="475" id="FAIL" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = "Error occured during deleting Data Source. Data Source Code: "+$in.0.dataSetCode+", error message: "+$in.0.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Format error" guiX="1195" guiY="300" id="FORMAT_ERROR" type="REFORMAT">
+<attr name="transform"><![CDATA[
+function integer transform() {
+	$out.0.errorMessage = $in.0.errorMessage + "\n" + $in.0.content;
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="Map" guiX="1195" guiY="125" id="MAP" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.* = $in.0.*;
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="Map" guiX="370" guiY="125" id="MAP1" type="REFORMAT">
+<attr name="transform"><![CDATA[${INPUT_MAPPING}]]></attr>
+</Node>
+<Node guiName="SimpleGather" guiX="1420" guiY="375" id="SIMPLE_GATHER" type="SIMPLE_GATHER"/>
+<Node guiName="SubgraphInput" guiX="245" guiY="22" id="SUBGRAPH_INPUT" type="SUBGRAPH_INPUT">
+<Port guiY="142" name="0"/>
+<Port guiY="317" name="1"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1820" guiY="25" id="SUBGRAPH_OUTPUT" type="SUBGRAPH_OUTPUT">
+<Port guiY="142" name="0"/>
+<Port guiY="242" name="1"/>
+<Port guiY="392" name="2"/>
+</Node>
+<Node guiName="Success?" guiX="945" guiY="125" id="SUCCESS" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.statusCode == 204 ||
+(${IGNORE_MISSING} == true && $in.0.statusCode == 404) // If data set is missing and "ignore missing" is enabled, continue]]></attr>
+</Node>
+<Edge fromNode="DELETE_DATA_SETS_CODE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SUCCESS:0"/>
+<Edge fromNode="DELETE_DATA_SETS_CODE:1" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 1 (in)" metadata="Metadata3" outPort="Port 1 (out)" toNode="SIMPLE_GATHER:1"/>
+<Edge fromNode="FORMAT_ERROR:0" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SIMPLE_GATHER:0"/>
+<Edge fromNode="MAP:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:0"/>
+<Edge fromNode="MAP1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="DELETE_DATA_SETS_CODE:0"/>
+<Edge fromNode="SIMPLE_GATHER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:1"/>
+<Edge fromNode="SIMPLE_GATHER:1" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="FAIL:0"/>
+<Edge fromNode="SUBGRAPH_INPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="MAP1:0"/>
+<Edge fromNode="SUCCESS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" outPort="Port 0 (accepted)" toNode="MAP:0"/>
+<Edge fromNode="SUCCESS:1" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" outPort="Port 1 (rejected)" toNode="FORMAT_ERROR:0"/>
+</Phase>
+</Graph>

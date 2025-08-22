@@ -1,0 +1,656 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="readers" created="Thu Feb 22 17:36:43 CET 2024" description="Subgraph using Salesforce bulk API with oauth2 connection to read data from Salesforce" guiVersion="7.0.0.15" id="1708621882970" largeIconPath="${PROJECT}/icons/sf64.png" licenseCode="CLCDSCLOVE72646208SP" mediumIconPath="${PROJECT}/icons/sf32.png" name="SalesforceBulkAPIReader" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/sf16.png">
+<Global>
+<inputPorts>
+<singlePort connected="true" keepEdge="true" name="0" required="false"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="true" name="0"/>
+<singlePort connected="false" keepEdge="true" name="1" required="false"/>
+</outputPorts>
+<Metadata fileURL="${META_DIR}/errorOutput.fmt" id="Metadata1"/>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="idState" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="id" type="string"/>
+<Field name="state" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="query" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="query" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata4">
+<Record fieldDelimiter="|" name="queryJson" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="queryJson" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata3">
+<Record fieldDelimiter="|" name="sforce" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="Sforce_Locator" type="string"/>
+<Field name="id" type="string"/>
+</Record>
+</Metadata>
+<Connection config="${CONNECTION}" id="OAuth2Connection0" type="OAUTH2"/>
+<GraphParameters>
+<GraphParameter name="QUERY_URL">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+function string getValue() {
+	//https://xxxx.develop.my.salesforce.com/services/data/v60.0/jobs/query
+	
+	return replace('${URL}' + '/services/data/' + '${API_VERSION}' + '/jobs/query/','//services','/services');
+}
+]]></attr>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+<GraphParameter label="Salesforce query" name="QUERY" public="true">
+<attr name="description"><![CDATA[Allows users to specify a query if not provided via the input edge. ]]></attr>
+</GraphParameter>
+<GraphParameter label="Metadata mapping" name="METADATA" public="true" value="COLUMN_ORDER">
+<attr name="description"><![CDATA[Defines how the output is mapped]]></attr>
+<SingleType allowCustomValues="false" name="simpleEnum" values="COLUMN_ORDER|Map by Position;COLUMN_NAME_ORDER|Map by Column Names"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="Max records per API call" name="PAGESIZE" public="true">
+<attr name="description"><![CDATA[Defines the maximum number of records returned per API call to optimize performance.]]></attr>
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter label="Operation" name="OPERATION" public="true" value="query">
+<attr name="description"><![CDATA[Specifies whether the reader should perform a query or queryAll operation (the latter also returns softly deleted records).]]></attr>
+<SingleType allowCustomValues="false" name="simpleEnum" values="query;queryAll"/>
+</GraphParameter>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="Build Request" guiX="495" guiY="275" id="BUILD_REQUEST1" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+
+ 
+    variant queryTemplate = {"operation"->'${OPERATION}',"query"->$in.0.query};
+
+	$out.0.queryJson = writeJson(queryTemplate);
+
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="Combine" guiX="270" guiY="275" id="COMBINE" incompleteTuples="true" type="COMBINE">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	if (substring(lowerCase('${URL}'),0,6) != 'https:')
+    {
+  		$out.1.errorMessage = "Salesforce API URL must start with https:.";
+		return 1;  
+    }	
+
+	if (isEmpty($in.0.query) and isEmpty($in.1.query)) 
+	{
+		
+		$out.1.errorMessage = "Input Query and Query parameters are empty.";
+		return 1;
+	}
+	else
+	{
+		$out.0.query = nvl($in.1.query,$in.0.query);
+	
+		return 0;
+	} 
+	
+		 
+}
+
+]]></attr>
+</Node>
+<Node addInputFieldsAsParameters="false" guiName="Create Query" guiX="720" guiY="275" id="CREATE_QUERY1" oAuth2Connection="OAuth2Connection0" requestMethod="POST" type="HTTP_CONNECTOR">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+		$out.0.requestContent = $in.0.queryJson;
+        $out.0.URL = '${QUERY_URL}';
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+<attr name="headerProperties"><![CDATA[Content-Type=application/json
+]]></attr>
+</Node>
+<Node debugInput="true" guiName="DebugInput" guiX="-230" guiY="275" id="DEBUG_INPUT" recordsNumber="1" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+$out.0.usperJson = 'SELECT Username,Email FROM User';
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the generate. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if generate() throws an exception.
+// function integer generateOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Extract State" guiX="2620" guiY="300" id="EXTRACT_STATE" sourceUri="port:$0.content:discrete" type="JSON_EXTRACT">
+<attr name="mapping"><![CDATA[<Mappings>
+	<Mapping element="json_object" outPort="0">
+	</Mapping>
+</Mappings>]]></attr>
+</Node>
+<Node guiName="Get Request ID" guiX="1270" guiY="50" id="GET_REQUEST_ID1" sourceUri="port:$0.content:discrete" type="JSON_EXTRACT">
+<attr name="mapping"><![CDATA[<Mappings>
+	<Mapping element="json_object" outPort="0">
+	</Mapping>
+</Mappings>
+]]></attr>
+</Node>
+<Node guiName="init Status" guiX="2445" guiY="50" id="INIT_STATUS" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.id = $in.0.id;
+	$out.0.Sforce_Locator = 'init';
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="In Progress Status" guiX="1520" guiY="50" id="IN_PROGRESS_STATUS" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.id = $in.0.id;
+	$out.0.state = 'InProgress';
+	return ALL;
+}
+
+]]></attr>
+</Node>
+<Node guiName="Loop" guiX="1820" guiY="50" id="LOOP1" type="LOOP">
+<attr name="whileCondition"><![CDATA[//#CTL2
+$in.0.state != "JobComplete"]]></attr>
+</Node>
+<Node addInputFieldsAsParameters="false" guiName="QueryJobStatus" guiX="2070" guiY="300" id="QUERY_JOB_STATUS1" oAuth2Connection="OAuth2Connection0" requestMethod="GET" type="HTTP_CONNECTOR">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+   $out.0.URL = '${QUERY_URL}' + $in.0.id;
+
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+<attr name="headerProperties"><![CDATA[Content-Type=application/json
+]]></attr>
+</Node>
+<Node guiName="Read Query Parameter" guiX="45" guiY="133" id="READ_QUERY_PARAMETER" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+	$out.0.query = getParamValue('QUERY');
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the generate. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if generate() throws an exception.
+// function integer generateOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node delay="1000" guiName="Sleep" guiX="2845" guiY="300" id="SLEEP" type="SLEEP"/>
+<Node guiName="Status 200?" guiX="2345" guiY="300" id="STATUS_1" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.statusCode == 200]]></attr>
+</Node>
+<Node guiName="Status 200?" guiX="920" guiY="275" id="STATUS_200" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.statusCode == 200]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="-5" guiY="22" id="SUBGRAPH_INPUT" type="SUBGRAPH_INPUT">
+<Port guiY="178" name="0"/>
+<Port guiY="232" name="1"/>
+</Node>
+<Edge fromNode="BUILD_REQUEST1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata4" outPort="Port 0 (out)" toNode="CREATE_QUERY1:0"/>
+<Edge fromNode="COMBINE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge35" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="BUILD_REQUEST1:0"/>
+<Edge fromNode="COMBINE:1" guiBendpoints="" guiRouter="Manhattan" id="Edge36" inPort="Port 2 (in)" metadata="Metadata1" outPort="Port 1 (out)" toNode="SIMPLE_GATHER2:2"/>
+<Edge fromNode="CREATE_QUERY1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="STATUS_200:0"/>
+<Edge fromNode="CREATE_QUERY1:1" guiBendpoints="" guiRouter="Manhattan" id="Edge20" inPort="Port 2 (in)" outPort="Port 1 (out)" toNode="SIMPLE_GATHER1:2"/>
+<Edge fromNode="DEBUG_INPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SUBGRAPH_INPUT:0"/>
+<Edge fromNode="EXTRACT_STATE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge15" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SLEEP:0"/>
+<Edge fromNode="GET_REQUEST_ID1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="IN_PROGRESS_STATUS:0"/>
+<Edge fromNode="INIT_STATUS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge25" inPort="Port 0 (input token)" metadata="Metadata3" outPort="Port 0 (out)" toNode="LOOP:0"/>
+<Edge fromNode="IN_PROGRESS_STATUS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (input token)" metadata="Metadata2" outPort="Port 0 (out)" toNode="LOOP1:0"/>
+<Edge fromNode="LOOP1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge18" inPort="Port 0 (in)" outPort="Port 0 (end of loop)" toNode="INIT_STATUS:0"/>
+<Edge fromNode="LOOP1:1" guiBendpoints="" guiRouter="Manhattan" id="Edge16" inPort="Port 0 (in)" outPort="Port 1 (continue loop)" toNode="QUERY_JOB_STATUS1:0"/>
+<Edge fromNode="QUERY_JOB_STATUS1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge17" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="STATUS_1:0"/>
+<Edge fromNode="QUERY_JOB_STATUS1:1" guiBendpoints="" guiRouter="Manhattan" id="Edge14" inPort="Port 1 (in)" outPort="Port 1 (out)" toNode="SIMPLE_GATHER1:1"/>
+<Edge fromNode="READ_QUERY_PARAMETER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge34" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="COMBINE:0"/>
+<Edge fromNode="SLEEP:0" guiBendpoints="2375:173|2375:126|1399:126|1399:70" guiLocks="2375|1399|126" guiRouter="Manual" id="Edge19" inPort="Port 1 (back from loop)" outPort="Port 0 (out)" toNode="LOOP1:1"/>
+<Edge fromNode="STATUS_1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 0 (input)" outPort="Port 0 (accepted)" toNode="EXTRACT_STATE:0"/>
+<Edge fromNode="STATUS_1:1" guiBendpoints="" guiRouter="Manhattan" id="Edge13" inPort="Port 1 (in)" outPort="Port 1 (rejected)" toNode="SIMPLE_GATHER:1"/>
+<Edge fromNode="STATUS_200:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (input)" outPort="Port 0 (accepted)" toNode="GET_REQUEST_ID1:0"/>
+<Edge fromNode="STATUS_200:1" guiBendpoints="900:178|900:441" guiLocks="900|null|null" guiRouter="Manual" id="Edge5" inPort="Port 2 (in)" outPort="Port 1 (rejected)" toNode="SIMPLE_GATHER:2"/>
+<Edge fromNode="SUBGRAPH_INPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 1 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="COMBINE:1"/>
+</Phase>
+<Phase number="1">
+<Node debugOutput="true" guiName="DebugOutput" guiX="4895" guiY="225" id="DEBUG_OUTPUT" type="TRASH"/>
+<Node guiName="Errror Message" guiX="4270" guiY="625" id="ERRROR_MESSAGE" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = $in.0.errorMessage;
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="Errror Message" guiX="4270" guiY="800" id="ERRROR_MESSAGE1" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.content = $in.0.content;
+	$out.0.statusCode = $in.0.statusCode;
+	$out.0.errorMessage = $in.0.errorMessage;
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="Status 200?" guiX="3620" guiY="250" id="FILTER_1" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.statusCode == 200]]></attr>
+</Node>
+<Node guiName="Loop" guiX="3070" guiY="50" id="LOOP" type="LOOP">
+<attr name="whileCondition"><![CDATA[//#CTL2
+$in.0.Sforce_Locator != 'null']]></attr>
+</Node>
+<Node guiName="Map Next Page" guiX="4145" guiY="400" id="MAP_NEXT_PAGE" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.Sforce_Locator = $in.0.header['Sforce-Locator'];
+	$out.0.id = $in.0.outputFilePath;
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Prepare Output" guiX="4395" guiY="250" id="PREPARE_OUTPUT" type="NORMALIZER">
+<attr name="normalize"><![CDATA[//#CTL2
+// This transformation defines the way in which a single input record is normalized
+// into multiple output records.
+string [] rows;
+string [] FirstRow;
+map [integer, integer] fieldsMapping;
+boolean fm = true;
+// This function is called for all input records.
+// It parses each single input record and returns the number of records
+// that should be created from such input record.
+function integer count() {
+	rows = split($in.0.content,'\n');
+    FirstRow = split(rows[0],',');		
+	
+	return length(rows) - 1;
+	
+}
+
+// This function creates new records for the output, based on single input record
+// that has been parsed by the count() function.
+// It is called count() times for each input record.
+// The idx argument specifies which output record is being created,
+// its values range is from 0 to count() - 1.
+function integer transform(integer idx) {
+	
+	string [] row = split(rows[idx + 1],',');
+	string field_type;
+	string field_name;	
+	string value;
+	
+	
+	if (fm and  getParamValue("METADATA") == "COLUMN_NAME_ORDER")
+	{
+		fm = false;
+		for (integer a = 0; a<length(FirstRow);a++) 
+		{
+			for (integer y = 0; y < length($out.0);y++)
+			{
+				if (lowerCase(getFieldName($out.0,y)) == lowerCase(chop(FirstRow [a],'"')))
+				{
+					fieldsMapping[y] = a;
+				
+				}
+			} 
+		
+		 }
+	}
+	
+	//map by order  
+    for (integer i = 0; i<length($out.0);i++){
+   	    field_type = getFieldType($out.0,i);
+   	    field_name = getFieldName($out.0,i);
+ 	    
+ 	    if (getParamValue("METADATA") == "COLUMN_NAME_ORDER")
+ 	    {
+ 	     	try {
+ 	     		value = chop(row [fieldsMapping[i]], '"'); 
+ 	     	
+ 	     	}catch(CTLException ex){	
+ 	     		continue;	
+ 	     	}		
+ 	    }
+ 	    else 
+ 	    {
+ 	    	if (length(row) > i)
+ 	    	{
+ 	    		value = chop(row [i], '"');
+ 	    	}
+ 	    	else
+ 	    	{
+ 	    		break;
+ 	    	} 
+ 	    
+ 	    }
+ 	     	
+ 	try{
+		switch(field_type){
+			case "string":
+				setStringValue($out.0,i,value);
+				break;
+			case "date":
+				setDateValue(
+					$out.0,
+					i,
+					isBlank(value)?null:str2date(value,"iso-8601:dateTime")
+				);
+				break;
+			case "long":
+				long long_value;
+				try{
+					 long_value = isBlank(value)?null:str2long(chop_fractional_part_from_decimal_if_zero(value));
+				}catch(CTLException ex){
+					printLog(error, ex);
+					raiseError(parsing_error(value,field_name,field_type,ex));
+				}
+				setLongValue(
+					$out.0,
+					i,
+					long_value
+				);
+				break;
+			case "integer":
+				integer integer_value;
+				try{
+					integer_value = isBlank(value)?null:str2integer(chop_fractional_part_from_decimal_if_zero(value));
+				}catch(CTLException ex){
+					printLog(error, ex);
+					raiseError(parsing_error(value,field_name,field_type,ex));
+				}
+				setIntValue(
+					$out.0,
+					i,
+					integer_value
+				);
+				break;
+			case "decimal":
+				decimal decimal_value;
+				try{
+					decimal_value = isBlank(value)?null:str2decimal(value);
+				}catch(CTLException ex){
+					printLog(error, ex);	
+					raiseError(parsing_error(value,field_name,field_type,ex));		
+				}
+				setDecimalValue(
+					$out.0,
+					i,
+					decimal_value
+				);
+				break;
+			case "number":
+				double double_value;
+				try{
+					double_value = isBlank(value)?null:str2double(value);
+				}catch(CTLException ex){
+					printLog(error, ex);
+					raiseError(parsing_error(value,field_name,field_type,ex));
+				}
+				setNumValue(
+					$out.0,
+					i,
+					double_value
+				);
+				break;
+			case "boolean":
+				boolean boolean_value;
+				try{
+					 boolean_value = isBlank(value)?null:str2bool(lowerCase(value));
+				}catch(CTLException ex){
+					printLog(error, ex);
+					raiseError(parsing_error(value,field_name,field_type,ex));
+				}
+				setBoolValue(
+					$out.0,
+					i,
+					boolean_value
+				);
+				break;
+			default:
+				raiseError("[Not implemented] Conversion for field " + field_name + " of type " +  field_type + " not implemented");
+		}
+	 }
+		catch(CTLException ex){
+			printLog(error, ex);
+			raiseError(parsing_error(value,field_name,field_type,ex));
+ 	 }	
+		
+ 	}
+    		   	
+ 
+	    
+	return OK;
+}
+
+function string chop_fractional_part_from_decimal_if_zero(string input){
+			if(matches(input,'\d*\.0*')){
+				return chop(input,'\.0*');
+			}else{
+				return input;
+			}
+		}  
+
+function string parsing_error(string field_value, string field_name, string field_type, CTLException exception){
+    return concat(
+        "[Parsing error] Error parsing value of field ",
+        field_name,
+        " with value ",
+        field_value,
+        " to type ",
+        field_type,
+        " . Cause: ",
+        exception.cause,
+        " Error message : ",
+        exception.message
+    );
+}
+]]></attr>
+</Node>
+<Node addInputFieldsAsParameters="false" guiName="Query Result" guiX="3345" guiY="250" id="QUERY_RESULT" oAuth2Connection="OAuth2Connection0" requestMethod="GET" type="HTTP_CONNECTOR">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+    if ($in.0.Sforce_Locator == 'init')
+    {
+   		if (isEmpty(getParamValue("PAGESIZE"))) {
+   			$out.0.URL = '${QUERY_URL}' + $in.0.id + '/results';
+   		}
+   		else
+   		{
+   			$out.0.URL = '${QUERY_URL}' + $in.0.id + '/results?maxRecords=${PAGESIZE}';
+   		}	
+    }
+    else
+    {
+     	$out.0.URL = '${QUERY_URL}' + $in.0.id  + '/results?locator='+ $in.0.Sforce_Locator + '&maxRecords=${PAGESIZE}';
+   
+    }
+   
+	return ALL;
+}
+
+]]></attr>
+<attr name="standardOutputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.outputFilePath = $in.0.id;
+	$out.0.content = $in.1.content;
+	$out.0.contentByte = $in.1.contentByte;
+	$out.0.statusCode = $in.1.statusCode;
+	$out.0.header = $in.1.header;
+	$out.0.rawHeaders = $in.1.rawHeaders;
+	$out.0.errorMessage = $in.1.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+<attr name="headerProperties"><![CDATA[Content-Type=application/json
+]]></attr>
+</Node>
+<Node guiName="SimpleCopy" guiX="3870" guiY="250" id="SIMPLE_COPY" type="SIMPLE_COPY"/>
+<Node guiName="SimpleGather" guiX="3845" guiY="800" id="SIMPLE_GATHER" type="SIMPLE_GATHER"/>
+<Node guiName="SimpleGather" guiX="3845" guiY="625" id="SIMPLE_GATHER1" type="SIMPLE_GATHER"/>
+<Node guiName="SimpleGather" guiX="4545" guiY="675" id="SIMPLE_GATHER2" type="SIMPLE_GATHER"/>
+<Node guiName="SubgraphOutput" guiX="4795" guiY="22" id="SUBGRAPH_OUTPUT" type="SUBGRAPH_OUTPUT">
+<Port guiY="149" name="0"/>
+<Port guiY="372" name="1"/>
+<Port guiY="426" name="2"/>
+</Node>
+<Node guiName="Success" guiX="3620" guiY="50" id="SUCCESS" type="SUCCESS"/>
+<Edge fromNode="ERRROR_MESSAGE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge33" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SIMPLE_GATHER2:0"/>
+<Edge fromNode="ERRROR_MESSAGE1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 1 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="SIMPLE_GATHER2:1"/>
+<Edge fromNode="FILTER_1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge22" inPort="Port 0 (in)" outPort="Port 0 (accepted)" toNode="SIMPLE_COPY:0"/>
+<Edge fromNode="FILTER_1:1" guiBendpoints="" guiRouter="Manhattan" id="Edge23" inPort="Port 0 (in)" outPort="Port 1 (rejected)" toNode="SIMPLE_GATHER:0"/>
+<Edge fromNode="LOOP:0" guiBendpoints="" guiRouter="Manhattan" id="Edge30" inPort="Port 0 (in)" outPort="Port 0 (end of loop)" toNode="SUCCESS:0"/>
+<Edge fromNode="LOOP:1" guiBendpoints="" guiRouter="Manhattan" id="Edge26" inPort="Port 0 (in)" outPort="Port 1 (continue loop)" toNode="QUERY_RESULT:0"/>
+<Edge fromNode="MAP_NEXT_PAGE:0" guiBendpoints="3396:151|3396:236|2386:236|2386:70" guiLocks="3396|2386|236" guiRouter="Manhattan" id="Edge29" inPort="Port 1 (back from loop)" metadata="Metadata3" outPort="Port 0 (out)" toNode="LOOP:1"/>
+<Edge fromNode="PREPARE_OUTPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge24" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:0"/>
+<Edge fromNode="QUERY_RESULT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge21" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="FILTER_1:0"/>
+<Edge fromNode="QUERY_RESULT:1" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="SIMPLE_GATHER1:0"/>
+<Edge fromNode="SIMPLE_COPY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge27" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="PREPARE_OUTPUT:0"/>
+<Edge fromNode="SIMPLE_COPY:1" guiBendpoints="" guiRouter="Manhattan" id="Edge28" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="MAP_NEXT_PAGE:0"/>
+<Edge fromNode="SIMPLE_GATHER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="ERRROR_MESSAGE1:0"/>
+<Edge fromNode="SIMPLE_GATHER1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge31" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="ERRROR_MESSAGE:0"/>
+<Edge fromNode="SIMPLE_GATHER2:0" guiBendpoints="" guiRouter="Manhattan" id="Edge32" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:1"/>
+<Edge fromNode="SUBGRAPH_OUTPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="DEBUG_OUTPUT:0"/>
+</Phase>
+</Graph>

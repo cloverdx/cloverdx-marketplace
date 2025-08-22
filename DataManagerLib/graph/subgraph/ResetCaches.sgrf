@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="MartinTomaschek" category="others" created="Tue Dec 10 10:29:48 CET 2024" description="Clear content of sandbox-based lookups' cache used for Data Manager. If you use lookups backed by Reference Data Sets you do not need to use this API.&#13;&#10;&#13;&#10;&#13;&#10;" guiVersion="7.1.0.8" id="1734009297977" largeIconPath="${PROJECT}/icons/ResetCaches64.png" licenseCode="CLCDSCLOVE24765514SP" mediumIconPath="${PROJECT}/icons/ResetCaches32.png" name="ResetCaches" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/ResetCaches16.png">
+<Global>
+<inputPorts>
+<singlePort connected="false" keepEdge="false" name="0" required="false"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="false" keepEdge="true" name="0" required="false"/>
+<singlePort connected="false" keepEdge="true" name="1" required="false"/>
+</outputPorts>
+<Metadata fileURL="${META_DIR}/ErrorOutput.fmt" id="Metadata2"/>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="Success" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="message" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="server-api.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="DAD8C9" folded="false" fontSize="medium" height="101" id="Note0" textColor="444444" width="625" x="450" y="-50">
+<attr name="text"><![CDATA[h3. Reset (reload) data manager lookups
+
+Clear content of sandbox-based lookups' cache used for Data Manager. If you use lookups backed by Reference Data Sets you do not need to use this API.]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node enabled="enableWhenOutputPort1IsDisconnected" guiName="Fail" guiX="1395" guiY="300" id="FAIL" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = $in.0.errorMessage;
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="POST &lt;server API&gt;/server/caches/lookup/reset" guiX="445" guiY="100" id="HTTPCONNECTOR" password="${CLOVERDX_PASS}" requestMethod="POST" type="HTTP_CONNECTOR" url="${API_URL}/server/caches/lookup/reset" username="${CLOVERDX_USER}">
+<attr name="headerProperties"><![CDATA[X-Requested-By=DataManagerLib
+]]></attr>
+</Node>
+<Node guiName="Map error" guiX="1045" guiY="150" id="MAP_ERROR" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+import "${TRANS_DIR}/ApiFailReporter.ctl";
+// Transforms input record into output record.
+function integer transform() {
+	mapErrorMessage();
+	return ALL;
+}]]></attr>
+</Node>
+<Node guiName="Map to sucess" guiX="1220" guiY="100" id="MAP_TO_SUCESS" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.message = "Cache cleared";
+	return ALL;
+}]]></attr>
+</Node>
+<Node guiName="SimpleGather" guiX="1220" guiY="250" id="SIMPLE_GATHER" type="SIMPLE_GATHER"/>
+<Node guiName="Status?" guiX="870" guiY="100" id="STATUS1" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.statusCode == 200]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="370" guiY="-34" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1570" guiY="-33" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="267" name="1"/>
+<Port guiY="392" name="2"/>
+</Node>
+<Edge fromNode="HTTPCONNECTOR:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="STATUS1:0"/>
+<Edge fromNode="HTTPCONNECTOR:1" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 1 (in)" outPort="Port 1 (out)" toNode="SIMPLE_GATHER:1"/>
+<Edge fromNode="MAP_ERROR:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SIMPLE_GATHER:0"/>
+<Edge fromNode="MAP_TO_SUCESS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge14" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="SIMPLE_GATHER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 1 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:1"/>
+<Edge fromNode="SIMPLE_GATHER:1" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="FAIL:0"/>
+<Edge fromNode="STATUS1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" outPort="Port 0 (accepted)" toNode="MAP_TO_SUCESS:0"/>
+<Edge fromNode="STATUS1:1" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" outPort="Port 1 (rejected)" toNode="MAP_ERROR:0"/>
+<Edge fromNode="SUBGRAPH_INPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="HTTPCONNECTOR:0"/>
+</Phase>
+</Graph>

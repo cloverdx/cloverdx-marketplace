@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Petr Frano" created="Thu Apr 24 11:17:27 CEST 2025" guiVersion="7.0.0.15" id="1745496873515" licenseCode="CLCDSCLOVE72646208SP" name="userHealthCheck" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="countr" recordDelimiter="\r\n" type="delimited">
+<Field name="count" type="integer"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="userID" recordDelimiter="\r\n" type="delimited">
+<Field name="id" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter name="DUMMY" value="DUMMY"/>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="Combine" guiX="845" guiY="150" id="COMBINE" incompleteTuples="true" type="COMBINE">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.id = nvl($in.1.id, $in.0.id);
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="DUMMY generator" guiX="470" guiY="100" id="DUMMY_GENERATOR" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+	$out.0.id = '${DUMMY}';
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the generate. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if generate() throws an exception.
+// function integer generateOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Fail" guiX="1270" guiY="350" id="FAIL" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = $in.0.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node errorMessage="Salesforce returned no rows." guiName="Fail" guiX="1270" guiY="225" id="FAIL1" type="FAIL"/>
+<Node guiName="Filter Dummy" guiX="1045" guiY="150" id="FILTER_DUMMY" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.id != '${DUMMY}']]></attr>
+</Node>
+<Node __API_VERSION="${API_VERSION}" __CONNECTION="${CONNECTION}" __QUERY="SELECT id FROM USER limit 1" __URL="${URL}" guiName="Read user id" guiX="470" guiY="225" id="READ_USER_ID" jobURL="${SUBGRAPH_DIR}/SalesforceBulkAPIReader.sgrf" type="SUBGRAPH"/>
+<Node guiName="Success" guiX="1270" guiY="100" id="SUCCESS" type="SUCCESS"/>
+<Edge fromNode="COMBINE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="FILTER_DUMMY:0"/>
+<Edge fromNode="DUMMY_GENERATOR:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="COMBINE:0"/>
+<Edge fromNode="FILTER_DUMMY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" outPort="Port 0 (accepted)" toNode="SUCCESS:0"/>
+<Edge fromNode="FILTER_DUMMY:1" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" outPort="Port 1 (rejected)" toNode="FAIL1:0"/>
+<Edge fromNode="READ_USER_ID:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 1 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="COMBINE:1"/>
+<Edge fromNode="READ_USER_ID:1" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="FAIL:0"/>
+</Phase>
+</Graph>

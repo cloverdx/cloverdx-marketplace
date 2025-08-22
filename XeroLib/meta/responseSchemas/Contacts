@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="json_object" type="json_objectType"/>
+  <xs:complexType name="AddressesType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="AddressType"/>
+      <xs:element type="xs:string" name="AddressLine1" minOccurs="0"/>
+      <xs:element type="xs:string" name="AddressLine2" minOccurs="0"/>
+      <xs:element type="xs:string" name="AddressLine3" minOccurs="0"/>
+      <xs:element type="xs:string" name="AddressLine4" minOccurs="0"/>
+      <xs:element type="xs:string" name="City" minOccurs="0"/>
+      <xs:element type="xs:string" name="Region" minOccurs="0"/>
+      <xs:element type="xs:string" name="PostalCode" minOccurs="0"/>
+      <xs:element type="xs:string" name="Country" minOccurs="0"/>
+      <xs:element type="xs:string" name="AttentionTo" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="arrayElem" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="PhonesType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="PhoneType"/>
+      <xs:element type="xs:string" name="PhoneNumber" minOccurs="0"/>
+      <xs:element type="xs:string" name="PhoneAreaCode" minOccurs="0"/>
+      <xs:element type="xs:string" name="PhoneCountryCode" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="arrayElem" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="ContactsType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="ContactID"/>
+      <xs:element type="xs:string" name="ContactNumber" minOccurs="0"/>
+      <xs:element type="xs:string" name="ContactStatus"/>
+      <xs:element type="xs:string" name="Name"/>
+      <xs:element type="xs:string" name="FirstName" minOccurs="0"/>
+      <xs:element type="xs:string" name="LastName" minOccurs="0"/>
+      <xs:element type="xs:string" name="EmailAddress" minOccurs="0"/>
+      <xs:element type="xs:string" name="SkypeUserName" minOccurs="0"/>
+      <xs:element type="xs:string" name="BankAccountDetails" minOccurs="0"/>
+      <xs:element type="xs:string" name="TaxNumber" minOccurs="0"/>
+      <xs:element type="xs:string" name="AccountsReceivableTaxType" minOccurs="0"/>
+      <xs:element type="xs:string" name="AccountsPayableTaxType" minOccurs="0"/>
+      <xs:element type="AddressesType" name="Addresses" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element type="PhonesType" name="Phones" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element type="xs:string" name="UpdatedDateUTC"/>
+      <xs:element type="xs:string" name="IsSupplier"/>
+      <xs:element type="xs:string" name="IsCustomer"/>
+      <xs:element type="xs:string" name="DefaultCurrency" minOccurs="0"/>
+      <xs:element type="BrandingThemeType" name="BrandingTheme" minOccurs="0"/>
+      <xs:element type="BatchPaymentsType" name="BatchPayments" minOccurs="0"/>
+      <xs:element type="BalancesType" name="Balances" minOccurs="0"/>
+      <xs:element type="xs:string" name="HasAttachments"/>
+      <xs:element type="xs:string" name="HasValidationErrors"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="arrayElem" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="AccountsReceivableType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="Outstanding"/>
+      <xs:element type="xs:string" name="Overdue"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="AccountsPayableType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="Outstanding"/>
+      <xs:element type="xs:string" name="Overdue"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="BalancesType">
+    <xs:sequence>
+      <xs:element type="AccountsReceivableType" name="AccountsReceivable"/>
+      <xs:element type="AccountsPayableType" name="AccountsPayable"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="BatchPaymentsType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="BankAccountNumber"/>
+      <xs:element type="xs:string" name="BankAccountName"/>
+      <xs:element type="xs:string" name="Details"/>
+      <xs:element type="xs:string" name="Code"/>
+      <xs:element type="xs:string" name="Reference"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="BrandingThemeType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="BrandingThemeID"/>
+      <xs:element type="xs:string" name="Name"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="json_objectType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="Id"/>
+      <xs:element type="xs:string" name="Status"/>
+      <xs:element type="xs:string" name="ProviderName"/>
+      <xs:element type="xs:string" name="DateTimeUTC"/>
+      <xs:element type="ContactsType" name="Contacts" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Branislav Repcek" created="Tue Oct 03 14:16:48 CEST 2023" guiVersion="6.2.0.14" id="1696335847332" licenseCode="CLCDSCLOVE24765514SP" name="HealthCheck" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="Long" recordDelimiter="\r\n" type="delimited">
+<Field name="value" type="long"/>
+</Record>
+</Metadata>
+<Connection dbConfig="${CONN_DIR}/NorthwindDB.cfg" id="JDBC0" type="JDBC"/>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node dbConnection="JDBC0" guiName="Test connection" guiX="202" guiY="224" id="TEST_CONNECTION" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[select 1 from "public"."customers" where 0 = 0]]></attr>
+</Node>
+<Node guiName="Trash" guiX="535" guiY="224" id="TRASH" type="TRASH"/>
+<Edge fromNode="TEST_CONNECTION:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="TRASH:0"/>
+</Phase>
+</Graph>

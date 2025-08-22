@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GraphParameters>
+<GraphParameter category="security" label="OAuth2 connection" name="CONNECTION_URL" public="true" required="false">
+<attr name="description"><![CDATA[Absolute path to existing OAuth2 configuration file linked from another sandbox. e.g. (sandbox://<Sandbox_name>/conn/OAuth2_connection.cfg)]]></attr>
+<SingleType multiple="true" name="file" selectionMode="file_or_directory"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="API URL" name="API_URL" public="true" value="https://api.dropboxapi.com/2">
+<attr name="description"><![CDATA[URL of the Dropbox API]]></attr>
+</GraphParameter>
+<GraphParameter category="advanced" label="Content API URL" name="CONTENT_API_URL" public="true" value="https://content.dropboxapi.com/2">
+<attr name="description"><![CDATA[URL of the Dropbox Content API (for file upload)]]></attr>
+</GraphParameter>
+<GraphParameter category="advanced" label="Retry count" name="RETRY_COUNT" public="true" value="3">
+<attr name="description"><![CDATA[Retry count for upload file to dropbox]]></attr>
+</GraphParameter>
+<GraphParameter category="advanced" label="Date format" name="DATE_FORMAT" public="true" value="yyyy-MM-dd'T'H:m:s'Z'">
+<attr name="description"><![CDATA[Set format for date data type]]></attr>
+</GraphParameter>
+</GraphParameters>

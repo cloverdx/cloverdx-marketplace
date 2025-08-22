@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="readers" created="Thu Sep 22 10:59:50 CEST 2022" description="Reads data from HubSpot Deals object." guiVersion="6.2.1.3" id="1663927921938" largeIconPath="${PROJECT}/icons/HubSpot-64.png" licenseCode="CLP1DCLOVE28718064BY" mediumIconPath="${PROJECT}/icons/HubSpot-32.png" name="GetAllDeals" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/HubSpot-16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" name="0"/>
+<singlePort connected="true" keepEdge="false" name="1" required="false"/>
+</outputPorts>
+<Metadata fileURL="${ABSOLUTE_META_PATH}.fmt" id="Metadata1"/>
+<Metadata fileURL="${META_DIR}/handpicked/excerptCompanies.fmt" id="Metadata3"/>
+<Metadata fileURL="${META_DIR}/handpicked/excerptOwners.fmt" id="Metadata4"/>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="AssociationsInVariant" recordDelimiter="\r\n" type="delimited">
+<Field name="_associations" type="variant"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata2">
+<Record eofAsDelimiter="true" fieldDelimiter="thiswillnewereverapperainafileneither" name="MappingFIle" previewAttachmentCharset="UTF-8" recordDelimiter="thiswillnewereverapperainafile" type="delimited">
+<Field name="data" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameter label="HS object name" name="OBJECT" public="false" required="false" value="deals">
+<ComponentReference referencedComponent="CRM_OBJECT_PROPERIES_API_V3" referencedProperty="__OBJECT"/>
+</GraphParameter>
+<GraphParameter name="METADATA_NAME"/>
+<GraphParameter name="ABSOLUTE_META_PATH">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return toAbsolutePath("${META_DIR}/generated/"+ (isBlank("${METADATA_NAME}")?"${OBJECT}":"${METADATA_NAME}"));
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter name="NUM_OF_PREVIEW_RECORDS" public="false" value="1000"/>
+<GraphParameter label="Get primary associated company?" name="STRATEGY" public="true" required="false" value="ONE_BY_ONE">
+<SingleType allowCustomValues="true" name="simpleEnum" values="ONLY_IDS|Only get the ids of associated companies;ONE_BY_ONE|Get associated company data ;ALL|Get associated company data (by downloading the whole lookup)"/>
+</GraphParameter>
+<GraphParameter name="NOT_IS_ONLY_IDS_STRATEGY" public="false">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+function string getValue() {
+	return toString(not ("${STRATEGY}" == "ONLY_IDS"));
+}]]></attr>
+</GraphParameter>
+<GraphParameter name="IS_ONE_BY_ONE_STARTEGY">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+function string getValue() {
+	return toString("${STRATEGY}" == "ONE_BY_ONE");
+}]]></attr>
+</GraphParameter>
+<GraphParameter name="IS_ALL_STRATEGY">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+function string getValue() {
+	return toString("${STRATEGY}" == "ALL");
+}]]></attr>
+</GraphParameter>
+<GraphParameterFile fileURL="libraries.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="FAF6D6" folded="false" fontSize="medium" height="483" id="Note0" textColor="444444" width="882" x="1164" y="-41">
+<attr name="text"><![CDATA[h3.Joining of company excerpt]]></attr>
+</RichTextNote>
+<Dictionary>
+<Entry input="false" name="mapping" output="true" type="string"/>
+<Entry input="true" name="companyExcerptMapping" output="true" type="string"/>
+</Dictionary>
+</Global>
+<Phase number="0">
+<Node guiName="CrossJoin" guiX="530" guiY="-56" id="CROSS_JOIN" type="CROSS_JOIN"/>
+<Node guiName="DataGenerator" guiX="349" guiY="-56" id="DATA_GENERATOR" type="DATA_GENERATOR"/>
+<Node __FIELD_MAPPING="email=owner_email&#10;firstName=owner_first_name&#10;lastName=owner_last_name&#10;" __OPERATION="List" __O_AUTH2_CONNECTION="${HUBSPOT_OAUTH2_CONNECTION}" __PRIVATE_APP_TOKEN="${HUBSPOT_PRIVATE_APP_TOKEN}" __PROVIDE_DEFAULT_METADA="false" guiName="Get all owners" guiX="1861" guiY="508" id="GET_ALL_OWNERS" jobURL="${HUB_SPOT_CRM_API_LIB}/graph/CrmOwnersApiV3.sgrf" type="SUBGRAPH">
+<attr name="guiDescription"><![CDATA[This subgraph provides means to read HubSpot owner objects.
+
+Supported operations
+
+List - get all objects
+Read - gets data for object by it's ID]]></attr>
+</Node>
+<Node fileURL="${ABSOLUTE_META_PATH}.map" guiName="Read deal mapping" guiX="-59" guiY="100" id="READ_DEAL_MAPPING" type="FLAT_FILE_READER"/>
+<Node fileURL="${META_DIR}/handpicked/excerptCompanies.map" guiName="Read deal mapping" guiX="-59" guiY="232" id="READ_DEAL_MAPPING1" type="FLAT_FILE_READER"/>
+<Node guiName="Set dict" guiX="140" guiY="100" id="SET_DICT" type="SET_JOB_OUTPUT">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.mapping = $in.0.data;
+	return ALL;
+}]]></attr>
+</Node>
+<Node guiName="Set dict" guiX="140" guiY="232" id="SET_DICT1" type="SET_JOB_OUTPUT">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.companyExcerptMapping = $in.0.data;
+	return ALL;
+}]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="-140" guiY="-51" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+</Node>
+<Node guiName="Trash" guiX="745" guiY="-56" id="TRASH1" type="TRASH"/>
+<Edge fromNode="CROSS_JOIN:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="TRASH1:0"/>
+<Edge fromNode="DATA_GENERATOR:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (master)" metadata="Metadata1" outPort="Port 0 (out)" toNode="CROSS_JOIN:0"/>
+<Edge fromNode="DATA_GENERATOR:1" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 1 (slave)" metadata="Metadata0" outPort="Port 1 (out)" toNode="CROSS_JOIN:1"/>
+<Edge fromNode="GET_ALL_OWNERS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge28" inPort="Port 1 (slave)" metadata="Metadata4" outPort="Port 0 (out)" toNode="JOIN_OWNERS:1"/>
+<Edge fromNode="READ_DEAL_MAPPING:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (output)" toNode="SET_DICT:0"/>
+<Edge fromNode="READ_DEAL_MAPPING1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge25" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (output)" toNode="SET_DICT1:0"/>
+</Phase>
+<Phase number="1">
+<Node guiName="Associated id is company id" guiX="1389" guiY="258" id="ASSOCIATED_ID_IS_COMPANY_ID" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.primary_associated_company_id = $in.0.associated_object_id;
+	if(not str2bool("${IS_ONE_BY_ONE_STARTEGY}")){
+		return SKIP;
+	}
+	return ALL;
+}
+]]></attr>
+<attr name="guiDescription"><![CDATA[Acts as trash if different strategy]]></attr>
+</Node>
+<Node dedupKey="associated_object_id(a);associated_object_type(a)" enabled="${IS_ONE_BY_ONE_STARTEGY}" guiName="Dedup company records" guiX="1211" guiY="258" id="DEDUP_COMPANY_RECORDS" sorted="false" type="DEDUP"/>
+<Node guiName="Dummy" guiX="1754" guiY="331" id="DUMMY" type="TRASH"/>
+<Node guiName="ExtSort" guiX="530" guiY="100" id="EXT_SORT" sortKey="deal_id(a)" type="EXT_SORT"/>
+<Node enabled="${NOT_IS_ONLY_IDS_STRATEGY}" guiName="ExtSort" guiX="1898" guiY="226" id="EXT_SORT1" sortKey="primary_associated_company_id(a)" type="EXT_SORT"/>
+<Node enabled="${NOT_IS_ONLY_IDS_STRATEGY}" guiName="ExtSort" guiX="1735" guiY="100" id="EXT_SORT2" sortKey="primary_associated_company_id(a)" type="EXT_SORT"/>
+<Node guiName="Filter" guiX="901" guiY="258" id="FILTER" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.association_type == "deal_to_company"]]></attr>
+</Node>
+<Node enabled="${NOT_IS_ONLY_IDS_STRATEGY}" guiName="Join company" guiX="1881" guiY="100" id="JOIN_COMPANY" joinKey="$primary_associated_company_id(a)#$primary_associated_company_id(a);" joinType="leftOuter" slaveDuplicates="false" type="EXT_MERGE_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	if(not isnull($in.1.primary_associated_company_id)){
+		$out.0.* = $in.1.*;
+	}
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="Join company id" guiX="1211" guiY="100" id="JOIN_COMPANY_ID" joinKey="$deal_id(a)#$parent_object_id(a);" joinType="leftOuter" slaveDuplicates="false" type="EXT_MERGE_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.primary_associated_company_id = $in.1.associated_object_id;
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="Join owners" guiX="2036" guiY="100" id="JOIN_OWNERS" joinKey="$hubspot_owner_id=$owner_id" joinType="leftOuter" type="EXT_HASH_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	if(not isnull($in.1.owner_id)){
+		$out.0.* = $in.1.*;
+	}
+	return ALL;
+}]]></attr>
+</Node>
+<Node guiName="ParseAssociations" guiX="738" guiY="258" id="PARSE_ASSOCIATIONS" jobURL="${HUB_SPOT_CRM_API_LIB}/graph/ParseAssociations.sgrf" type="SUBGRAPH">
+<attr name="__ASSOCIATIONS_FIELD_NAME"><![CDATA[_associations]]></attr>
+<attr name="guiDescription"><![CDATA[Parse associations from input variant field]]></attr>
+</Node>
+<Node __HUBSPOT_OAUTH2_CONNECTION="${HUBSPOT_OAUTH2_CONNECTION}" __HUBSPOT_PRIVATE_APP_TOKEN="${HUBSPOT_PRIVATE_APP_TOKEN}" __OBJECT="companies" __OBJECT_ID_FIELD_NAME="primary_associated_company_id" __OPERATION="Batch read" enabled="${IS_ONE_BY_ONE_STARTEGY}" guiName="Read company" guiX="1575" guiY="258" id="READ_COMPANY" jobURL="${SUBGRAPH_DIR}/MappingWrapper.sgrf" type="SUBGRAPH">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.FIELD_MAPPING = dictionary.companyExcerptMapping;
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node __HUBSPOT_OAUTH2_CONNECTION="${HUBSPOT_OAUTH2_CONNECTION}" __HUBSPOT_PRIVATE_APP_TOKEN="${HUBSPOT_PRIVATE_APP_TOKEN}" __OBJECT="companies" __OBJECT_ID_FIELD_NAME="primary_associated_company_id" __OPERATION="List" enabled="${IS_ALL_STRATEGY}" guiName="Read company" guiX="1211" guiY="339" id="READ_COMPANY1" jobURL="${SUBGRAPH_DIR}/MappingWrapper.sgrf" type="SUBGRAPH">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.FIELD_MAPPING = dictionary.companyExcerptMapping;
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node __ABSOLUTE_META_PATH="${ABSOLUTE_META_PATH}" __ASSOCIATIONS="companies" __ASSOCIATIONS_FIELD_NAME="_associations" __HUBSPOT_OAUTH2_CONNECTION="${HUBSPOT_OAUTH2_CONNECTION}" __HUBSPOT_PRIVATE_APP_TOKEN="${HUBSPOT_PRIVATE_APP_TOKEN}" __OBJECT="${OBJECT}" guiName="Read deals" guiX="349" guiY="100" id="READ_DEALS" jobURL="${SUBGRAPH_DIR}/MappingWrapper.sgrf" skipCheckConfig="true" type="SUBGRAPH">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.FIELD_MAPPING = dictionary.mapping;
+	$out.0.NUM_OF_PREVIEW_RECORDS = getParamValue("NUM_OF_PREVIEW_RECORDS");
+	
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="SimpleCopy" guiX="678" guiY="100" id="SIMPLE_COPY" type="SIMPLE_COPY"/>
+<Node guiName="SimpleCopy" guiX="1046" guiY="258" id="SIMPLE_COPY1" type="SIMPLE_COPY"/>
+<Node guiName="SimpleGather" guiX="1862" guiY="416" id="SIMPLE_GATHER" type="SIMPLE_GATHER"/>
+<Node enabled="${NOT_IS_ONLY_IDS_STRATEGY}" guiName="SimpleGather" guiX="1754" guiY="226" id="SIMPLE_GATHER1" passThroughOutputPort="1" type="SIMPLE_GATHER"/>
+<Node guiName="SubgraphOutput" guiX="2201" guiY="-51" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+<Port guiY="257" name="2"/>
+</Node>
+<Node debugOutput="true" guiName="Trash" guiX="2358" guiY="176" id="TRASH" type="TRASH"/>
+<Node guiName="*" guiX="937" guiY="100" id="_" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Edge fromNode="ASSOCIATED_ID_IS_COMPANY_ID:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="READ_COMPANY:0"/>
+<Edge fromNode="DEDUP_COMPANY_RECORDS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge13" inPort="Port 0 (in)" outPort="Port 0 (unique)" toNode="ASSOCIATED_ID_IS_COMPANY_ID:0"/>
+<Edge fromNode="EXT_SORT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge17" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SIMPLE_COPY:0"/>
+<Edge fromNode="EXT_SORT1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge23" inPort="Port 1 (slave)" outPort="Port 0 (out)" toNode="JOIN_COMPANY:1"/>
+<Edge fromNode="EXT_SORT2:0" guiBendpoints="" guiRouter="Manhattan" id="Edge24" inPort="Port 0 (driver)" outPort="Port 0 (out)" toNode="JOIN_COMPANY:0"/>
+<Edge fromNode="FILTER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 0 (in)" outPort="Port 0 (accepted)" toNode="SIMPLE_COPY1:0"/>
+<Edge fromNode="JOIN_COMPANY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge21" inPort="Port 0 (driver)" metadata="Metadata1" outPort="Port 0 (out)" toNode="JOIN_OWNERS:0"/>
+<Edge fromNode="JOIN_COMPANY_ID:0" guiBendpoints="" guiRouter="Manhattan" id="Edge18" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="EXT_SORT2:0"/>
+<Edge fromNode="JOIN_OWNERS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge27" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="PARSE_ASSOCIATIONS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="FILTER:0"/>
+<Edge fromNode="READ_COMPANY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge22" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="SIMPLE_GATHER1:0"/>
+<Edge fromNode="READ_COMPANY:1" guiBendpoints="" guiRouter="Manhattan" id="Edge15" inPort="Port 1 (in)" outPort="Port 1 (out)" toNode="SIMPLE_GATHER:1"/>
+<Edge fromNode="READ_COMPANY1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge26" inPort="Port 1 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="SIMPLE_GATHER1:1"/>
+<Edge fromNode="READ_DEALS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadataRef="#//Edge10" outPort="Port 0 (out)" toNode="EXT_SORT:0"/>
+<Edge fromNode="READ_DEALS:1" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="SIMPLE_GATHER:0"/>
+<Edge fromNode="SIMPLE_COPY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="_:0"/>
+<Edge fromNode="SIMPLE_COPY:1" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="PARSE_ASSOCIATIONS:0"/>
+<Edge fromNode="SIMPLE_COPY1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge16" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="DEDUP_COMPANY_RECORDS:0"/>
+<Edge fromNode="SIMPLE_COPY1:1" guiBendpoints="" guiRouter="Manhattan" id="Edge19" inPort="Port 1 (slave)" outPort="Port 1 (out)" toNode="JOIN_COMPANY_ID:1"/>
+<Edge fromNode="SIMPLE_GATHER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge14" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:1"/>
+<Edge fromNode="SIMPLE_GATHER1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge20" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="EXT_SORT1:0"/>
+<Edge fromNode="SIMPLE_GATHER1:1" guiBendpoints="" guiRouter="Manhattan" id="Edge30" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="DUMMY:0"/>
+<Edge fromNode="SUBGRAPH_OUTPUT0:1" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="TRASH:0"/>
+<Edge fromNode="_:0" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 0 (driver)" metadata="Metadata1" outPort="Port 0 (out)" toNode="JOIN_COMPANY_ID:0"/>
+</Phase>
+</Graph>

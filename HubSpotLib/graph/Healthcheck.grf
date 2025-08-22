@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Martin" created="Tue Oct 03 13:56:07 CEST 2023" guiVersion="6.3.0.1698" id="1696346963052" licenseCode="CLCDSCLOVE24765514SP" name="Healthcheck" showComponentDetails="true">
+<Global>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="libraries.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="Execute CRM api health check" guiX="271" guiY="258" id="EXECUTE_CRM_API_HEALTH_CHECK" jobURL="${HUB_SPOT_CRM_API_LIB}/graph/Healthcheck.grf" type="EXECUTE_GRAPH">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.1.PRIVATE_APP_TOKEN = getParamValue("HUBSPOT_PRIVATE_APP_TOKEN");
+	$out.1.O_AUTH2_CONNECTION = getParamValue("HUBSPOT_OAUTH2_CONNECTION");
+
+	return ALL;
+}]]></attr>
+</Node>
+</Phase>
+</Graph>

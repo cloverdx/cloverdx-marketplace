@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Branislav Repcek" created="Wed Feb 22 17:52:11 CET 2023" guiVersion="6.0.0.1544" id="1677112817974" licenseCode="CLCDSCLOVE85208925SP" name="Get cities and postal codes" showComponentDetails="true">
+<Global>
+<Metadata fileURL="${META_DIR}/CityRegionPostalCode.fmt" id="Metadata1"/>
+<Metadata id="Metadata0">
+<Record fieldDelimiter=";" name="Obec" previewAttachmentCharset="UTF-8" quoteChar="both" quotedStrings="false" recordDelimiter="\r\n" skipSourceRows="1" type="delimited">
+<Field name="kodcobce" type="string"/>
+<Field name="nazcobce" type="string"/>
+<Field name="psc" type="string"/>
+<Field name="kodobce" type="string"/>
+<Field name="nazobce" type="string"/>
+<Field name="kodokresu" type="string"/>
+<Field name="nazokresu" type="string"/>
+<Field name="kodkraj" type="string"/>
+<Field name="nazevkraj" type="string"/>
+<Field name="kodmomc" type="string"/>
+<Field name="nazmomc" type="string"/>
+<Field name="kodpobvod" type="string"/>
+<Field eofAsDelimiter="true" name="nazpobvod" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter name="TEMP_FILE_NAME" value="${DATATMP_DIR}/cz-city-psc.zip"/>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="Fail" guiX="681" guiY="278" id="FAIL" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.errorMessage = "HTTP " + $in.0.statusCode + ": " + $in.0.errorMessage;
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="Filter" guiX="384" guiY="224" id="FILTER" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.statusCode == 200]]></attr>
+</Node>
+<Node guiName="Get data from Czech Post" guiX="97" guiY="224" id="GET_DATA_FROM_CZECH_POST" outFileUrl="${TEMP_FILE_NAME}" type="HTTP_CONNECTOR" url="https://www.ceskaposta.cz/documents/10180/3738087/csv_cobce_psc.zip/45623265-227b-5b1c-d5d6-5c842b3425d3"/>
+<Node guiName="Success" guiX="681" guiY="139" id="SUCCESS" type="SUCCESS"/>
+<Edge fromNode="FILTER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" outPort="Port 0 (accepted)" toNode="SUCCESS:0"/>
+<Edge fromNode="FILTER:1" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" outPort="Port 1 (rejected)" toNode="FAIL:0"/>
+<Edge fromNode="GET_DATA_FROM_CZECH_POST:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="FILTER:0"/>
+</Phase>
+<Phase number="1">
+<Node charset="UTF-8" fileURL="${DATAIN_DIR}/addresses/cz/cities.csv" guiName="cities.csv" guiX="672" guiY="408" id="CITIES_CSV" makeDirs="true" outputFieldNames="true" type="FLAT_FILE_WRITER"/>
+<Node charset="windows-1250" fileURL="zip:(${DATATMP_DIR}/cz-city-psc.zip)#zv_cobce_psc.csv" guiName="Data" guiX="97" guiY="408" id="DATA" type="FLAT_FILE_READER"/>
+<Node guiName="Map" guiX="384" guiY="408" id="MAP" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+import "${TRANS_DIR}/Common.ctl";
+
+function integer transform() {
+	$out.0.name = fixPeriods($in.0.nazcobce);
+	$out.0.postalCode = $in.0.psc;
+	$out.0.regionName = getFullRegionName($in.0.nazevkraj);
+
+	return ALL;
+}
+
+function string getFullRegionName(string src) {
+	if (src == "Hlavní město Praha") {
+		return "Hlavní město Praha";
+	} else if (src == "Vysočina") {
+		return "Kraj Vysočina";
+	} else {
+		return src + " kraj";
+	}
+}]]></attr>
+</Node>
+<Edge fromNode="DATA:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (output)" toNode="MAP:0"/>
+<Edge fromNode="MAP:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="CITIES_CSV:0"/>
+</Phase>
+<Phase number="5">
+<Node fileURL="${TEMP_FILE_NAME}" guiName="DeleteFiles" guiX="97" guiY="621" id="DELETE_FILES" type="DELETE_FILES"/>
+</Phase>
+</Graph>

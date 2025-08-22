@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Brano" created="Sun Mar 12 23:33:12 CET 2023" guiVersion="6.0.0.1544" id="1678665575602" licenseCode="Unlicensed" name="GetSourceFilesForLanguage" nature="subgraph" showComponentDetails="true">
+<Global>
+<outputPorts>
+<singlePort connected="false" name="0"/>
+</outputPorts>
+<GraphParameters>
+<GraphParameter label="Language" name="LANGUAGE" public="true" required="true">
+<SingleType name="string"/>
+</GraphParameter>
+<GraphParameter label="Entity type" name="TYPE" public="true" required="true"/>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="csv only" guiX="650" guiY="145" id="CSV_ONLY" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+getFileExtension($in.0.URL) == "csv"]]></attr>
+</Node>
+<Node guiName="Find data files" guiX="426" guiY="145" id="FIND_DATA_FILES" recursive="true" type="LIST_FILES">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.fileURL = $in.0.fileURL;
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="Get source folder" guiX="214" guiY="145" id="GET_SOURCE_FOLDER" type="GET_JOB_INPUT">
+<attr name="mapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	if ("${LANGUAGE}" == "XX") {
+		$out.0.fileURL = "${DATAIN_DIR}/${TYPE}/";
+	} else {
+		$out.0.fileURL = "${DATAIN_DIR}/${TYPE}/${LANGUAGE}/";
+	}
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="50" guiY="10" id="SUBGRAPH_INPUT" type="SUBGRAPH_INPUT">
+<Port guiY="110" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="878" guiY="10" id="SUBGRAPH_OUTPUT" type="SUBGRAPH_OUTPUT">
+<Port guiY="162" name="0"/>
+<Port guiY="232" name="1"/>
+</Node>
+<Edge fromNode="CSV_ONLY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" outPort="Port 0 (accepted)" toNode="SUBGRAPH_OUTPUT:0"/>
+<Edge fromNode="FIND_DATA_FILES:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="CSV_ONLY:0"/>
+<Edge fromNode="GET_SOURCE_FOLDER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="FIND_DATA_FILES:0"/>
+</Phase>
+</Graph>

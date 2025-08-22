@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" created="Mon Aug 15 10:45:27 CEST 2022" description="Get all SharePoint Sites and Personal OneDrive." guiVersion="5.17.0.1498" id="1660566208761" largeIconPath="${PROJECT}/icons/sharepoint-64.png" licenseCode="CLP1DCLOVE28718064BY" mediumIconPath="${PROJECT}/icons/sharepoint-32.png" name="getSitesAndPersonalDrive" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/sharepoint-16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" name="0" required="true"/>
+<singlePort connected="false" name="1" required="true"/>
+<singlePort connected="false" keepEdge="true" name="2" required="false"/>
+</outputPorts>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="Error" recordDelimiter="\r\n" type="delimited">
+<Field name="errorMessage" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata6">
+<Record fieldDelimiter="|" name="MeDriveResponseOutput" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="id" type="string"/>
+<Field name="name" type="string"/>
+<Field name="displayName" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata3">
+<Record fieldDelimiter="|" name="PersonalOneDrive_Result" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="DriveID" type="string"/>
+<Field name="Name" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="SharePointSites_Result" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="SiteID" type="string"/>
+<Field name="Name" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="SitesResponseOutput" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="id" type="string"/>
+<Field name="name" type="string"/>
+<Field name="displayName" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+<GraphParameter name="USE_OAUTH2">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	if(!isBlank(getParamValue("O_AUTH2_CONNECTION"))){
+		return "true";
+	}
+	return "false";
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter name="GET_SITES_URL" value="https://graph.microsoft.com/v1.0/sites/root/sites?search=*"/>
+<GraphParameter name="GET_ME_DRIVE_URL" value="https://graph.microsoft.com/v1.0/me/drive"/>
+</GraphParameters>
+<RichTextNote backgroundColor="FAF6D6" folded="false" fontSize="medium" height="94" id="Note1" textColor="444444" width="429" x="118" y="460">
+<attr name="text"><![CDATA[h3. Me Drive (Personal OneDrive)]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="FAF6D6" folded="false" fontSize="medium" height="117" id="Note0" textColor="444444" width="651" x="118" y="63">
+<attr name="text"><![CDATA[h3. SharePoint Sites]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="Concatenate" guiX="768" guiY="788" id="CONCATENATE" type="CONCATENATE"/>
+<Node guiName="Denormalizer" guiX="1034" guiY="788" id="DENORMALIZER1" type="DENORMALIZER">
+<attr name="denormalize"><![CDATA[//#CTL2
+// This transformation defines the way in which multiple input records 
+// (with the same key) are denormalized into one output record. 
+
+list[string] errors;
+
+// This function is called for each input record from a group of records
+// with the same key.
+function integer append() {
+	append(errors, $in.0.errorMessage);
+	return 0;
+}
+
+// This function is called once after the append() function was called for all records
+// of a group of input records defined by the key.
+// It creates a single output record for the whole group.
+function integer transform() {
+	$out.0.errorMessage = join(";\n", errors);
+	return OK;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if append() throws an exception.
+// function integer appendOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called only if transform() throws an exception.
+//function integer transformOnError(string errorMessage, string stackTrace) {
+//}
+
+// Called after transform() to return the resources that have been used to their initial state
+// so that next group of records with different key may be parsed.
+// function void clean() {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node __CLIENT_ID="${CLIENT_ID}" __CLIENT_SECRET="${CLIENT_SECRET}" __O_AUTH2_CONNECTION="${O_AUTH2_CONNECTION}" __PASSWORD="${PASSWORD}" __SCOPE="${SCOPE}" __TENANT_ID="${TENANT_ID}" __TIMEOUT="${TIMEOUT}" __TIMEOUT_UPLOAD="${TIMEOUT_UPLOAD}" __URL="${GET_ME_DRIVE_URL}" __USERNAME="${USERNAME}" __USE_OAUTH2="${USE_OAUTH2}" guiName="Get personal OneDrive" guiX="250" guiY="584" id="GET_PERSONAL_ONE_DRIVE" jobURL="${SUBGRAPH_DIR}/internal/MSGraphCore.sgrf" skipCheckConfig="true" type="SUBGRAPH"/>
+<Node __CLIENT_ID="${CLIENT_ID}" __CLIENT_SECRET="${CLIENT_SECRET}" __O_AUTH2_CONNECTION="${O_AUTH2_CONNECTION}" __PASSWORD="${PASSWORD}" __SCOPE="${SCOPE}" __TENANT_ID="${TENANT_ID}" __TIMEOUT="${TIMEOUT}" __TIMEOUT_UPLOAD="${TIMEOUT_UPLOAD}" __URL="${GET_SITES_URL}" __USERNAME="${USERNAME}" __USE_OAUTH2="${USE_OAUTH2}" guiName="Get Sites" guiX="316" guiY="214" id="GET_SITES" jobURL="${SUBGRAPH_DIR}/internal/MSGraphCore.sgrf" skipCheckConfig="true" type="SUBGRAPH"/>
+<Node guiName="map to output" guiX="1030" guiY="214" id="MAP_TO_OUTPUT" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.SiteID = $in.0.id;
+	$out.0.Name = $in.0.displayName + " (" + $in.0.name + ")";
+	
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="map to output" guiX="1034" guiY="584" id="MAP_TO_OUTPUT1" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.DriveID = $in.0.id;
+	$out.0.Name = $in.0.displayName + " (" + $in.0.name + ")";
+	
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="name error" guiX="527" guiY="711" id="NAME_ERROR" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.errorMessage = "Get sites error: " + $in.0.errorMessage;
+	
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="name error" guiX="527" guiY="800" id="NAME_ERROR1" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.errorMessage = "Get personal OneDrive error: " + $in.0.errorMessage;
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="parse response" guiX="749" guiY="214" id="PARSE_RESPONSE" schema="${META_DIR}/responseSchemas/Get_sites_response_json" sourceUri="port:$0.content:discrete" type="JSON_EXTRACT">
+<attr name="mapping"><![CDATA[<Mappings>
+	<Mapping element="json_object">
+		<Mapping element="value" outPort="0">
+		</Mapping>
+	</Mapping>
+</Mappings>
+]]></attr>
+</Node>
+<Node guiName="parse response" guiX="749" guiY="584" id="PARSE_RESPONSE1" schema="${META_DIR}/responseSchemas/Get_me_drive_response_json" sourceUri="port:$0.content:discrete" type="JSON_EXTRACT">
+<attr name="mapping"><![CDATA[<Mappings>
+	<Mapping element="json_object" outPort="0">
+		<Mapping element="owner">
+			<Mapping element="user">
+				<Mapping element="displayName" useParentRecord="true"
+						xmlFields="../{}displayName"
+						cloverFields="displayName">
+				</Mapping>
+			</Mapping>
+		</Mapping>
+	</Mapping>
+</Mappings>
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="89" guiY="10" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1670" guiY="10" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="235" name="0"/>
+<Port guiY="393" name="1"/>
+<Port guiY="497" name="2"/>
+<Port guiY="599" name="3"/>
+</Node>
+<Edge fromNode="CONCATENATE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge24" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="DENORMALIZER1:0"/>
+<Edge fromNode="DENORMALIZER1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge25" inPort="Port 2 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:2"/>
+<Edge fromNode="GET_PERSONAL_ONE_DRIVE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge21" inPort="Port 0 (input)" outPort="Port 0 (out)" toNode="PARSE_RESPONSE1:0"/>
+<Edge fromNode="GET_PERSONAL_ONE_DRIVE:1" guiBendpoints="" guiRouter="Manhattan" id="Edge22" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="NAME_ERROR1:0"/>
+<Edge fromNode="GET_SITES:0" guiBendpoints="" guiRouter="Manhattan" id="Edge19" inPort="Port 0 (input)" outPort="Port 0 (out)" toNode="PARSE_RESPONSE:0"/>
+<Edge fromNode="GET_SITES:1" guiBendpoints="" guiRouter="Manhattan" id="Edge20" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="NAME_ERROR:0"/>
+<Edge fromNode="MAP_TO_OUTPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="MAP_TO_OUTPUT1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 1 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:1"/>
+<Edge fromNode="NAME_ERROR:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="CONCATENATE:0"/>
+<Edge fromNode="NAME_ERROR1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="CONCATENATE:1"/>
+<Edge fromNode="PARSE_RESPONSE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="MAP_TO_OUTPUT:0"/>
+<Edge fromNode="PARSE_RESPONSE1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge16" inPort="Port 0 (in)" metadata="Metadata6" outPort="Port 0 (out)" toNode="MAP_TO_OUTPUT1:0"/>
+</Phase>
+</Graph>

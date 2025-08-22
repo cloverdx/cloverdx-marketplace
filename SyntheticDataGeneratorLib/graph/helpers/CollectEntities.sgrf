@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Brano" category="transformers" created="Sun Mar 12 23:33:12 CET 2023" guiVersion="6.0.0.1544" id="1678663773147" licenseCode="Unlicensed" name="CollectEntities" nature="subgraph" showComponentDetails="true">
+<Global>
+<inputPorts>
+<singlePort connected="false" name="0"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="false" name="0"/>
+</outputPorts>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="Entities" recordDelimiter="\r\n" type="delimited">
+<Field name="entities" type="variant"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="FAF6D6" folded="false" fontSize="medium" height="475" id="Note0" textColor="444444" width="329" x="291" y="229">
+<attr name="text"><![CDATA[h3. Description
+
+Collect all items from incoming records into a single record with structure that can be useful for generating data:
+
+{noformat}
+{
+  "lang1": [
+    { entity1 },
+    { entity2 },
+    ...
+  ],
+  "lang2": {
+    ...
+  }
+}
+{noformat}
+
+where each entity has the same fields as input record except for the {{sourceFileURL}} which is expected to conform to {{.../data-in/TYPE/LANG/...}} layout.
+Each {{lang}} defines a language code read from the directory name. Any number (but always at least one) such language will be present in the output.]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="Collect entities" guiX="392" guiY="145" id="COLLECT_ENTITIES" type="DENORMALIZER">
+<attr name="denormalize"><![CDATA[//#CTL2
+import "${TRANS_DIR}/Common.ctl";
+
+// structure is:
+// {
+//   "lang": [{
+//     "field1": "value1",
+//     "field2": "value2",
+//     "field3" : 3
+//   }, {
+//     ... another entity ...
+//   },
+//   ...
+//  ]
+// }
+variant result = {};
+
+function integer append() {
+	string lang = getLanguageCodeFromURL($in.0.sourceFileURL, "addresses");
+	if (!containsKey(result, lang)) {
+		// Add language "root" if not found as empty list.
+		result[lang] = [];
+	}
+	
+	variant entry = record2map($in.0);
+	remove(entry, "sourceFileURL"); // get rid of source file URL which we don't need
+	
+	push(result[lang], entry);
+	
+	return OK;
+}
+
+function integer transform() {
+	$out.0.entities = result;
+
+	return OK;
+}
+
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="228" guiY="10" id="SUBGRAPH_INPUT" type="SUBGRAPH_INPUT">
+<Port guiY="162" name="0"/>
+<Port guiY="232" name="1"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="684" guiY="10" id="SUBGRAPH_OUTPUT" type="SUBGRAPH_OUTPUT">
+<Port guiY="162" name="0"/>
+<Port guiY="232" name="1"/>
+</Node>
+<Edge fromNode="COLLECT_ENTITIES:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:0"/>
+<Edge fromNode="SUBGRAPH_INPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="COLLECT_ENTITIES:0"/>
+</Phase>
+</Graph>

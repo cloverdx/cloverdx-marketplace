@@ -1,0 +1,752 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" created="Mon Feb 21 08:45:36 CET 2022" description="Dowloads file from Dropbox." guiVersion="5.17.0.1498" id="1646040190946" largeIconPath="./icons/dropbox-64.png" licenseCode="CLP1DCLOVE28718064BY" mediumIconPath="./icons/dropbox-32.png" name="DownloadFileFromDropbox" nature="subgraph" showComponentDetails="true" smallIconPath="./icons/dropbox-16.png">
+<Global>
+<inputPorts>
+<singlePort connected="true" keepEdge="true" name="0" required="false"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="false" keepEdge="true" name="0" required="false"/>
+<singlePort connected="false" keepEdge="true" name="1" required="false"/>
+</outputPorts>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="debugInput1" recordDelimiter="\r\n" type="delimited">
+<Field name="field1" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata8" previewAttachmentCharset="UTF-8">
+<Record fieldDelimiter="|" name="DownloadFileFromDropboxError" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="filePath" type="string"/>
+<Field name="targetDir" type="string"/>
+<Field name="zip" trim="true" type="boolean"/>
+<Field name="statusCode" type="integer"/>
+<Field name="errorMessage" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata4">
+<Record fieldDelimiter="|" name="DownloadFileFromDropboxOutput" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="filePath" type="string"/>
+<Field name="targetDir" type="string"/>
+<Field name="zip" type="boolean"/>
+<Field name="targetUrl" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="downloadInfo" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="filePath" type="string"/>
+<Field name="targetDir" type="string"/>
+<Field name="zip" type="boolean"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata7" previewAttachmentCharset="UTF-8">
+<Record fieldDelimiter="|" name="errorInfo" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="fileId" type="integer"/>
+<Field name="filePath" type="string"/>
+<Field name="targetDir" type="string"/>
+<Field name="zip" trim="true" type="boolean"/>
+<Field name="statusCode" trim="true" type="integer"/>
+<Field name="errorMessage" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata6">
+<Record eofAsDelimiter="true" fieldDelimiter="\r\n\\|\n\\|\r\\|\n\r" name="fileContent" previewAttachmentCharset="UTF-8" type="delimited">
+<Field name="bytes" size="64" type="byte"/>
+<Field auto_filling="source_name" name="sourceFile" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1" previewAttachmentCharset="UTF-8">
+<Record fieldDelimiter="|" name="fileInfo" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="fileId" type="integer"/>
+<Field name="filePath" type="string"/>
+<Field name="targetDir" type="string"/>
+<Field name="zip" type="boolean"/>
+<Field name="responseStatus" trim="true" type="integer"/>
+<Field name="tempFileUrl" type="string"/>
+<Field name="targetFileUrl" type="string"/>
+</Record>
+</Metadata>
+<Connection config="${CONNECTION_URL}" id="OAuth2Connection0" type="OAUTH2"/>
+<GraphParameters>
+<GraphParameter label="File path" name="FILE_PATH" public="true">
+<attr name="description"><![CDATA[Path to file/folder to be downloaded.]]></attr>
+</GraphParameter>
+<GraphParameter label="Target directory" name="TARGET_DIR" public="true" required="false">
+<attr name="description"><![CDATA[Path to directory where the downloaded file will be stored.]]></attr>
+</GraphParameter>
+<GraphParameter label="Zip" name="ZIP" public="true" value="false">
+<attr name="description"><![CDATA[Enable if the target path is a folder and should be downloaded as a .zip.]]></attr>
+<SingleType name="bool"/>
+</GraphParameter>
+<GraphParameter label="Keep original order" name="KEEP_ORIGINAL_ORDER" public="true" value="false">
+<attr name="description"><![CDATA[Make sure the records are sorted the same way on input an output ports. When enabled all files have to be downloaded before any records are sent to output port. ]]></attr>
+<SingleType name="bool"/>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="FAF6D6" folded="false" fontSize="medium" height="345" id="Note0" textColor="444444" width="571" x="2021" y="359">
+<attr name="text"><![CDATA[h3. Get response message
+Reads the response file and joins the extracted response message to file info to build the DownloadError  record.]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="Combine" guiX="506" guiY="100" id="COMBINE" incompleteTuples="true" type="COMBINE">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	
+	if($in.0 != null){
+		$out.0.* = $in.0.*;
+	}
+	
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Copy to destination" guiX="2187" guiY="100" id="COPY_TO_DESTINATION" makeParentDirs="true" stopOnFail="false" type="COPY_FILES">
+<attr name="errorOutputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.1.* = $in.0.*;
+	$out.1.errorMessage = $in.1.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.sourceURL = $in.0.tempFileUrl;
+	$out.0.targetURL = $in.0.targetFileUrl;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+<attr name="standardOutputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.targetDir = $in.1.resultURL;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node debugInput="true" guiName="DataGenerator" guiX="-40" guiY="100" id="DATA_GENERATOR" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+	$out.0.filePath = "/test.txt";
+	$out.0.targetDir = "${DATAIN_DIR}/download/";
+	//$out.0.zip = true;
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the generate. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if generate() throws an exception.
+// function integer generateOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="DataGenerator" guiX="277" guiY="235" id="DATA_GENERATOR1" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the generate. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if generate() throws an exception.
+// function integer generateOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Download file" guiX="1244" guiY="100" id="DOWNLOAD_FILE1" oAuth2Connection="OAuth2Connection0" requestMethod="POST" responseAsFileName="true" type="HTTP_CONNECTOR" url="${CONTENT_API_URL}/files/download">
+<attr name="errorOutputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.1.* = $in.0.*;
+	$out.1.errorMessage = $in.1.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+<attr name="inputMapping"><![CDATA[//#CTL2
+string url;
+// Transforms input record into output record.
+function integer transform() {
+	
+	variant path = {"path" -> $in.0.filePath};
+	$out.0.additionalHTTPHeaders["Dropbox-API-Arg"] = writeJson(path);
+	
+	$out.0.temporaryFilePrefix = toString($in.0.fileId)+ "__";
+	
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+<attr name="standardOutputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.tempFileUrl = $in.1.outputFilePath;
+	$out.0.responseStatus = $in.1.statusCode;
+	
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Download folder as zip" guiX="1244" guiY="180" id="DOWNLOAD_FOLDER_AS_ZIP" oAuth2Connection="OAuth2Connection0" requestMethod="POST" responseAsFileName="true" type="HTTP_CONNECTOR" url="${CONTENT_API_URL}/files/download_zip">
+<attr name="errorOutputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.1.* = $in.0.*;
+	$out.1.errorMessage = $in.1.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+<attr name="inputMapping"><![CDATA[//#CTL2
+string url;
+// Transforms input record into output record.
+function integer transform() {
+	
+	
+	variant path = {"path" -> $in.0.filePath};
+	$out.0.additionalHTTPHeaders["Dropbox-API-Arg"] = writeJson(path);
+	
+	$out.0.temporaryFilePrefix = toString($in.0.fileId)+ "__";
+	
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+<attr name="standardOutputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.tempFileUrl = $in.1.outputFilePath;
+	$out.0.responseStatus = $in.1.statusCode;
+	
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node dataPolicy="controlled" fileURL="port:$0.tempFileUrl:source" guiName="FlatFileReader" guiX="2069" guiY="534" id="FLAT_FILE_READER" numSourceRecords="1" type="FLAT_FILE_READER"/>
+<Node guiName="Format entry" guiX="3278" guiY="100" id="FORMAT_ENTRY" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.targetUrl = $in.0.targetFileUrl;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Format entry" guiX="3278" guiY="299" id="FORMAT_ENTRY1" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	if(isBlank($in.0.errorMessage)){
+		$out.0.errorMessage = "Unknown error.";
+	}
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Gather errors" guiX="2829" guiY="299" id="GATHER_ERRORS" type="SIMPLE_GATHER"/>
+<Node guiName="Get fileId" guiX="2235" guiY="534" id="GET_FILE_ID" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.fileId = str2integer(split(getFileName($in.0.sourceFile),"__")[0]);
+	try{
+		$out.0.errorMessage = toString($in.0.bytes);
+	}catch(CTLException ex){
+		$out.0.errorMessage = "Unknown error";
+	}
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Initial values" guiX="743" guiY="100" id="INITIAL_VALUES" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+string filePath;
+string targetDir;
+boolean zip;
+integer counter;
+
+string outputFilePath;
+string outputTargetDir;
+
+// Transforms input record into output record.
+function integer transform() {
+	
+	//set source path
+	if(!isBlank($in.0.filePath)){
+		outputFilePath = $in.0.filePath;
+	}
+	else if(!isBlank(filePath)){
+		outputFilePath = filePath;
+	}
+	//raise error for missing file path
+	else{
+		$out.1.* = $in.0.*;
+		$out.1.errorMessage = "Path to download source missing!";
+		return 1;
+	}
+	$out.0.filePath = outputFilePath;
+	
+	//set target dir
+	if(!isBlank($in.0.targetDir)){
+		outputTargetDir = $in.0.targetDir;
+	}
+	else if(!isBlank(targetDir)){
+		outputTargetDir = targetDir;
+	}
+	//raise error for missing target dir
+	else{
+		$out.1.* = $in.0.*;
+		$out.1.errorMessage = "Target dir missing!";
+		return 1;
+	}
+	$out.0.targetDir = outputTargetDir;
+	
+	
+	if(!isnull($in.0.zip)){
+		$out.0.zip = $in.0.zip;
+	}
+	else if(!isnull (zip)){
+		$out.0.zip = zip;
+	}
+	else{
+		$out.1.* = $in.0.*;
+		$out.1.errorMessage = "Parameter to download as a zip is missing!";
+		return 1;
+		
+	}
+	
+	//handle path ending with "/"
+	string path = outputFilePath;
+	string targetPath = outputTargetDir;
+	if(endsWith(path,"/")){
+		path = substring(path,0,length(path)-1);
+	}
+	if(endsWith(targetPath,"/")){
+		targetPath = substring(targetPath,0,length(targetPath)-1);
+	}
+	
+	if($out.0.zip){
+		$out.0.targetFileUrl = targetPath + "/" + getFileNameWithoutExtension(path) + ".zip";
+	}
+	else{
+		$out.0.targetFileUrl = targetPath + "/" + getFileName(path);
+	}
+	
+	counter+=1;
+	$out.0.fileId = counter;	
+	return 0;
+	
+	
+	
+
+	
+
+	
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+function void preExecute() {
+	//inicialize params
+	filePath = getParamValue("FILE_PATH");
+	targetDir = getParamValue("TARGET_DIR");
+	zip = str2bool(getParamValue("ZIP"));
+	
+}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Join response message" guiX="2420" guiY="449" id="JOIN_RESPONSE_MESSAGE" joinKey="$fileId=$fileId" joinType="leftOuter" type="EXT_HASH_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.statusCode = $in.0.responseStatus;
+	$out.0.errorMessage = $in.1.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node enabled="${KEEP_ORIGINAL_ORDER}" guiName="Original order" guiX="3080" guiY="100" id="ORIGINAL_ORDER" sortKey="fileId(a)" type="EXT_SORT"/>
+<Node enabled="${KEEP_ORIGINAL_ORDER}" guiName="Original order" guiX="3080" guiY="299" id="ORIGINAL_ORDER1" sortKey="fileId(a)" type="EXT_SORT"/>
+<Node guiName="Read error" guiX="2235" guiY="619" id="READ_ERROR" type="TRASH"/>
+<Node guiName="SimpleCopy" guiX="1864" guiY="493" id="SIMPLE_COPY" type="SIMPLE_COPY"/>
+<Node guiName="SimpleGather" guiX="1705" guiY="493" id="SIMPLE_GATHER" type="SIMPLE_GATHER"/>
+<Node guiName="SimpleGather" guiX="1705" guiY="100" id="SIMPLE_GATHER1" type="SIMPLE_GATHER"/>
+<Node guiName="Status 200" guiX="1461" guiY="180" id="STATUS_1" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.responseStatus == 200]]></attr>
+</Node>
+<Node guiName="Status 200" guiX="1461" guiY="100" id="STATUS_200" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.responseStatus == 200]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="200" guiY="10" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="3592" guiY="10" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="316" name="1"/>
+<Port guiY="561" name="2"/>
+</Node>
+<Node guiName="zip" guiX="967" guiY="100" id="ZIP" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+ !$in.0.zip]]></attr>
+</Node>
+<Edge fromNode="COMBINE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="INITIAL_VALUES:0"/>
+<Edge fromNode="COPY_TO_DESTINATION:0" guiBendpoints="" guiRouter="Manhattan" id="Edge46" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="ORIGINAL_ORDER:0"/>
+<Edge fromNode="COPY_TO_DESTINATION:1" guiBendpoints="" guiRouter="Manhattan" id="Edge45" inPort="Port 3 (in)" metadata="Metadata7" outPort="Port 1 (error)" toNode="GATHER_ERRORS:3"/>
+<Edge fromNode="DATA_GENERATOR:0" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_INPUT0:0"/>
+<Edge fromNode="DATA_GENERATOR1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 1 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="COMBINE:1"/>
+<Edge fromNode="DOWNLOAD_FILE1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge17" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="STATUS_200:0"/>
+<Edge fromNode="DOWNLOAD_FILE1:1" guiBendpoints="" guiRouter="Manhattan" id="Edge48" inPort="Port 1 (in)" metadata="Metadata7" outPort="Port 1 (out)" toNode="GATHER_ERRORS:1"/>
+<Edge fromNode="DOWNLOAD_FOLDER_AS_ZIP:0" guiBendpoints="" guiRouter="Manhattan" id="Edge23" inPort="Port 0 (in)" metadataRef="#//Edge17" outPort="Port 0 (out)" toNode="STATUS_1:0"/>
+<Edge fromNode="DOWNLOAD_FOLDER_AS_ZIP:1" guiBendpoints="" guiRouter="Manhattan" id="Edge49" inPort="Port 2 (in)" metadata="Metadata7" outPort="Port 1 (out)" toNode="GATHER_ERRORS:2"/>
+<Edge fromNode="FLAT_FILE_READER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge32" inPort="Port 0 (in)" metadata="Metadata6" outPort="Port 0 (output)" toNode="GET_FILE_ID:0"/>
+<Edge fromNode="FLAT_FILE_READER:1" guiBendpoints="" guiRouter="Manhattan" id="Edge55" inPort="Port 0 (in)" outPort="Port 1 (logs)" toNode="READ_ERROR:0"/>
+<Edge fromNode="FORMAT_ENTRY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge52" inPort="Port 0 (in)" metadata="Metadata4" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="FORMAT_ENTRY1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge54" inPort="Port 1 (in)" metadata="Metadata8" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:1"/>
+<Edge fromNode="GATHER_ERRORS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge50" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="ORIGINAL_ORDER1:0"/>
+<Edge fromNode="GET_FILE_ID:0" guiBendpoints="" guiRouter="Manhattan" id="Edge33" inPort="Port 1 (slave)" metadata="Metadata7" outPort="Port 0 (out)" toNode="JOIN_RESPONSE_MESSAGE:1"/>
+<Edge fromNode="INITIAL_VALUES:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="ZIP:0"/>
+<Edge fromNode="INITIAL_VALUES:1" guiBendpoints="" guiRouter="Manhattan" id="Edge56" inPort="Port 0 (in)" metadata="Metadata7" outPort="Port 1 (out)" toNode="GATHER_ERRORS:0"/>
+<Edge fromNode="JOIN_RESPONSE_MESSAGE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge42" inPort="Port 4 (in)" metadata="Metadata7" outPort="Port 0 (out)" toNode="GATHER_ERRORS:4"/>
+<Edge fromNode="ORIGINAL_ORDER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge51" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="FORMAT_ENTRY:0"/>
+<Edge fromNode="ORIGINAL_ORDER1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge53" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="FORMAT_ENTRY1:0"/>
+<Edge fromNode="SIMPLE_COPY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge41" inPort="Port 0 (driver)" outPort="Port 0 (out)" toNode="JOIN_RESPONSE_MESSAGE:0"/>
+<Edge fromNode="SIMPLE_COPY:1" guiBendpoints="" guiRouter="Manhattan" id="Edge40" inPort="Port 0 (input)" outPort="Port 1 (out)" toNode="FLAT_FILE_READER:0"/>
+<Edge fromNode="SIMPLE_GATHER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge37" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SIMPLE_COPY:0"/>
+<Edge fromNode="SIMPLE_GATHER1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge44" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="COPY_TO_DESTINATION:0"/>
+<Edge fromNode="STATUS_1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge36" inPort="Port 1 (in)" outPort="Port 0 (accepted)" toNode="SIMPLE_GATHER1:1"/>
+<Edge fromNode="STATUS_1:1" guiBendpoints="" guiRouter="Manhattan" id="Edge38" inPort="Port 1 (in)" outPort="Port 1 (rejected)" toNode="SIMPLE_GATHER:1"/>
+<Edge fromNode="STATUS_200:0" guiBendpoints="" guiRouter="Manhattan" id="Edge30" inPort="Port 0 (in)" outPort="Port 0 (accepted)" toNode="SIMPLE_GATHER1:0"/>
+<Edge fromNode="STATUS_200:1" guiBendpoints="" guiRouter="Manhattan" id="Edge31" inPort="Port 0 (in)" outPort="Port 1 (rejected)" toNode="SIMPLE_GATHER:0"/>
+<Edge fromNode="SUBGRAPH_INPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="COMBINE:0"/>
+<Edge fromNode="ZIP:0" guiBendpoints="" guiRouter="Manhattan" id="Edge25" inPort="Port 0 (in)" outPort="Port 0 (accepted)" toNode="DOWNLOAD_FILE1:0"/>
+<Edge fromNode="ZIP:1" guiBendpoints="" guiRouter="Manhattan" id="Edge29" inPort="Port 0 (in)" outPort="Port 1 (rejected)" toNode="DOWNLOAD_FOLDER_AS_ZIP:0"/>
+</Phase>
+</Graph>

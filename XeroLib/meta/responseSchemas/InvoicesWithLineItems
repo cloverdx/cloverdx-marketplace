@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="json_object" type="json_objectType"/>
+  <xs:complexType name="PaymentsType" mixed="true">
+    <xs:sequence>
+      <xs:element type="xs:string" name="PaymentID" minOccurs="0"/>
+      <xs:element type="xs:string" name="BatchPaymentID" minOccurs="0"/>
+      <xs:element type="xs:string" name="Date" minOccurs="0"/>
+      <xs:element type="xs:string" name="Amount" minOccurs="0"/>
+      <xs:element type="xs:string" name="Reference" minOccurs="0"/>
+      <xs:element type="xs:string" name="CurrencyRate" minOccurs="0"/>
+      <xs:element type="xs:string" name="HasAccount" minOccurs="0"/>
+      <xs:element type="xs:string" name="HasValidationErrors" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="arrayElem" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="CreditNotesType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="arrayElem" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="PrepaymentsType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="arrayElem" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="OverpaymentsType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="arrayElem" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="InvoiceAddressesType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="arrayElem" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="InvoicePaymentServicesType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="arrayElem" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="AddressesType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="arrayElem" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="PhonesType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="arrayElem" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="ContactGroupsType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="arrayElem" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="ContactPersonsType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="arrayElem" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="ContactType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="ContactID"/>
+      <xs:element type="xs:string" name="ContactNumber" minOccurs="0"/>
+      <xs:element type="xs:string" name="Name"/>
+      <xs:element type="AddressesType" name="Addresses"/>
+      <xs:element type="PhonesType" name="Phones"/>
+      <xs:element type="ContactGroupsType" name="ContactGroups"/>
+      <xs:element type="ContactPersonsType" name="ContactPersons"/>
+      <xs:element type="xs:string" name="HasValidationErrors"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="OptionsType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="arrayElem" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="TrackingType" mixed="true">
+    <xs:sequence>
+      <xs:element type="xs:string" name="Name" minOccurs="0"/>
+      <xs:element type="xs:string" name="Option" minOccurs="0"/>
+      <xs:element type="xs:string" name="TrackingCategoryID" minOccurs="0"/>
+      <xs:element type="OptionsType" name="Options" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="arrayElem" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="LineItemsType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="ItemCode" minOccurs="0"/>
+      <xs:element type="xs:string" name="Description"/>
+      <xs:element type="xs:string" name="UnitAmount" minOccurs="0"/>
+      <xs:element type="xs:string" name="TaxType" minOccurs="0"/>
+      <xs:element type="xs:string" name="TaxAmount" minOccurs="0"/>
+      <xs:element type="xs:string" name="LineAmount" minOccurs="0"/>
+      <xs:element type="xs:string" name="AccountCode" minOccurs="0"/>
+      <xs:element type="ItemType" name="Item" minOccurs="0"/>
+      <xs:element type="TrackingType" name="Tracking" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element type="xs:string" name="Quantity" minOccurs="0"/>
+      <xs:element type="xs:string" name="LineItemID"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="arrayElem" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="InvoicesType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="Type"/>
+      <xs:element type="xs:string" name="InvoiceID"/>
+      <xs:element type="xs:string" name="InvoiceNumber"/>
+      <xs:element type="xs:string" name="Reference"/>
+      <xs:element type="PaymentsType" name="Payments" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element type="CreditNotesType" name="CreditNotes"/>
+      <xs:element type="PrepaymentsType" name="Prepayments"/>
+      <xs:element type="OverpaymentsType" name="Overpayments"/>
+      <xs:element type="xs:string" name="AmountDue"/>
+      <xs:element type="xs:string" name="AmountPaid"/>
+      <xs:element type="xs:string" name="AmountCredited"/>
+      <xs:element type="xs:string" name="SentToContact" minOccurs="0"/>
+      <xs:element type="xs:string" name="Url" minOccurs="0"/>
+      <xs:element type="xs:string" name="CurrencyRate"/>
+      <xs:element type="xs:string" name="IsDiscounted"/>
+      <xs:element type="xs:string" name="HasAttachments"/>
+      <xs:element type="InvoiceAddressesType" name="InvoiceAddresses"/>
+      <xs:element type="xs:string" name="HasErrors"/>
+      <xs:element type="InvoicePaymentServicesType" name="InvoicePaymentServices"/>
+      <xs:element type="ContactType" name="Contact"/>
+      <xs:element type="xs:string" name="DateString"/>
+      <xs:element type="xs:string" name="Date"/>
+      <xs:element type="xs:string" name="DueDateString"/>
+      <xs:element type="xs:string" name="DueDate"/>
+      <xs:element type="xs:string" name="ExpectedPaymentDateString" minOccurs="0"/>
+      <xs:element type="xs:string" name="ExpectedPaymentDate" minOccurs="0"/>
+      <xs:element type="xs:string" name="BrandingThemeID" minOccurs="0"/>
+      <xs:element type="xs:string" name="Status"/>
+      <xs:element type="xs:string" name="LineAmountTypes"/>
+      <xs:element type="LineItemsType" name="LineItems" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element type="xs:string" name="SubTotal"/>
+      <xs:element type="xs:string" name="TotalTax"/>
+      <xs:element type="xs:string" name="Total"/>
+      <xs:element type="xs:string" name="UpdatedDateUTC"/>
+      <xs:element type="xs:string" name="CurrencyCode"/>
+      <xs:element type="xs:string" name="FullyPaidOnDate" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="arrayElem" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="ItemType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="ItemID"/>
+      <xs:element type="xs:string" name="Name"/>
+      <xs:element type="xs:string" name="Code"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="json_objectType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="Id"/>
+      <xs:element type="xs:string" name="Status"/>
+      <xs:element type="xs:string" name="ProviderName"/>
+      <xs:element type="xs:string" name="DateTimeUTC"/>
+      <xs:element type="InvoicesType" name="Invoices" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GraphParameters>
+<GraphParameter category="advanced" label="Charset" name="CHARSET" public="true">
+<attr name="description"><![CDATA[Defines character set of the input file.]]></attr>
+<SingleType name="charset"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="Locale" name="LOCALE" public="true">
+<attr name="description"><![CDATA[Locale that will be used for data type analysis. Particularly important for correct date and time types recognition.]]></attr>
+<SingleType name="locale"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="Time zone" name="TIMEZONE" public="true" required="false">
+<attr name="description"><![CDATA[Time zone that will be used for data type analysis. Particularly important for correct date and time types recognition.]]></attr>
+<SingleType implementation="java" name="timeZone"/>
+</GraphParameter>
+<GraphParameter name="PRINT_HINTS" value="true">
+<SingleType name="bool"/>
+</GraphParameter>
+</GraphParameters>

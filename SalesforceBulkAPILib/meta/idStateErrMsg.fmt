@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Record fieldDelimiter="|" name="idStateErrMsg" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="id" type="string"/>
+<Field name="state" type="string"/>
+<Field name="errorMessage" type="string"/>
+</Record>

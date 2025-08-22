@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Martin" category="transformers" created="Tue Dec 13 10:48:54 CET 2022" description="Parse associations from input variant field" guiVersion="6.7.1.5" id="1670926834743" licenseCode="CLCDSCLOVE24765514SP" name="ParseAssociations" nature="subgraph" showComponentDetails="true">
+<Global>
+<inputPorts>
+<singlePort connected="true" name="0"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="false" name="0"/>
+</outputPorts>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="Association" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="parent_object_id" type="string">
+<attr name="description"><![CDATA[Id of the object that the association originates from.]]></attr>
+</Field>
+<Field name="associated_object_id" type="string">
+<attr name="description"><![CDATA[Id of the associated object.]]></attr>
+</Field>
+<Field name="association_type" type="string">
+<attr name="description"><![CDATA[Type of the association, i.e. name of the relation.
+Default association types look for example like this:
+deal_to_company. Associations have directions.]]></attr>
+</Field>
+<Field name="associated_object_type" type="string">
+<attr name="description"><![CDATA[Type of associated object. This value has been processed to appear
+as a noun in singular form, but it's not perfect. The original value
+ is available in the raw version of this field.]]></attr>
+</Field>
+<Field name="associated_object_type_raw" type="string">
+<attr name="description"><![CDATA[Type of associated object.]]></attr>
+</Field>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="debugInput1" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="field1" type="string"/>
+<Field name="field2" type="variant"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameter category="advanced" defaultHint="Select field containing associations data" label="Associations input field name" name="ASSOCIATIONS_FIELD_NAME" public="true" value="associations">
+<attr name="description"><![CDATA[Selects field holding the association data.]]></attr>
+<SingleType edge="Edge1" fieldType="variant" name="field"/>
+</GraphParameter>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node debugInput="true" fileURL="${DATAOUT_DIR}/deals.cdf" guiName="CloverDataReader" guiX="16" guiY="101" id="CLOVER_DATA_READER" type="CLOVER_READER"/>
+<Node guiName="Parse associations" guiX="390" guiY="101" id="PARSE_ASSOCIATIONS" type="NORMALIZER">
+<attr name="normalize"><![CDATA[//#CTL2
+// This transformation defines the way in which a single input record is normalized
+// into multiple output records.
+
+// This function is called for all input records.
+// It parses each single input record and returns the number of records
+// that should be created from such input record.
+
+list [Association] parsed_associations = [];
+const string PARENT_OBJECT_PROPERTY_NAME = "parentObjectId";
+
+function integer count() {
+	variant associations = getValue($in.0,getParamValue("ASSOCIATIONS_FIELD_NAME"));
+	if(isnull(associations)){ return 0;}
+	parsed_associations.clear();
+
+	foreach(variant associated_object_type : getKeys(associations)){
+		if(associated_object_type == PARENT_OBJECT_PROPERTY_NAME){continue;}
+		Association tmp;
+		foreach(variant association : associations[associated_object_type]["results"]){
+			tmp.parent_object_id = cast(associations[PARENT_OBJECT_PROPERTY_NAME], string);
+			tmp.associated_object_id = cast(association["id"], string);
+			tmp.association_type = cast(association["type"], string);
+			tmp.associated_object_type_raw = cast(associated_object_type,string);
+			tmp.associated_object_type = singular(tmp.associated_object_type_raw);
+			parsed_associations.append(tmp);
+		}
+		
+	}
+	return length(parsed_associations) ;
+}
+
+// This function creates new records for the output, based on single input record
+// that has been parsed by the count() function.
+// It is called count() times for each input record.
+// The idx argument specifies which output record is being created,
+// its values range is from 0 to count() - 1.
+function integer transform(integer idx) {
+	$out.0.* = parsed_associations[idx].*;
+	return OK;
+}
+
+/* Tries to convert a noun to singular, but may produce a wrong result on some inputs.
+ * Should return the whole word if already in singular.
+ * Known errors examples: bus -> bu [should be bus], fungi -> fungi [should be fungus], may irregulars mice -> mice [should be mouse]
+ */
+function string singular(string noun){
+	if(endsWith(noun,'ies')){
+		return left(noun, length(noun)-3) + "y";
+	}else if(endsWith(noun,'es')){
+		return left(noun, length(noun)-2);
+	}else if(endsWith(noun,'ss')){
+		return noun;
+	}else if(endsWith(noun,'s')){
+		return left(noun, length(noun)-1);
+	}else{
+		return noun;
+	}
+}
+
+// Example input
+//{
+//  "parentObjectId" : "3986243094",
+//  "companies" : {
+//    "results" : [
+//      {
+//        "id" : "5173723456",
+//        "type" : "deal_to_company"
+//      },
+//      {
+//        "id" : "5173723456",
+//        "type" : "deal_to_company_unlabeled"
+//      }
+//    ]
+//  }
+//}
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="200" guiY="10" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="118" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="707" guiY="10" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="118" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Edge fromNode="CLOVER_DATA_READER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_INPUT0:0"/>
+<Edge fromNode="PARSE_ASSOCIATIONS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="SUBGRAPH_INPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="PARSE_ASSOCIATIONS:0"/>
+</Phase>
+</Graph>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Branislav Repcek" created="Thu Mar 31 01:21:37 CEST 2022" guiVersion="5.14.0.13" id="1648734959389" licenseCode="Unlicensed" name="OAuth2ConnectionOnly" showComponentDetails="true">
+<Global>
+<Connection config="${CONN_DIR}/oauth2-azure.cfg" id="OAUTH20" type="OAUTH2"/>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+</Graph>

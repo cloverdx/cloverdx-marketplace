@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Record fieldDelimiter="," name="Query_Result" recordDelimiter="\n" type="delimited">
+   <Field name="Id" salesforce_field_type="id" type="string"/>
+   <Field name="IsDeleted" salesforce_field_type="_boolean" trim="true" type="boolean"/>
+   <Field name="MasterRecordId" salesforce_field_type="reference" type="string"/>
+   <Field name="Name" salesforce_field_type="string" type="string"/>
+   <Field name="Type" salesforce_field_type="picklist" type="string"/>
+   <Field name="ParentId" salesforce_field_type="reference" type="string"/>
+   <Field name="BillingStreet" salesforce_field_type="textarea" type="string"/>
+   <Field name="BillingCity" salesforce_field_type="string" type="string"/>
+   <Field name="BillingState" salesforce_field_type="string" type="string"/>
+   <Field name="BillingPostalCode" salesforce_field_type="string" type="string"/>
+   <Field name="BillingCountry" salesforce_field_type="string" type="string"/>
+   <Field length="18" name="BillingLatitude" salesforce_field_type="_double" scale="15"
+          trim="true"
+          type="decimal"/>
+   <Field length="18" name="BillingLongitude" salesforce_field_type="_double" scale="15"
+          trim="true"
+          type="decimal"/>
+   <Field name="BillingGeocodeAccuracy" salesforce_field_type="picklist" type="string"/>
+   <Field name="ShippingStreet" salesforce_field_type="textarea" type="string"/>
+   <Field name="ShippingCity" salesforce_field_type="string" type="string"/>
+   <Field name="ShippingState" salesforce_field_type="string" type="string"/>
+   <Field name="ShippingPostalCode" salesforce_field_type="string" type="string"/>
+   <Field name="ShippingCountry" salesforce_field_type="string" type="string"/>
+   <Field length="18" name="ShippingLatitude" salesforce_field_type="_double" scale="15"
+          trim="true"
+          type="decimal"/>
+   <Field length="18" name="ShippingLongitude" salesforce_field_type="_double" scale="15"
+          trim="true"
+          type="decimal"/>
+   <Field name="ShippingGeocodeAccuracy" salesforce_field_type="picklist" type="string"/>
+   <Field name="Phone" salesforce_field_type="phone" type="string"/>
+   <Field name="Fax" salesforce_field_type="phone" type="string"/>
+   <Field name="AccountNumber" salesforce_field_type="string" type="string"/>
+   <Field name="Website" salesforce_field_type="url" type="string"/>
+   <Field name="PhotoUrl" salesforce_field_type="url" type="string"/>
+   <Field name="Sic" salesforce_field_type="string" type="string"/>
+   <Field name="Industry" salesforce_field_type="picklist" type="string"/>
+   <Field length="18" name="AnnualRevenue" salesforce_field_type="currency" scale="0"
+          trim="true"
+          type="decimal"/>
+   <Field name="NumberOfEmployees" salesforce_field_type="_int" trim="true"
+          type="integer"/>
+   <Field name="Ownership" salesforce_field_type="picklist" type="string"/>
+   <Field name="TickerSymbol" salesforce_field_type="string" type="string"/>
+   <Field name="Description" salesforce_field_type="textarea" type="string"/>
+   <Field name="Rating" salesforce_field_type="picklist" type="string"/>
+   <Field name="Site" salesforce_field_type="string" type="string"/>
+   <Field name="OwnerId" salesforce_field_type="reference" type="string"/>
+   <Field format="yyyy-MM-dd'T'HH:mm:ss.SSSXX" name="CreatedDate"
+          salesforce_field_type="datetime"
+          timeZone="UTC"
+          trim="true"
+          type="date"/>
+   <Field name="CreatedById" salesforce_field_type="reference" type="string"/>
+   <Field format="yyyy-MM-dd'T'HH:mm:ss.SSSXX" name="LastModifiedDate"
+          salesforce_field_type="datetime"
+          timeZone="UTC"
+          trim="true"
+          type="date"/>
+   <Field name="LastModifiedById" salesforce_field_type="reference" type="string"/>
+   <Field format="yyyy-MM-dd'T'HH:mm:ss.SSSXX" name="SystemModstamp"
+          salesforce_field_type="datetime"
+          timeZone="UTC"
+          trim="true"
+          type="date"/>
+   <Field format="yyyy-MM-dd" name="LastActivityDate" salesforce_field_type="date"
+          timeZone="UTC"
+          trim="true"
+          type="date"/>
+   <Field format="yyyy-MM-dd'T'HH:mm:ss.SSSXX" name="LastViewedDate"
+          salesforce_field_type="datetime"
+          timeZone="UTC"
+          trim="true"
+          type="date"/>
+   <Field format="yyyy-MM-dd'T'HH:mm:ss.SSSXX" name="LastReferencedDate"
+          salesforce_field_type="datetime"
+          timeZone="UTC"
+          trim="true"
+          type="date"/>
+   <Field name="Jigsaw" salesforce_field_type="string" type="string"/>
+   <Field name="JigsawCompanyId" salesforce_field_type="string" type="string"/>
+   <Field name="CleanStatus" salesforce_field_type="picklist" type="string"/>
+   <Field name="AccountSource" salesforce_field_type="picklist" type="string"/>
+   <Field name="DunsNumber" salesforce_field_type="string" type="string"/>
+   <Field name="Tradestyle" salesforce_field_type="string" type="string"/>
+   <Field name="NaicsCode" salesforce_field_type="string" type="string"/>
+   <Field name="NaicsDesc" salesforce_field_type="string" type="string"/>
+   <Field name="YearStarted" salesforce_field_type="string" type="string"/>
+   <Field name="SicDesc" salesforce_field_type="string" type="string"/>
+   <Field name="DandbCompanyId" salesforce_field_type="reference" type="string"/>
+   <Field name="OperatingHoursId" salesforce_field_type="reference" type="string"/>
+   <Field name="CustomerPriority__c" salesforce_field_type="picklist" type="string"/>
+   <Field name="SLA__c" salesforce_field_type="picklist" type="string"/>
+   <Field name="Active__c" salesforce_field_type="picklist" type="string"/>
+   <Field length="3" name="NumberofLocations__c" salesforce_field_type="_double"
+          scale="0"
+          trim="true"
+          type="decimal"/>
+   <Field name="UpsellOpportunity__c" salesforce_field_type="picklist" type="string"/>
+   <Field name="SLASerialNumber__c" salesforce_field_type="string" type="string"/>
+   <Field format="yyyy-MM-dd" name="SLAExpirationDate__c" salesforce_field_type="date"
+          timeZone="UTC"
+          trim="true"
+          type="date"/>
+</Record>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" created="Tue Feb 28 16:10:51 CET 2023" description="Orders with lineitems (denormalized)" guiVersion="6.0.0.21" id="1677597151805" largeIconPath="${PROJECT}/icons/icon_64.png" licenseCode="CLCDSCLOVE85208925SP" mediumIconPath="${PROJECT}/icons/icon_32.png" name="OrdersWithLineitems" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/icon_16.png">
+<Global>
+<outputPorts>
+<singlePort connected="true" name="0"/>
+</outputPorts>
+<Metadata id="Metadata0">
+<Record fieldDelimiter=";" name="orders_with_details" recordDelimiter="\n" type="delimited">
+<Field label="order_id" name="order_id" size="5" type="integer"/>
+<Field label="customer_id" name="customer_id" size="5" type="string"/>
+<Field label="employee_id" name="employee_id" size="5" type="integer"/>
+<Field format="yyyy-MM-dd" label="order_date" name="order_date" size="13" type="date"/>
+<Field format="yyyy-MM-dd" label="required_date" name="required_date" size="13" type="date"/>
+<Field format="yyyy-MM-dd" label="shipped_date" name="shipped_date" size="13" type="date"/>
+<Field label="ship_via" name="ship_via" size="5" type="integer"/>
+<Field label="freight" name="freight" size="8" type="number"/>
+<Field label="ship_name" name="ship_name" size="40" type="string"/>
+<Field label="ship_address" name="ship_address" size="60" type="string"/>
+<Field label="ship_city" name="ship_city" size="15" type="string"/>
+<Field label="ship_region" name="ship_region" size="15" type="string"/>
+<Field label="ship_postal_code" name="ship_postal_code" size="10" type="string"/>
+<Field label="ship_country" name="ship_country" size="15" type="string"/>
+<Field label="order_id" name="order_id_1" size="5" type="integer"/>
+<Field label="product_id" name="product_id" size="5" type="integer"/>
+<Field label="unit_price" name="unit_price" size="8" type="number"/>
+<Field label="quantity" name="quantity" size="5" type="integer"/>
+<Field label="discount" name="discount" size="8" type="number"/>
+</Record>
+</Metadata>
+<Connection dbConfig="${CONN_DIR}/NorthwindDB.cfg" id="JDBC0" type="JDBC"/>
+<GraphParameters>
+<GraphParameter name="NUM_OF_PREVIEW_RECORDS">
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter name="LIMIT_CLAUSE">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+
+	string preview= getParamValue("NUM_OF_PREVIEW_RECORDS");
+	
+	if (!isBlank(preview)) {
+		return "LIMIT "+preview;
+	} else {
+		return "";
+	}
+}
+]]></attr>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node dbConnection="JDBC0" guiName="ReadOrdersWithDetails" guiX="171" guiY="134" id="READ_ORDERS_WITH_DETAILS" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[select * from "orders" , "order_details" where "orders"."order_id"= "order_details"."order_id"
+${LIMIT_CLAUSE}]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="50" guiY="10" id="SUBGRAPH_INPUT" type="SUBGRAPH_INPUT">
+<Port guiY="110" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="442" guiY="10" id="SUBGRAPH_OUTPUT" type="SUBGRAPH_OUTPUT">
+<Port guiY="151" name="0"/>
+<Port guiY="221" name="1"/>
+</Node>
+<Node debugOutput="true" guiName="Trash" guiX="593" guiY="134" id="TRASH" type="TRASH"/>
+<Edge fromNode="READ_ORDERS_WITH_DETAILS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:0"/>
+<Edge fromNode="SUBGRAPH_OUTPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="TRASH:0"/>
+</Phase>
+</Graph>

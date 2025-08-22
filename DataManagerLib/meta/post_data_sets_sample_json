@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="json_object" type="json_objectType"/>
+  <xs:complexType name="statsType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="_x0040type"/>
+      <xs:element type="xs:string" name="enabledRows"/>
+      <xs:element type="xs:string" name="disabledRows"/>
+      <xs:element type="xs:string" name="changedRows"/>
+      <xs:element type="xs:string" name="newRows"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="adminsType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:byte" name="arrayDepth"/>
+        <xs:attribute type="xs:string" name="arrayElem"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="approversType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:byte" name="arrayDepth"/>
+        <xs:attribute type="xs:string" name="arrayElem"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="editorsType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:byte" name="arrayDepth"/>
+        <xs:attribute type="xs:string" name="arrayElem"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="readersType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="arrayElem"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="permissionsType">
+    <xs:sequence>
+      <xs:element type="adminsType" name="admins"/>
+      <xs:element type="approversType" name="approvers"/>
+      <xs:element type="editorsType" name="editors"/>
+      <xs:element type="readersType" name="readers"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="columnsType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="internalName"/>
+      <xs:element type="xs:string" name="name"/>
+      <xs:element type="xs:string" name="label"/>
+      <xs:element type="xs:string" name="description" minOccurs="0"/>
+      <xs:element type="xs:string" name="type"/>
+      <xs:element type="xs:string" name="editable"/>
+      <xs:element type="xs:string" name="system"/>
+      <xs:element type="xs:string" name="visibility"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="arrayElem" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="layoutType">
+    <xs:sequence>
+      <xs:element type="columnsType" name="columns" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="json_objectType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="_x0040self"/>
+      <xs:element type="xs:string" name="_x0040type"/>
+      <xs:element type="xs:string" name="name"/>
+      <xs:element type="xs:string" name="code"/>
+      <xs:element type="xs:string" name="enabled"/>
+      <xs:element type="xs:string" name="callerPermission"/>
+      <xs:element type="statsType" name="stats"/>
+      <xs:element type="permissionsType" name="permissions"/>
+      <xs:element type="layoutType" name="layout"/>
+      <xs:element type="xs:string" name="usesValidity"/>
+      <xs:element type="xs:string" name="lookupKey"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

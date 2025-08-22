@@ -1,0 +1,388 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="fileOperations" created="Thu Feb 04 23:00:03 CET 2021" description="Implementation of the List Directories and Files operation, which returns a list of files or directories under the specified share or directory. It lists the contents only for a single level of the directory hierarchy.&#10;" guiVersion="6.5.0.9" id="1612516425224" largeIconPath="${SUBGRAPH_DIR}/icons/azure-file-storage-icon-64x64.png" licenseCode="CLP1DCLOVE28718064BY" mediumIconPath="${SUBGRAPH_DIR}/icons/azure-file-storage-icon-32x32.png" name="ListAzureFSFiles" nature="subgraph" showComponentDetails="true" smallIconPath="${SUBGRAPH_DIR}/icons/azure-file-storage-icon-16x16.png">
+<Global>
+<inputPorts>
+<singlePort connected="true" keepEdge="true" name="0" required="false"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="false" name="0"/>
+<singlePort connected="false" keepEdge="false" name="1" required="false"/>
+</outputPorts>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="DirectoryOutput" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="Name" type="string"/>
+<Field name="Properties" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata5" previewAttachmentCharset="UTF-8">
+<Record fieldDelimiter="|" name="ErrorOutput" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="diretoryPath" type="string"/>
+<Field name="statusCode" trim="true" type="integer"/>
+<Field name="errorMessage" type="string"/>
+<Field name="errorDetails" type="string"/>
+<Field name="rawErrorResponse" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="FileMetadata" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="Name" type="string"/>
+<Field name="Content_Length" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="HTTPConnector_Error">
+<Record fieldDelimiter="|" name="HTTPConnector_Error" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="errorMessage" type="string"/>
+<Field name="diretoryPath" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="HTTPConnector_Response">
+<Record fieldDelimiter="|" name="HTTPConnector_Response" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="diretoryPath" type="string"/>
+<Field name="content" type="string"/>
+<Field name="contentByte" type="byte"/>
+<Field name="outputFilePath" type="string"/>
+<Field name="statusCode" trim="true" type="integer"/>
+<Field containerType="map" name="header" type="string"/>
+<Field containerType="list" name="rawHeaders" type="string"/>
+<Field name="errorMessage" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata4">
+<Record fieldDelimiter="|" name="ListFilesOutput" recordDelimiter="\r\n" type="delimited">
+<Field name="name" type="string"/>
+<Field name="type" type="string"/>
+<Field name="size" type="long"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata3">
+<Record fieldDelimiter="|" name="Path" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="diretoryPath" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter defaultHint="Provide the target path on the Azure FS system that will be listed." label="Directory path" name="PATH" public="true">
+<attr name="description"><![CDATA[Target path on the Azure FS target system which will be listed]]></attr>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="azure.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="ECF0F0" folded="false" fontSize="medium" height="232" id="Note1" textColor="444444" width="1270" x="-98" y="-206">
+<attr name="text"><![CDATA[Documentation of the service [https://docs.microsoft.com/en-us/rest/api/storageservices/list-directories-and-files ]
+
+*Required attributes*
+
+* path (optional)
+
+This subgraph can take the attribute either from input port or from a graph parameter. If they are both specified, attribute from the input edge is used
+
+*Output*
+
+
+* _name_ - Name of file/directory
+* _type_ -   Type of a resource: file or directory
+* _size_ -     Size of a file in bytes (only for files)
+
+]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="444444" folded="false" fontSize="medium" height="56" id="Note0" textColor="FFFFFF" width="1270" x="-98" y="-261">
+<attr name="text"><![CDATA[h3. List Directories and Files
+]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="AzureResponseHandler" guiX="477" guiY="101" id="AZURE_RESPONSE_HANDLER" jobURL="${SUBGRAPH_DIR}/AzureResponseHandler.sgrf" skipCheckConfig="true" type="SUBGRAPH">
+<attr name="__FIELDS_MAPPING"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.diretoryPath = $in.0.originalResponseRecord["diretoryPath"].toString() : null;
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="Call service" guiX="286" guiY="101" id="CALL_SERVICE" type="HTTP_CONNECTOR">
+<attr name="errorOutputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.1.errorMessage = $in.1.errorMessage;
+	$out.1.diretoryPath = $in.0.diretoryPath;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+<attr name="inputMapping"><![CDATA[//#CTL2
+import "trans/helpers.ctl";
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.URL = getFileShareUrlDirectory(getParamValue("STORAGE_NAME"), getParamValue("STORAGE_FILE_ADDRESS"), getParamValue("SHARE_NAME"), $in.0.diretoryPath)+"?restype=directory&comp=list&"+getParamValue("SAS_TOKEN");
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+<attr name="standardOutputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.1.*;
+	$out.0.diretoryPath = $in.0.diretoryPath;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Combine" guiX="102" guiY="101" id="COMBINE" incompleteTuples="true" type="COMBINE">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	if($in.0.diretoryPath != null){
+		$out.0.diretoryPath = $in.0.diretoryPath;
+	}
+	else{
+		$out.0.diretoryPath = $in.1.diretoryPath;
+	}
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Concatenate" guiX="1159" guiY="87" id="CONCATENATE" type="CONCATENATE"/>
+<Node debugInput="true" guiName="DataGenerator" guiX="-349" guiY="101" id="DATA_GENERATOR" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+	$out.0.path = "";
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the generate. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if generate() throws an exception.
+// function integer generateOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Get PATH" guiX="-104" guiY="173" id="GET_PATH" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+	$out.0.diretoryPath = getParamValue("PATH");
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the generate. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if generate() throws an exception.
+// function integer generateOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Parse XML response" guiX="779" guiY="101" id="PARSE_XML_RESPONSE" schema="${META_DIR}/EnumerationResults.xsd" sourceUri="port:$0.content:discrete" type="XML_EXTRACT">
+<attr name="mapping"><![CDATA[<Mappings>
+	<Mapping element="EnumerationResults">
+		<Mapping element="Entries">
+			<Mapping element="File" outPort="0"
+					xmlFields="{}Name"
+					cloverFields="Name">
+				<Mapping element="Properties" useParentRecord="true" implicit="false"
+						xmlFields="../{}Name;{}Content-Length"
+						cloverFields="Name;Content_Length">
+				</Mapping>
+			</Mapping>
+			<Mapping element="Directory" outPort="1"
+					xmlFields="{}Name;{}Properties"
+					cloverFields="Name;Properties">
+			</Mapping>
+		</Mapping>
+	</Mapping>
+</Mappings>
+]]></attr>
+</Node>
+<Node guiName="Reformat" guiX="973" guiY="101" id="REFORMAT" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.name = $in.0.Name;
+	$out.0.type = "file";
+	$out.0.size = str2long($in.0.Content_Length);
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Reformat" guiX="973" guiY="209" id="REFORMAT1" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.name = $in.0.Name;
+	$out.0.type = "directory";
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="-156" guiY="-255" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="118" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1367" guiY="-255" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="104" name="0"/>
+<Port guiY="328" name="1"/>
+<Port guiY="398" name="2"/>
+</Node>
+<Edge fromNode="AZURE_RESPONSE_HANDLER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge15" inPort="Port 0 (input)" outPort="Port 0 (out)" toNode="PARSE_XML_RESPONSE:0"/>
+<Edge fromNode="AZURE_RESPONSE_HANDLER:1" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 1 (in)" metadata="Metadata5" outPort="Port 1 (out)" toNode="SUBGRAPH_OUTPUT0:1"/>
+<Edge fromNode="CALL_SERVICE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="HTTPConnector_Response" outPort="Port 0 (out)" toNode="AZURE_RESPONSE_HANDLER:0"/>
+<Edge fromNode="CALL_SERVICE:1" guiBendpoints="" guiRouter="Manhattan" id="Edge13" inPort="Port 1 (in)" metadata="HTTPConnector_Error" outPort="Port 1 (out)" toNode="AZURE_RESPONSE_HANDLER:1"/>
+<Edge fromNode="COMBINE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="CALL_SERVICE:0"/>
+<Edge fromNode="CONCATENATE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" metadata="Metadata4" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="DATA_GENERATOR:0" guiBendpoints="" guiRouter="Manhattan" id="Edge14" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_INPUT0:0"/>
+<Edge fromNode="GET_PATH:0" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 1 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="COMBINE:1"/>
+<Edge fromNode="PARSE_XML_RESPONSE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="REFORMAT:0"/>
+<Edge fromNode="PARSE_XML_RESPONSE:1" guiBendpoints="920:271|920:428|237:428|237:134" guiLocks="920|237|428" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 1 (out)" toNode="REFORMAT1:0"/>
+<Edge fromNode="REFORMAT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 1 (in)" metadata="Metadata4" outPort="Port 0 (out)" toNode="CONCATENATE:1"/>
+<Edge fromNode="REFORMAT1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" metadata="Metadata4" outPort="Port 0 (out)" toNode="CONCATENATE:0"/>
+<Edge fromNode="SUBGRAPH_INPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="COMBINE:0"/>
+</Phase>
+</Graph>

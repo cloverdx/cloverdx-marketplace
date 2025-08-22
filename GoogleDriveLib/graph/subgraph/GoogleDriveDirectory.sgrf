@@ -1,0 +1,389 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="transformers" created="Tue Jul 20 15:03:58 CEST 2021" description="Traverses directory tree and passes them onto output. Used by writer to check if target directory exists." guiVersion="5.15.0.15" id="1626948308490" licenseCode="CLP1DCLOVE94730539BY" name="GoogleDriveListDirectory" nature="subgraph" showComponentDetails="true">
+<Global>
+<inputPorts>
+<singlePort connected="true" name="0"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="false" name="0"/>
+</outputPorts>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="AuthToken" recordDelimiter="\r\n" type="delimited">
+<Field name="accessToken" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="DriveDirectory" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="path" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="RuntimeRecord" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="path" type="string"/>
+<Field name="directory" type="string"/>
+<Field containerType="list" name="parents" type="string"/>
+<Field name="id" type="string"/>
+</Record>
+</Metadata>
+<Connection config="${CONNECTION_URL}" id="OAuth2Connection1" type="OAUTH2"/>
+<GraphParameters>
+<GraphParameter name="CONNECTION_URL" public="true" required="true" value="${CONN_DIR}/OAuth2/google-oauth.cfg">
+<attr name="description"><![CDATA[Path to the OAUTH2 connection file.]]></attr>
+<SingleType multiple="true" name="file" selectionMode="file_or_directory"/>
+</GraphParameter>
+<GraphParameter label="Google directory path" name="GOOGLE_DIRECTORY_PATH" public="true" required="true" value="path">
+<SingleType edge="Edge1" name="field"/>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node debugInput="true" guiName="DebugInput" guiX="30" guiY="100" id="DATA_GENERATOR0" recordsNumber="1" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+	$out.0.path = "test/directory";
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the generate. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if generate() throws an exception.
+// function integer generateOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Find directory" guiX="813" guiY="230" id="FIND_DIRECTORY" oAuth2Connection="OAuth2Connection1" requestMethod="GET" type="HTTP_CONNECTOR" url="https://www.googleapis.com/drive/v3/files">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	list[string] query = [
+		"mimeType='application/vnd.google-apps.folder'",
+		"name='"+ $in.0.directory +"'"
+	];
+	
+	$out.0.requestParameters = {
+		"q" -> join(" AND ",query),
+		"fields" -> "files(" + concatWithSeparator(", ","name","parents","id","mimeType","kind") + ")"
+	};
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+<attr name="standardOutputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.directory = $in.1.content;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+<attr name="headerProperties"><![CDATA[Authorization=
+Content-Type=application/json
+]]></attr>
+<attr name="guiDescription"><![CDATA[by name]]></attr>
+</Node>
+<Node guiName="Find directory" guiX="1285" guiY="354" id="FIND_DIRECTORY1" oAuth2Connection="OAuth2Connection1" requestMethod="GET" type="HTTP_CONNECTOR" url="https://www.googleapis.com/drive/v3/files">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.URL = $out.0.URL.concat("/",$in.0.parents[0]);
+	$out.0.requestParameters = {
+		"fields" -> concatWithSeparator(", ","name","parents","id","mimeType","kind")
+	};
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+<attr name="standardOutputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	string expectedName = $in.0.path.split("/")[$in.0.path.countChar("/") - $in.0.parents.length()];
+	$out.0.* = $in.0.*;
+	
+	variant response = $in.1.content.parseJson();
+	if (! response.containsKey("error")) {
+		if (response["name"] == expectedName) {
+			// Check for additional parents
+			if (response.containsKey("parents")) {
+				$out.0.parents.insert(0,cast(response["parents"][0],string));
+			} else {
+				$out.0.parents.insert(0,cast(null,string));
+			}
+		} else {
+			$out.0.parents = null;
+		}
+	} else {
+		printLog(debug,$in.1.content);
+		$out.0.parents = null;
+	}
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+<attr name="headerProperties"><![CDATA[Authorization=
+Content-Type=application/json
+]]></attr>
+<attr name="guiDescription"><![CDATA[by id]]></attr>
+</Node>
+<Node guiName="Normalizer" guiX="1088" guiY="230" id="NORMALIZER" type="NORMALIZER">
+<attr name="normalize"><![CDATA[//#CTL2
+
+variant dirs;
+
+function integer count() {
+	dirs = $in.0.directory.parseJson()["files"];
+	return max(1,cast(dirs,list,variant).length());
+}
+
+function integer transform(integer idx) {
+	
+	if (dirs.length() > idx) {
+		variant dir = dirs[idx];
+		$out.0.* = $in.0.*;
+		$out.0.directory = cast(dir["name"],string);
+		$out.0.id = cast(dir["id"],string);
+	
+		if (dir.containsKey("parents")) {
+			$out.0.parents = [ cast(dir["parents"][0],string) ];
+		}
+	} else {
+		$out.0.* = $in.0.*;
+	}
+	
+	return OK;
+}
+]]></attr>
+</Node>
+<Node guiName="Sanitise input" guiX="294" guiY="100" id="SANITISE_INPUT" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.* = $in.0.*;
+	
+	// Sanitise directory path
+	$out.0.${GOOGLE_DIRECTORY_PATH} =
+		nvl($in.0.${GOOGLE_DIRECTORY_PATH},"root").replace("/+$","");
+
+	if ($out.0.${GOOGLE_DIRECTORY_PATH} == "root") {
+		return 0;
+	}
+	
+	// Copy to work branch, later will be used as match key
+	$out.1.path = $out.0.${GOOGLE_DIRECTORY_PATH};
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="Select directory" guiX="1484" guiY="230" id="SELECT_DIRECTORY" key="path(i)" type="DENORMALIZER">
+<attr name="denormalize"><![CDATA[//#CTL2
+// This transformation defines the way in which multiple input records 
+// (with the same key) are denormalized into one output record. 
+
+string id = null;
+
+// This function is called for each input record from a group of records
+// with the same key.
+function integer append() {
+	if (
+		isnull(id) &&
+		!isnull($in.0.parents)
+	) {
+		id = $in.0.id;
+	}
+	
+	return OK;
+}
+
+// This function is called once after the append() function was called for all records
+// of a group of input records defined by the key.
+// It creates a single output record for the whole group.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.id = id;
+
+	return OK;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if append() throws an exception.
+// function integer appendOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called only if transform() throws an exception.
+//function integer transformOnError(string errorMessage, string stackTrace) {
+//}
+
+// Called after transform() to return the resources that have been used to their initial state
+// so that next group of records with different key may be parsed.
+function void clean() {
+	id = null;
+}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="200" guiY="10" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="288" name="1"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1870" guiY="10" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Node guiName="Translate path" guiX="1658" guiY="100" id="TRANSLATE_PATH" joinKey="$${GOOGLE_DIRECTORY_PATH}=$path" joinType="leftOuter" type="EXT_HASH_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.${GOOGLE_DIRECTORY_PATH} = ! isEmpty($in.1.path) ? 
+		concat(nvl($in.1.id,""),":",$in.1.path) : 
+		concat($in.0.${GOOGLE_DIRECTORY_PATH},":");
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Traverse up" guiX="1285" guiY="230" id="TRAVERSE_UP" type="LOOP">
+<attr name="whileCondition"><![CDATA[//#CTL2
+!isnull($in.0.parents) && $in.0.parents.length() < $in.0.path.countChar("/") + 1]]></attr>
+</Node>
+<Node dedupKey="path(a)" guiName="Unique addresses" guiX="475" guiY="230" id="UNIQUE_ADDRESSES" sorted="false" type="DEDUP"/>
+<Edge fromNode="DATA_GENERATOR0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SUBGRAPH_INPUT0:0"/>
+<Edge fromNode="FIND_DIRECTORY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" metadataRef="#//Edge3" outPort="Port 0 (out)" toNode="NORMALIZER:0"/>
+<Edge fromNode="FIND_DIRECTORY1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge14" inPort="Port 1 (back from loop)" outPort="Port 0 (out)" toNode="TRAVERSE_UP:1"/>
+<Edge fromNode="NORMALIZER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge15" inPort="Port 0 (input token)" metadataRef="#//Edge3" outPort="Port 0 (out)" toNode="TRAVERSE_UP:0"/>
+<Edge fromNode="SANITISE_INPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge16" inPort="Port 0 (driver)" outPort="Port 0 (out)" toNode="TRANSLATE_PATH:0"/>
+<Edge fromNode="SANITISE_INPUT:1" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 1 (out)" toNode="UNIQUE_ADDRESSES:0"/>
+<Edge fromNode="SELECT_DIRECTORY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 1 (slave)" metadata="Metadata2" outPort="Port 0 (out)" toNode="TRANSLATE_PATH:1"/>
+<Edge fromNode="SUBGRAPH_INPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SANITISE_INPUT:0"/>
+<Edge fromNode="TRANSLATE_PATH:0" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 0 (in)" metadataRef="#//Edge1" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="TRAVERSE_UP:0" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 0 (in)" outPort="Port 0 (end of loop)" toNode="SELECT_DIRECTORY:0"/>
+<Edge fromNode="TRAVERSE_UP:1" guiBendpoints="" guiRouter="Manhattan" id="Edge13" inPort="Port 0 (in)" outPort="Port 1 (continue loop)" toNode="FIND_DIRECTORY1:0"/>
+<Edge fromNode="UNIQUE_ADDRESSES:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" outPort="Port 0 (unique)" toNode="FIND_DIRECTORY:0"/>
+</Phase>
+</Graph>

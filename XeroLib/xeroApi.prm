@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GraphParameters>
+<GraphParameter name="CALL" public="false" required="false" value="https://api.xero.com/api.xro/2.0/Contacts">
+<SingleType allowCustomValues="true" name="simpleEnum" values="https://api.xero.com/api.xro/2.0/Invoices|GET Invoices;https://api.xero.com/api.xro/2.0/Accounts|GET Accounts;https://api.xero.com/api.xro/2.0/Contacts|GET Contacts;https://api.xero.com/api.xro/2.0/Quotes|GET Quotes&#10;;https://api.xero.com/api.xro/2.0/BankTransactions|GET BankTransactions;https://api.xero.com/api.xro/2.0/BankTransfers|GET BankTransfers;https://api.xero.com/api.xro/2.0/Payments|GET Payments;https://api.xero.com/api.xro/2.0/Journals|GET Journals&#10;;https://api.xero.com/api.xro/2.0/ManualJournals|GET ManualJournals&#10;;https://api.xero.com/api.xro/2.0/CreditNotes|GET CreditNotes&#10;"/>
+</GraphParameter>
+<GraphParameter name="XERO_CORE_PAGING_CONNECTOR_URL" value="${SUBGRAPH_DIR}/Core/xeroConnectorPaging.sgrf"/>
+<GraphParameter name="XERO_CORE_CONNECTOR_URL" value="${SUBGRAPH_DIR}/Core/xeroConnectorPaging.sgrf"/>
+<GraphParameter name="REAL_TENANT_ID">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	string tenantId = getParamValue("TENANT_ID");
+	tenantId = substring(tenantId, lastIndexOf(tenantId, "(") + 1);
+	return left(tenantId, length(tenantId) - 1);
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter name="NUM_OF_PREVIEW_RECORDS" public="false"/>
+<GraphParameter name="NUM_RECORDS_PER_PAGE" value="100"/>
+<GraphParameter name="MAX_NUMBER_OF_RETRIES" value="25"/>
+<GraphParameter name="MAX_WAIT_TIME" value="600"/>
+<GraphParameter name="OUTPUT_ENTITY">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	string ret = "";
+	string call = getParamValue("CALL");
+	
+	if (call.startsWith("https://api.xero.com/api.xro/2.0/CreditNotes")) {
+	    ret = "CreditNotes";
+	} else if (call.startsWith("https://api.xero.com/api.xro/2.0/Invoices")) {
+	    ret = "Invoices";
+	} else if (call.startsWith("https://api.xero.com/api.xro/2.0/Accounts")) {
+	    ret = "Accounts";
+	} else if (call.startsWith("https://api.xero.com/api.xro/2.0/Contacts")) {
+	    ret = "Contacts";
+	} else if (call.startsWith("https://api.xero.com/api.xro/2.0/Quotes")) {
+	    ret = "Quotes";
+	} else if (call.startsWith("https://api.xero.com/api.xro/2.0/BankTransactions")) {
+	    ret = "BankTransactions";
+	} else if (call.startsWith("https://api.xero.com/api.xro/2.0/BankTransfers")) {
+	    ret = "BankTransfers";
+	} else if (call.startsWith("https://api.xero.com/api.xro/2.0/Payments")) {
+	    ret = "Payments";
+	} else if (call.startsWith("https://api.xero.com/api.xro/2.0/Journals")) {
+	    ret = "Journals";
+	} else if (call.startsWith("https://api.xero.com/api.xro/2.0/ManualJournals")) {
+	    ret = "ManualJournals";
+	} else {
+	    ret = "NA";
+	}
+	
+	return ret;
+}
+]]></attr>
+</GraphParameter>
+</GraphParameters>

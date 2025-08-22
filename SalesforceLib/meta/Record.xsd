@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="Record" type="RecordType"/>
+  <xs:complexType name="attrType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="name" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="FieldType" mixed="true">
+    <xs:sequence>
+      <xs:element type="attrType" name="attr" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="label" use="optional"/>
+    <xs:attribute type="xs:string" name="name" use="optional"/>
+    <xs:attribute type="xs:string" name="salesforce_field_type" use="optional"/>
+    <xs:attribute type="xs:string" name="type" use="optional"/>
+    <xs:attribute type="xs:string" name="trim" use="optional"/>
+    <xs:attribute type="xs:byte" name="length" use="optional"/>
+    <xs:attribute type="xs:byte" name="scale" use="optional"/>
+    <xs:attribute type="xs:string" name="format" use="optional"/>
+    <xs:attribute type="xs:string" name="timeZone" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="RecordType">
+    <xs:sequence>
+      <xs:element type="attrType" name="attr"/>
+      <xs:element type="FieldType" name="Field" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="fieldDelimiter"/>
+    <xs:attribute type="xs:string" name="label"/>
+    <xs:attribute type="xs:string" name="name"/>
+    <xs:attribute type="xs:string" name="recordDelimiter"/>
+    <xs:attribute type="xs:string" name="type"/>
+  </xs:complexType>
+</xs:schema>

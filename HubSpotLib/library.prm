@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GraphParameters>
+<GraphParameter label="HubSpot Private App Token" name="HUBSPOT_PRIVATE_APP_TOKEN" public="true" secure="true">
+<attr name="description"><![CDATA[HubSpot Private App token. Takes priority over OAuth2 connection if both provided.]]></attr>
+</GraphParameter>
+<GraphParameter defaultHint=".cfg file URL" label="HubSpot OAuth2 Connection" name="HUBSPOT_OAUTH2_CONNECTION" public="true">
+<attr name="description"><![CDATA[File URL of the .cfg file holding an authorised Clover HubSpot OAuth2 connection.]]></attr>
+</GraphParameter>
+<GraphParameter label="Company - requested fields" name="COMPANIES_FIELDS" public="false">
+<attr name="description"><![CDATA[List of all fields which will be included in the Company entity. Provide field names divided by comma. If you leave it empty, all available fields will be used in the output metadata.]]></attr>
+</GraphParameter>
+<GraphParameter label="Contacts - requested fields" name="CONTACTS_FIELDS" public="false">
+<attr name="description"><![CDATA[List of all fields which will be included in the Contant entity. Provide field names divided by comma. If you leave it empty, all available fields will be used in the output metadata.]]></attr>
+</GraphParameter>
+<GraphParameter label="Deals - requested fields" name="DEALS_FIELDS" public="false">
+<attr name="description"><![CDATA[List of all fields which will be included in the Deals entity. Provide field names divided by comma. If you leave it empty, all available fields will be used in the output metadata.]]></attr>
+</GraphParameter>
+<GraphParameter label="Line Items - requested fields" name="LINE_ITEMS_FIELDS" public="false">
+<attr name="description"><![CDATA[List of all fields which will be included in the Line Items entity. Provide field names divided by comma. If you leave it empty, all available fields will be used in the output metadata.]]></attr>
+</GraphParameter>
+<GraphParameter label="Products - requested fields" name="PRODUCTS_FIELDS" public="false">
+<attr name="description"><![CDATA[List of all fields which will be included in the Products entity. Provide field names divided by comma. If you leave it empty, all available fields will be used in the output metadata.]]></attr>
+</GraphParameter>
+<GraphParameter label="Tickets - requested fields" name="TICKETS_FIELDS" public="false">
+<attr name="description"><![CDATA[List of all fields which will be included in the Ticket entity. Provide field names divided by comma. If you leave it empty, all available fields will be used in the output metadata.]]></attr>
+</GraphParameter>
+<GraphParameter label="Quotes - requested fields" name="QUOTES_FIELDS" public="false">
+<attr name="description"><![CDATA[List of all fields which will be included in the Quote entity. Provide field names divided by comma. If you leave it empty, all available fields will be used in the output metadata.]]></attr>
+</GraphParameter>
+</GraphParameters>

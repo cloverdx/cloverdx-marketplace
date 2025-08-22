@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="json_object" type="json_objectType"/>
+  <xs:complexType name="AccountsType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="AccountID"/>
+      <xs:element type="xs:string" name="Code"/>
+      <xs:element type="xs:string" name="Name"/>
+      <xs:element type="xs:string" name="Status"/>
+      <xs:element type="xs:string" name="Type"/>
+      <xs:element type="xs:string" name="TaxType"/>
+      <xs:element type="xs:string" name="Description" minOccurs="0"/>
+      <xs:element type="xs:string" name="Class"/>
+      <xs:element type="xs:string" name="SystemAccount" minOccurs="0"/>
+      <xs:element type="xs:string" name="EnablePaymentsToAccount"/>
+      <xs:element type="xs:string" name="ShowInExpenseClaims"/>
+      <xs:element type="xs:string" name="BankAccountNumber" minOccurs="0"/>
+      <xs:element type="xs:string" name="BankAccountType"/>
+      <xs:element type="xs:string" name="CurrencyCode" minOccurs="0"/>
+      <xs:element type="xs:string" name="ReportingCode"/>
+      <xs:element type="xs:string" name="ReportingCodeName"/>
+      <xs:element type="xs:string" name="HasAttachments"/>
+      <xs:element type="xs:string" name="UpdatedDateUTC"/>
+      <xs:element type="xs:string" name="AddToWatchlist"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="arrayElem" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="json_objectType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="Id"/>
+      <xs:element type="xs:string" name="Status"/>
+      <xs:element type="xs:string" name="ProviderName"/>
+      <xs:element type="xs:string" name="DateTimeUTC"/>
+      <xs:element type="AccountsType" name="Accounts" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

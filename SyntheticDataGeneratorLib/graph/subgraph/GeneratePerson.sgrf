@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Branislav Repcek" category="readers" created="Wed Feb 22 17:52:11 CET 2023" description="Generate random person with full names and basic contact details." guiVersion="6.5.0.24" id="1677105887920" largeIconPath="${SUBGRAPH_DIR}/icons/GeneratePerson64.png" licenseCode="CLCDSCLOVE85208925SP" mediumIconPath="${SUBGRAPH_DIR}/icons/GeneratePerson32.png" name="Generate person" nature="subgraph" showComponentDetails="true" smallIconPath="${SUBGRAPH_DIR}/icons/GeneratePerson16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" name="0"/>
+</outputPorts>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="Name" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="name" type="string"/>
+<Field auto_filling="source_name" name="sourceFileURL" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="NameLists" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="firstNamesMale" type="variant"/>
+<Field name="firstNamesFemale" type="variant"/>
+<Field name="lastNamesMale" type="variant"/>
+<Field name="lastNamesFemale" type="variant"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="Person" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field label="Person id" name="id" type="long"/>
+<Field label="First name" name="firstName" type="string"/>
+<Field label="Middle name/initial" name="middleName" type="string"/>
+<Field label="Last name" name="lastName" type="string"/>
+<Field format="yyyy-MM-dd" label="Date of birth" name="dateOfBirth" type="date"/>
+<Field label="Gender" name="gender" type="string">
+<attr name="description"><![CDATA[M or F]]></attr>
+</Field>
+<Field label="Email" name="email" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter label="Language" name="LANGUAGE" public="true" required="false" value="EN-US">
+<SingleType allowCustomValues="false" name="simpleEnum" values="EN-US|English (US);CS-CZ|Czech;JA-JP|Japanese (Kana);XX|All (mixed)"/>
+</GraphParameter>
+<GraphParameter label="Number of records to generate" name="RECORD_COUNT" public="true" value="10000">
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter label="Min date of birth" name="DOB_MIN" public="true" value="1940-01-01">
+<SingleType format="yyyy-MM-dd" name="datetime"/>
+</GraphParameter>
+<GraphParameter label="Max date of birth" name="DOB_MAX" public="true" value="2023-01-01">
+<SingleType format="yyyy-MM-dd" name="datetime"/>
+</GraphParameter>
+<GraphParameter label="Middle name percent" name="MIDDLE_NAME_PERCENT" public="true" value="5">
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter label="Percentage of people with email" name="HAS_EMAIL_PERCENT" public="true" value="99">
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter name="NUM_OF_PREVIEW_RECORDS"/>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="Collect all" guiX="929" guiY="100" id="COLLECT_ALL" type="DENORMALIZER">
+<attr name="denormalize"><![CDATA[//#CTL2
+import "${TRANS_DIR}/Common.ctl";
+
+NameLists result;
+clean();
+
+function integer append() {
+	string gender = getGetGenderFromFileName($in.0.sourceFileURL);
+	string fileName = getFileName($in.0.sourceFileURL);
+	string lang = getLanguageCodeFromURL($in.0.sourceFileURL, "names");
+
+	if (startsWith(fileName, "first_")) {
+		if (gender == "F" || gender == "B") {
+			if (!containsKey(result.firstNamesFemale, lang)) {
+				result.firstNamesFemale[lang] = [ ];
+			}
+			append(result.firstNamesFemale[lang], $in.0.name);
+		}
+
+		if (gender == "M" || gender == "B") {
+			if (!containsKey(result.firstNamesMale, lang)) {
+				result.firstNamesMale[lang] = [ ];
+			}
+			append(result.firstNamesMale[lang], $in.0.name);
+		}
+	} else if (startsWith(fileName, "last")) {
+		if (gender == "F" || gender == "B") {
+			if (!containsKey(result.lastNamesFemale, lang)) {
+				result.lastNamesFemale[lang] = [ ];
+			}
+			append(result.lastNamesFemale[lang], $in.0.name);
+		}
+
+		if (gender == "M" || gender == "B") {
+			if (!containsKey(result.lastNamesMale, lang)) {
+				result.lastNamesMale[lang] = [ ];
+			}
+			append(result.lastNamesMale[lang], $in.0.name);
+		}
+	} else {
+		// Ignore
+	}
+
+	return OK;
+}
+
+function integer transform() {
+	$out.0.* = result.*;
+
+	return OK;
+}
+
+function void clean() {
+	result.firstNamesMale = { };
+	result.firstNamesFemale = { };
+	result.lastNamesMale = { };
+	result.lastNamesFemale = { };
+}
+
+function string getGetGenderFromFileName(string fn) {
+	if (contains(fn, "_female")) {
+		return "F";
+	}
+	
+	if (contains(fn, "_male")) {
+		return "M";
+	}
+	
+	return "B"; // Both
+}
+]]></attr>
+</Node>
+<Node guiName="Generate" guiX="1140" guiY="100" id="GENERATE" type="NORMALIZER">
+<attr name="normalize"><![CDATA[//#CTL2
+import "${TRANS_DIR}/Common.ctl";
+
+const date DOB_MIN = str2date("${DOB_MIN}", "yyyy-MM-dd") : 1940-01-01;
+const date DOB_MAX = str2date("${DOB_MAX}", "yyyy-MM-dd") : extractDate(today());
+const number MIDDLE_NAME_PERCENT = str2double("${MIDDLE_NAME_PERCENT}") / 100.0 : 0.05;
+const number EMAIL_PERCENT = str2double("${HAS_EMAIL_PERCENT}") / 100.0 : 0.99;
+
+const integer RECORDS_TO_GENERATE = getRecordCount(${RECORD_COUNT});
+integer counter = 0;
+
+string[] AVAILABLE_LANGUAGES = [];
+
+function integer count() {
+	// Assuming all first/last names for males/females have the same languages
+	AVAILABLE_LANGUAGES = cast(getKeys($in.0.firstNamesMale), list, string);
+
+	return RECORDS_TO_GENERATE;
+}
+
+function integer transform(integer idx) {
+	string lang = getRandomListItem(AVAILABLE_LANGUAGES);
+	
+	$out.0.id = idx;
+	$out.0.gender = getRandomGender();
+	$out.0.firstName = fixNameCase(getRandomFirstName($out.0.gender, lang));
+	$out.0.lastName = fixNameCase(getRandomLastName($out.0.gender, lang));
+	$out.0.middleName = fixNameCase(getRandomMiddleName($out.0.gender, lang));
+	$out.0.dateOfBirth = getRandomDOB();
+	$out.0.email = getRandomEmail();
+	
+	return OK;
+}
+
+function string getRandomGender() {
+	return random() < 0.5f ? "F" : "M";
+}
+
+function string getRandomFirstName(string gender, string lang) {
+	if (gender == "F") {
+		return getRandomListItem(cast($in.0.firstNamesFemale[lang], list, string));
+//		return $in.0.firstNamesFemale[randomInteger(0, $in.0.firstNamesFemaleCount[lang] - 1)];
+	} else {
+		return getRandomListItem(cast($in.0.firstNamesMale[lang], list, string));
+//		return $in.0.firstNamesMale[randomInteger(0, $in.0.firstNamesMaleCount - 1)];
+	}
+}
+
+function string getRandomLastName(string gender, string lang) {
+	if (gender == "F") {
+		return getRandomListItem(cast($in.0.lastNamesFemale[lang], list, string));
+//		return $in.0.lastNamesFemale[randomInteger(0, $in.0.lastNamesFemaleCount - 1)];
+	} else {
+		return getRandomListItem(cast($in.0.lastNamesMale[lang], list, string));
+//		return $in.0.lastNamesMale[randomInteger(0, $in.0.lastNamesMaleCount - 1)];
+	}
+}
+
+const string LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+function string getRandomMiddleName(string gender, string lang) {
+	if (lang == "EN-US") {
+		if (random() <= MIDDLE_NAME_PERCENT) {
+			return charAt(LETTERS, randomInteger(0, length(LETTERS) - 1));
+		} else {
+			return null;
+		}
+	} else {
+		return null;
+	}
+}
+
+function date getRandomDOB() {
+	return extractDate(randomDate(DOB_MIN, DOB_MAX));
+}
+
+const string[] DOMAINS = ["example.com", "example.org", "example.co.uk", "example.gov", "gmail.com", "outlook.com", "yahoo.com", "protonmail.com", "mail.com"];
+const string[] JOINER_CHARS = [".", "-", "", "_"];
+
+function string getRandomEmail() {
+	if (random() > EMAIL_PERCENT) {
+		return null;
+	}
+	
+	// Generate email from person's name
+	integer prefixType = randomInteger(0, 2);
+	string joinerChar = JOINER_CHARS[randomInteger(0, length(JOINER_CHARS) - 1)];
+	string prefix;
+	
+	switch (prefixType) {
+		case 0: // $name$char$last_name@domain
+			prefix = $out.0.firstName + joinerChar + $out.0.lastName;
+			break;
+		
+		case 1: // $name$middle$last_name@domain
+			prefix = $out.0.firstName + nvl($out.0.middleName, "") + $out.0.lastName;
+			break;
+		
+		case 2: // $last_name$char$name@domain
+			prefix = $out.0.lastName + joinerChar + $out.0.firstName;
+			break;
+	}
+
+	// Around 15% of people have random number at the end of their email address.
+	if (random() < 0.15) {
+		prefix += randomInteger(10, 99);
+	}
+	
+	string domain = DOMAINS[randomInteger(0, length(DOMAINS) - 1)];
+	
+	return lowerCase(prefix) + "@" + domain;
+}
+
+function void preExecute() {
+	setRandomSeed(${GLOBAL_RANDOM_SEED});
+}
+]]></attr>
+</Node>
+<Node __LANGUAGE="${LANGUAGE}" __TYPE="names" guiName="GetSourceFilesForLanguage" guiX="415" guiY="100" id="GET_SOURCE_FILES_FOR_LANGUAGE" jobURL="${GRAPH_DIR}/helpers/GetSourceFilesForLanguage.sgrf" type="SUBGRAPH"/>
+<Node fileURL="port:$0.URL:source" guiName="Names" guiX="704" guiY="100" id="NAMES" type="FLAT_FILE_READER"/>
+<Node guiName="SubgraphInput" guiX="250" guiY="10" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1460" guiY="10" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Edge fromNode="COLLECT_ALL:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="GENERATE:0"/>
+<Edge fromNode="GENERATE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="GET_SOURCE_FILES_FOR_LANGUAGE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (input)" outPort="Port 0 (out)" toNode="NAMES:0"/>
+<Edge fromNode="NAMES:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (output)" toNode="COLLECT_ALL:0"/>
+</Phase>
+</Graph>

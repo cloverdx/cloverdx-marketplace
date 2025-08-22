@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" created="Mon Aug 15 10:45:27 CEST 2022" description="Uploads file to SharePoint Document library or Personal OneDrive." guiVersion="5.17.0.1498" id="1660566208761" largeIconPath="${PROJECT}/icons/onedrive-64.png" licenseCode="CLP1DCLOVE28718064BY" mediumIconPath="${PROJECT}/icons/onedrive-32.png" name="Upload" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/onedrive-16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" keepEdge="true" name="0" required="false"/>
+<singlePort connected="false" keepEdge="true" name="1" required="false"/>
+</outputPorts>
+<Metadata id="Output">
+<Record fieldDelimiter="|" name="Error" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="errorMessage" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="ParseOutput" recordDelimiter="\r\n" type="delimited">
+<Field name="webUrl" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="CopyFiles_Result">
+<Record fieldDelimiter="|" name="Upload_Result" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="sourceURL" type="string"/>
+<Field name="targetURL" type="string"/>
+<Field name="resultURL" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+<GraphParameter label="Item ID" name="ITEM_ID" public="true">
+<attr name="description"><![CDATA[Identificator of item in directory. File or folder. Can be set to "root" for listing the top level structure.]]></attr>
+</GraphParameter>
+<GraphParameter label="File path" name="FILE_URL" public="true">
+<attr name="description"><![CDATA[Absolute path to the file to be uploaded to the source destination.]]></attr>
+</GraphParameter>
+<GraphParameter name="FILE_NAME" public="false">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return getFileName(getParamValue("FILE_URL"));
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter name="URL">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return "https://graph.microsoft.com/v1.0/drives/"+getParamValue("DRIVE_ID")+"/items/"+getParamValue("ITEM_ID")+":/"+getParamValue("FILE_NAME")+":/content";
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter name="USE_OAUTH2">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	if(!isBlank(getParamValue("O_AUTH2_CONNECTION"))){
+		return "true";
+	}
+	return "false";
+}
+]]></attr>
+</GraphParameter>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node __CLIENT_ID="${CLIENT_ID}" __CLIENT_SECRET="${CLIENT_SECRET}" __FILE_URL="${FILE_URL}" __O_AUTH2_CONNECTION="${O_AUTH2_CONNECTION}" __PASSWORD="${PASSWORD}" __SCOPE="${SCOPE}" __TENANT_ID="${TENANT_ID}" __TIMEOUT="${TIMEOUT}" __TIMEOUT_UPLOAD="${TIMEOUT_UPLOAD}" __URL="${URL}" __USERNAME="${USERNAME}" __USE_OAUTH2="${USE_OAUTH2}" guiName="Upload" guiX="219" guiY="159" id="CHILD_URL" jobURL="${SUBGRAPH_DIR}/internal/MSGraphUploadCore.sgrf" skipCheckConfig="true" type="SUBGRAPH"/>
+<Node guiName="errorMessage" guiX="474" guiY="286" id="ERROR_MESSAGE" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = $in.0.errorMessage;
+	
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node enabled="enableWhenOutputPort1IsDisconnected" guiName="Fail" guiX="916" guiY="365" id="FAIL" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = $in.0.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Map to output" guiX="1020" guiY="159" id="MAP_TO_OUTPUT" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.sourceURL = getParamValue("FILE_URL");
+	$out.0.targetURL = $in.0.webUrl;
+	$out.0.resultURL = $in.0.webUrl;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="parse response" guiX="687" guiY="159" id="PARSE_RESPONSE" schema="${META_DIR}/responseSchemas/Upload_file_response_json" sourceUri="port:$0.content:discrete" type="JSON_EXTRACT">
+<attr name="mapping"><![CDATA[<Mappings>
+	<Mapping element="json_object" outPort="0">
+	</Mapping>
+</Mappings>
+]]></attr>
+</Node>
+<Node guiName="SimpleCopy" guiX="692" guiY="286" id="SIMPLE_COPY" type="SIMPLE_COPY"/>
+<Node guiName="SubgraphInput" guiX="89" guiY="10" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1329" guiY="10" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="176" name="0"/>
+<Port guiY="246" name="1"/>
+<Port guiY="316" name="2"/>
+</Node>
+<Edge fromNode="CHILD_URL:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (input)" outPort="Port 0 (out)" toNode="PARSE_RESPONSE:0"/>
+<Edge fromNode="CHILD_URL:1" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="ERROR_MESSAGE:0"/>
+<Edge fromNode="ERROR_MESSAGE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Output" outPort="Port 0 (out)" toNode="SIMPLE_COPY:0"/>
+<Edge fromNode="MAP_TO_OUTPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" metadata="CopyFiles_Result" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="PARSE_RESPONSE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="MAP_TO_OUTPUT:0"/>
+<Edge fromNode="SIMPLE_COPY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:1"/>
+<Edge fromNode="SIMPLE_COPY:1" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="FAIL:0"/>
+</Phase>
+</Graph>

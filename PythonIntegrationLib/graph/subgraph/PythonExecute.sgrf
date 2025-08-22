@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Branislav Repcek" category="transformers" created="Thu Mar 12 12:45:45 CET 2020" guiVersion="5.16.0.1447" id="1584087250645" largeIconPath="${SUBGRAPH_DIR}/PythonExecute64.png" licenseCode="CLP1DCLOVE64060597BY" mediumIconPath="${SUBGRAPH_DIR}/PythonExecute32.png" name="PythonExecute" nature="subgraph" showComponentDetails="true" smallIconPath="${SUBGRAPH_DIR}/PythonExecute16.png">
+<Global>
+<inputPorts>
+<singlePort connected="false" name="0"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="false" name="0"/>
+<singlePort connected="false" name="1"/>
+</outputPorts>
+<Metadata id="ExecuteScript_RunResult">
+<Record fieldDelimiter="|" name="PythonExecuteError" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="stdOut" type="string"/>
+<Field name="errOut" type="string"/>
+<Field format="yyyy-MM-dd HH:mm:ss" name="startTime" trim="true" type="date"/>
+<Field format="yyyy-MM-dd HH:mm:ss" name="endTime" trim="true" type="date"/>
+<Field name="duration" trim="true" type="long"/>
+<Field name="exitValue" trim="true" type="long"/>
+<Field name="reachedTimeout" trim="true" type="boolean"/>
+<Field name="errException" type="string"/>
+<Field name="errMessage" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record eofAsDelimiter="true" name="PythonInput" previewAttachmentCharset="UTF-8" type="delimited">
+<Field name="stdin" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata2">
+<Record eofAsDelimiter="true" name="PythonOutput" previewAttachmentCharset="UTF-8" type="delimited">
+<Field name="stdOut" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter label="Python script URL" name="PYTHON_SCRIPT_URL" public="true" required="true">
+<ComponentReference referencedComponent="RUN_PYTHON" referencedProperty="scriptURL"/>
+</GraphParameter>
+<GraphParameter label="Script charset" name="PYTHON_SCRIPT_CHARSET" public="true" required="false" value="UTF-8">
+<ComponentReference referencedComponent="RUN_PYTHON" referencedProperty="scriptCharset"/>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="python.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="Run Python" guiX="417" guiY="101" id="RUN_PYTHON" interpreter="${PYTHON_INTERPRETER_URL} ${}" scriptCharset="${PYTHON_SCRIPT_CHARSET}" scriptURL="${PYTHON_SCRIPT_URL}" type="EXECUTE_SCRIPT" workingDirectory="${PROJECT}">
+<attr name="errorOutputMapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.1.stdOut = $in.1.stdOut;
+	$out.1.errOut = $in.1.errOut;
+	$out.1.startTime = $in.1.startTime;
+	$out.1.endTime = $in.1.endTime;
+	$out.1.duration = $in.1.duration;
+	$out.1.exitValue = $in.1.exitValue;
+	$out.1.reachedTimeout = $in.1.reachedTimeout;
+	$out.1.errException = $in.1.errException;
+	$out.1.errMessage = $in.1.errMessage;
+
+	return ALL;
+}
+]]></attr>
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.stdIn = $in.0.stdin;
+
+	return ALL;
+}
+]]></attr>
+<attr name="standardOutputMapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.stdOut = $in.1.stdOut;
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="200" guiY="10" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="800" guiY="10" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+<Port guiY="257" name="2"/>
+</Node>
+<Edge fromNode="RUN_PYTHON:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="RUN_PYTHON:1" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 1 (in)" metadata="ExecuteScript_RunResult" outPort="Port 1 (error)" toNode="SUBGRAPH_OUTPUT0:1"/>
+<Edge fromNode="SUBGRAPH_INPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="RUN_PYTHON:0"/>
+</Phase>
+</Graph>

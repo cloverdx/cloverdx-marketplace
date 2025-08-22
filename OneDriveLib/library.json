@@ -1,0 +1,64 @@
+{
+  "descriptor" : {
+    "version" : "1.1.1",
+    "description" : "Access and manage files in OneDrive and SharePoint—list, upload, and download documents directly from your CloverDX pipelines.",
+    "name" : "OneDriveLib",
+    "author" : "CloverDX",
+    "productVersion" : "6.5.0.9",
+    "initializationJob" : "graph/getSitesAndPersonalDrive.grf",
+    "minProductVersion" : "6.0",
+    "maxProductVersion" : "",
+    "lastModificationDate" : "2024-10-01T07:47:10Z"
+  },
+  "connections" : {
+    "oauth2Connections" : [ {
+      "jobPath" : "graph/subgraph/internal/MSGraphCore.sgrf",
+      "path" : "conn/base_conn.cfg"
+    } ]
+  },
+  "publicInterface" : {
+    "metadata" : [ ],
+    "dataConnectors" : {
+      "sources" : [ ],
+      "targets" : [ ]
+    },
+    "graphs" : [ ],
+    "jobflows" : [ ],
+    "restJobs" : [ ],
+    "subgraphs" : [ {
+      "largeIcon" : "./icons/onedrive-64.png",
+      "icon" : "./icons/onedrive-16.png",
+      "mediumIcon" : "./icons/onedrive-32.png",
+      "description" : "Downloads files from SharePoint Document library or Personal OneDrive.",
+      "path" : "graph/subgraph/public/Download.sgrf"
+    }, {
+      "largeIcon" : "./icons/sharepoint-64.png",
+      "icon" : "./icons/sharepoint-16.png",
+      "mediumIcon" : "./icons/sharepoint-32.png",
+      "description" : "Get all SharePoint Sites and Personal OneDrive.",
+      "path" : "graph/subgraph/public/getSitesAndPersonalDrive.sgrf"
+    }, {
+      "largeIcon" : "./icons/sharepoint-64.png",
+      "icon" : "./icons/sharepoint-16.png",
+      "mediumIcon" : "./icons/sharepoint-32.png",
+      "description" : "Lists all Document libraries (drives) from SharePoint Site.",
+      "path" : "graph/subgraph/public/ListDrives.sgrf"
+    }, {
+      "largeIcon" : "./icons/onedrive-64.png",
+      "icon" : "./icons/onedrive-16.png",
+      "mediumIcon" : "./icons/onedrive-32.png",
+      "description" : "List Items from SharePoint Document library or Personal OneDrive.",
+      "path" : "graph/subgraph/public/ListItems.sgrf"
+    }, {
+      "largeIcon" : "./icons/onedrive-64.png",
+      "icon" : "./icons/onedrive-16.png",
+      "mediumIcon" : "./icons/onedrive-32.png",
+      "description" : "Uploads file to SharePoint Document library or Personal OneDrive.",
+      "path" : "graph/subgraph/public/Upload.sgrf"
+    } ]
+  },
+  "healthCheck" : {
+    "description" : "",
+    "path" : ""
+  }
+}

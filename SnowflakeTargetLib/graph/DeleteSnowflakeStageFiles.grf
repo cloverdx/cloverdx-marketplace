@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Martin" created="Tue Sep 19 17:56:01 CEST 2023" guiVersion="6.3.0.1698" id="1695211809933" licenseCode="CLCDSCLOVE24765514SP" name="DeleteStageFiles" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="SQL" recordDelimiter="\r\n" type="delimited">
+<Field name="query" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata6">
+<Record fieldDelimiter=";" name="StageFile" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="name" size="16777216" type="string"/>
+<Field length="38" name="size" scale="0" size="38" type="decimal"/>
+<Field name="md5" size="16777216" type="string"/>
+<Field name="last_modified" size="16777216" type="string"/>
+</Record>
+</Metadata>
+<Connection database="SNOWFLAKE" dbURL="jdbc:snowflake://${SNOWFLAKE_ACCOUNT_IDENTIFIER}.${SNOWFLAKE_REGION}.snowflakecomputing.com/?warehouse=${SNOWFLAKE_WAREHOUSE}&amp;db=${SNOWFLAKE_DATABASE}&amp;schema=${SNOWFLAKE_SCHEMA}" id="JDBC0" jdbcSpecific="SNOWFLAKE" name="SnowflakeConnection" password="${SNOWFLAKE_PASSWORD}" type="JDBC" user="${SNOWFLAKE_USERNAME}"/>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameter label="DB table" name="DB_TABLE" public="true" required="true" value="TEST"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="DAD8C9" folded="false" fontSize="medium" height="136" id="Note0" textColor="444444" width="730" x="12" y="141">
+<attr name="text"><![CDATA[h1. Delete Snowflake stage files
+
+Deletes all stage files associated with a table from Snowflake.]]></attr>
+</RichTextNote>
+<Dictionary>
+<Entry contentType="string" input="false" name="stageFiles" output="true" type="list"/>
+</Dictionary>
+</Global>
+<Phase number="0">
+<Node guiName="Generate query" guiX="0" guiY="317" id="GENERATE_QUERY" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+	$out.0.query = "LIST @%" + getParamValue("DB_TABLE");
+	return ALL;
+}]]></attr>
+</Node>
+<Node dbConnection="JDBC0" guiName="List stage files" guiX="201" guiY="317" id="LIST_STAGE_FILES" type="DB_INPUT_TABLE" url="port:$0.query:discrete"/>
+<Edge fromNode="GENERATE_QUERY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="LIST_STAGE_FILES:0"/>
+<Edge fromNode="LIST_STAGE_FILES:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" metadata="Metadata6" outPort="Port 0 (out)" toNode="GENERATE_REMOVAL_QUERY:0"/>
+</Phase>
+<Phase number="9">
+<Node guiName="Generate removal query" guiX="443" guiY="317" id="GENERATE_REMOVAL_QUERY" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.query = concatWithSeparator("\n",
+		"REMOVE @%" + getParamValue("DB_TABLE") + "/" + $in.0.name
+	);
+	dictionary.stageFiles.append($in.0.name);
+	return ALL;
+}]]></attr>
+</Node>
+<Node dbConnection="JDBC0" guiName="Remove stage files" guiX="653" guiY="317" id="REMOVE_STAGE_FILES" type="DB_EXECUTE" url="port:$0.query:discrete"/>
+<Edge fromNode="GENERATE_REMOVAL_QUERY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge23" inPort="Port 0 (input parameters)" metadata="Metadata1" outPort="Port 0 (out)" toNode="REMOVE_STAGE_FILES:0"/>
+</Phase>
+</Graph>

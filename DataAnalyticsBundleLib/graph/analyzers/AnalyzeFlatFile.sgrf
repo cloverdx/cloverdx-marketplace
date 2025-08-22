@@ -1,0 +1,799 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="readers" created="Tue May 10 18:21:48 EDT 2016" description="Implementation of a workflow that analyzes source flat file and creates metadata structure based on it." guiVersion="5.15.0.15" id="1462984322528" largeIconPath="${DATA_ANALYTICS_DIR}/ico/anlzr-ff-64.png" licenseCode="CLP1DJAVLI51655480BY" licenseType="Commercial" mediumIconPath="${DATA_ANALYTICS_DIR}/ico/anlzr-ff-32.png" modified="Fri May 13 16:05:06 EDT 2016" modifiedBy="CloverDX" name="AnalyzeFlatFile" nature="subgraph" revision="1.231" showComponentDetails="true" smallIconPath="${DATA_ANALYTICS_DIR}/ico/anlzr-ff-16.png">
+<Global>
+<inputPorts>
+<singlePort connected="true" keepEdge="false" name="0" required="false"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="true" name="0"/>
+</outputPorts>
+<EndpointSettings/>
+<Metadata fileURL="${DATA_ANALYTICS_DIR}/meta/MetadataField.fmt" id="Metadata2"/>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="dummy" recordDelimiter="\r\n" type="delimited">
+<Field name="token" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata3" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="|" name="FileAnalysisResult" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\r\n" type="delimited">
+<Field name="value" nullable="false" type="string"/>
+<Field default="string" name="type" type="string"/>
+<Field name="format" type="string"/>
+<Field name="nullable" type="boolean"/>
+<Field name="quoteChar" type="string"/>
+<Field name="headers" type="boolean"/>
+<Field name="position" type="integer"/>
+<Field name="length" type="integer"/>
+<Field name="scale" type="integer"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1" previewAttachmentCharset="ISO-8859-1">
+<Record eofAsDelimiter="true" name="FlatFileRecord" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\r\n\\|\n\\|\r\\|\n\r" type="delimited">
+<Field locale="${LOCALE}" name="data" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata4" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="|" name="PreliminaryAnalysisResult" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\r\n" type="delimited">
+<Field name="data" type="string"/>
+<Field name="delimiter" type="string"/>
+<Field name="quotation" type="string"/>
+<Field name="fieldsNo" type="integer"/>
+<Field name="score" type="decimal"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter category="advanced" label="Structural analysis sample size" name="STRUCTURAL_SAMPLE_SIZE" public="true" value="2">
+<attr name="description"><![CDATA[Sets the sample size (number of lines from the beginning of the input file) for structural analysis. Should be set to at least 2 to read the file header and first row of data.]]></attr>
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="Data type sample size" name="DATATYPE_SAMPLE_SIZE" public="true" value="50">
+<attr name="description"><![CDATA[Sets the sample size (number of lines from the beggining of the input file, skipping the header row) for extended data type ananlysis. Increasing the value may produce more accurate results at the expense of computational resources.]]></attr>
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter category="advanced" defaultHint="When data types were recognized from structural analysis, skip data type analysis" label="Simplified scan" name="SKIP_EXTENDED_ANALYSIS" public="false" value="false">
+<attr name="description"><![CDATA[When data types were recognized from structural analysis, skip data type analysis. M. Tom: will basically never happen even if enabled - marking not public to simplify the interface.]]></attr>
+<SingleType name="bool"/>
+</GraphParameter>
+<GraphParameter category="advanced" defaultHint="One delimiter per line" label="Allowed delimiters" name="ALLOWED_DELIMITERS" public="true">
+<attr name="description"><![CDATA[Provide a list (one per line) of allowed field delimiters. If not provided default regex expression will be used, matching everything but alphanumerical characters and quotation characters.]]></attr>
+<SingleType name="multiline"/>
+</GraphParameter>
+<GraphParameter label="File URL" name="FILE_URL" public="true">
+<attr name="description"><![CDATA[URL to the file to analyse. Alternatively records representing single line of a file can be read from the first input port, if is connected.]]></attr>
+<SingleType multiple="false" name="file" selectionMode="file_only"/>
+</GraphParameter>
+<GraphParameterFile fileURL="${DATA_ANALYTICS_DIR}/conf/analysis.prm"/>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<Dictionary>
+<Entry contentType="text/html" input="false" name="headerFound" output="false" type="boolean"/>
+<Entry contentType="text/html" input="false" name="accurate" output="false" type="boolean"/>
+<Entry contentType="text/html" input="false" name="delimiter" output="false" type="string"/>
+<Entry contentType="text/html" input="false" name="quotation" output="false" type="string"/>
+<Entry dictval.value="0" input="false" name="counter" output="false" type="long"/>
+<Entry dictval.value="0" input="false" name="headerCount" output="false" type="integer"/>
+</Dictionary>
+</Global>
+<Phase number="0">
+<Node debugInput="true" guiName="DataGenerator" guiX="22" guiY="101" id="DATA_GENERATOR" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the generate. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if generate() throws an exception.
+// function integer generateOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node enabled="enableWhenInputPort0IsConnected" guiName="Filter" guiX="272" guiY="101" id="FILTER" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+dictionary.counter++ < ${STRUCTURAL_SAMPLE_SIZE}]]></attr>
+</Node>
+<Node guiName="Print hint" guiX="272" guiY="316" id="PRINT_HINT" type="GET_JOB_INPUT">
+<attr name="mapping"><![CDATA[//#CTL2
+
+import '${DATA_ANALYTICS_DIR}/trans/constants.ctl';
+
+// Transforms input record into output record.
+function integer transform() {
+	
+	printLog(info,"STRUCTURAL ANALYZER INITIALIZATION");
+	printLog(info,"==================================");
+	printLog(info,"Configuration file is located in: ${DATA_ANALYTICS_DIR}/lib/constants.ctl");
+	printLog(info,"Recognized alphabet characters (not considered as delimiters): " + ALPHABET_CHARACTERS.toString());
+	printLog(info,"Quotation characters recognized: " + QUOTATION_CHARACTERS.toString());
+	printLog(info,"Date formats (in ascending order of priority): " + DATE_FORMAT.toString());
+	printLog(info,"Time formats (in ascending order of priority): " + TIME_FORMAT.toString());
+	printLog(info,"Density weighting: " + DENSITY_WEIGHTING);
+	printLog(info,"Occurance weighting: " + OCCURANCE_WEIGHTING);
+	printLog(info,"Default decimal size: " + DEFAULT_SIZE);
+	printLog(info,"Default decimal precision: " + DEFAULT_SCALE);
+	printLog(info,"Default field name prefix: " + DEFAULT_FIELD_NAME);
+	printLog(info,"\n".join([
+		"",
+		"*  Density weighting multiplier affects score for special character occurance in a file.\n   Having it > 1 will increase importance when characters are in close clusters.",
+		"** Occurance weighting multiplier affects score for special character occurance in a file.\n   Having it > 1 will increase importance of a character based on its occurance."
+	]));
+	printLog(info,"==================================");
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="200" guiY="6" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="118" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Edge fromNode="DATA_GENERATOR:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_INPUT0:0"/>
+<Edge fromNode="FILTER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge20" inPort="Port 0 (input)" outPort="Port 0 (accepted)" toNode="READ_FIRST_LINE:0"/>
+<Edge fromNode="FILTER:1" guiBendpoints="" guiRouter="Manhattan" id="Edge21" inPort="Port 1 (in)" outPort="Port 1 (rejected)" toNode="SIMPLE_GATHER:1"/>
+<Edge fromNode="SUBGRAPH_INPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge17" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="FILTER:0"/>
+</Phase>
+<Phase number="5">
+<Node guiName="Analyze data" guiX="830" guiY="101" id="ANALYZE_DATA" type="DENORMALIZER">
+<attr name="denormalize"><![CDATA[//#CTL2
+
+import "${DATA_ANALYTICS_DIR}/trans/constants.ctl";
+import "${DATA_ANALYTICS_DIR}/trans/analytics.ctl";
+
+// This transformation defines the way in which multiple input records 
+// (with the same key) are denormalized into one output record. 
+
+string header;
+string delimExp;
+boolean master = true;
+boolean stringFound = false;
+
+map[string,integer] totals;
+map[string,decimal] densities;
+
+string[] delimiters;
+
+function decimal calculateFitness(string instr,string delimiter,integer inlen) {
+	integer curd;
+	integer nextd;
+	integer dlen = length(delimiter);
+	integer[] lengths;
+	
+	curd = -dlen;
+	while ((nextd = indexOf($in.0.data,delimiter,curd)) > -1) {
+		append(lengths,nextd - curd);
+		curd = nextd + dlen;
+	}
+	append(lengths,inlen-curd);
+	
+	decimal variance = calculateVariance(lengths,sum(lengths) / length(lengths));
+	return variance == 0d ? inlen : 1d / variance;
+}
+
+// Calculates variance of integer values
+// from an array
+function decimal calculateVariance(integer[] lengths, decimal avg) {
+	decimal variance = 0;
+	
+	foreach (integer l: lengths) { 
+		variance += pow(l-avg,2);
+	}
+	
+	return variance / length(lengths);
+}
+
+// Provides sum of an array passed as an argument
+// expects integer values in an array
+function integer sum(integer[] arr) {
+	integer summed = 0;
+	foreach (integer position: arr) summed += position;
+	return summed;
+}
+
+// This function is called for each input record from a group of records
+// with the same key.
+function integer append() {
+	// For accuracy records, we consider only already known delimiters
+	// For master though, we need to identify basic set
+	// M. Tom.: if delimeters are provided explicitely no need to overide
+	// them, plus the delimExp would be empty in such case anyway - causing
+	// an exception
+	if (master and isEmpty(delimiters)) {
+		delimiters = find(removeDiacritic(trim($in.0.data)),delimExp,1);
+	}
+	
+	decimal stringLength = length($in.0.data);
+	foreach (string d: delimiters) {
+		integer total = countChar($in.0.data,d);
+		// This basically means, assumed delimiter is not present in
+		// accuracy data; therefore penalize it
+		if (total < 1) {
+			totals[d] = -1000;
+			densities[d] = -1000d;
+		// Otherwise, update density and totals information
+		} else {
+			decimal dTotal = total;
+			decimal density = calculateFitness($in.0.data,d,decimal2integer(stringLength));
+			
+			totals[d] = master ? total : min(totals[d],total);
+			densities[d] = master ? density : (densities[d] + density) / 2;
+		}
+	}
+	
+	// There's only one master record
+	// Others are for accuracy of analysis only
+	if (master) {
+		master = false;
+		header = $in.0.data;
+	}
+	
+	return OK;
+}
+
+// This function is called once after the append() function was called for all records
+// of a group of input records defined by the key.
+// It creates a single output record for the whole group.
+function integer transform() {
+	decimal score = -1d;
+	string delimiter = null;
+	string quotation = null;
+	
+	foreach (string d: getKeys(totals)) {
+		decimal tempScore = (totals[d] * OCCURANCE_WEIGHTING) + (densities[d] * DENSITY_WEIGHTING);
+		printLog(info,concat("'",d,"': ",toString(totals[d]),";",toString(densities[d]),";",toString(tempScore)));
+		
+		// Choose delimiter with the highest score
+		if (tempScore > score) {
+			score = tempScore;
+			delimiter = d;
+		}
+	}
+	
+	if (isnull(delimiter)) {
+		delimiter = getKeys(totals)[0];
+	}
+
+	printLog(info,"Delimiter: " + delimiter + " chosen with score of " + score + ".");
+	
+	// Try to find quotation character for at least one column
+	quotation = checkQuotationCharacter(header,escapeDelimiter(delimiter));
+	
+	if (!isnull(quotation)) {
+		printLog(info,"Found quotation character in header record: " + quotation);
+	}
+	
+	$out.0.data = header;
+	$out.0.delimiter = delimiter;
+	$out.0.quotation = quotation;
+	$out.0.fieldsNo = totals[delimiter];	// approximate number!!
+	$out.0.score = score;
+	
+	dictionary.delimiter = delimiter;
+	dictionary.quotation = quotation;
+	return OK;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+function void preExecute() {
+	if (isBlank("${ALLOWED_DELIMITERS}")) {
+		delimExp = "([^"+ join("", copy(ALPHABET_CHARACTERS,QUOTATION_CHARACTERS)) +"]+)";
+	} else {
+		delimiters = "${ALLOWED_DELIMITERS}".split("\n");
+	}
+	
+	printLog(info,"Delimiter expression: " + delimExp);
+	printLog(info,"Delimiters: " + delimiters);
+}
+
+// Called only if append() throws an exception.
+// function integer appendOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called only if transform() throws an exception.
+//function integer transformOnError(string errorMessage, string stackTrace) {
+//}
+
+// Called after transform() to return the resources that have been used to their initial state
+// so that next group of records with different key may be parsed.
+// function void clean() {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Analyze file header" guiX="1048" guiY="101" id="ANALYZE_FILE_HEADER" type="NORMALIZER">
+<attr name="normalize"><![CDATA[//#CTL2:COMPILE
+
+import "${DATA_ANALYTICS_DIR}/trans/constants.ctl";
+import "${DATA_ANALYTICS_DIR}/trans/analytics.ctl";
+import "${DATA_ANALYTICS_DIR}/trans/helpers.ctl";
+
+// This transformation defines the way in which a single input record is normalized
+// into multiple output records.
+
+string[] values;
+
+// This function is called for all input records.
+// It parses each single input record and returns the number of records
+// that should be created from such input record.
+function integer count() {
+	values = explode($in.0.data,$in.0.delimiter,$in.0.quotation);
+	dictionary.headerCount = values.length();
+	return dictionary.headerCount;
+}
+
+// This function creates new records for the output, based on single input record
+// that has been parsed by the count() function.
+// It is called count() times for each input record.
+// The idx argument specifies which output record is being created,
+// its values range is from 0 to count() - 1.
+function integer transform(integer idx) {
+	populateMetadataFieldRecord(values,idx);
+	$out.0.headers = true;
+	
+	if ($out.0.type != "string") {
+		dictionary.headerFound = false;
+	} else {
+		dictionary.accurate = false;
+	}
+	
+	return OK;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+function void preExecute() {
+	dictionary.headerFound = true;
+	dictionary.accurate = true;
+}
+
+// Called only if count() throws an exception.
+// function integer countOnError(string errorMessage, string stackTrace) {
+//}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace, integer idx) {
+// }
+
+// Called after transform(count-1) to return the resources that have been used to their initial state
+// so that next input record may be parsed.
+// function void clean() {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node charset="${CHARSET}" dataPolicy="strict" enabled="enableWhenInputPort0IsDisconnected" fileURL="${FILE_URL}" guiName="Read first line" guiX="641" guiY="101" id="READ_FIRST_LINE" numRecords="${STRUCTURAL_SAMPLE_SIZE}" type="DATA_READER"/>
+<Edge debugMode="true" fromNode="ANALYZE_DATA:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" metadata="Metadata4" outPort="Port 0 (out)" toNode="ANALYZE_FILE_HEADER:0"/>
+<Edge debugMode="true" fromNode="ANALYZE_FILE_HEADER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="CONCATENATE:0"/>
+<Edge debugMode="true" fromNode="READ_FIRST_LINE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (output)" toNode="ANALYZE_DATA:0"/>
+</Phase>
+<Phase number="10">
+<Node guiName="Analyze rest of file" guiX="1049" guiY="316" id="ANALYZE_REST_OF_FILE" type="NORMALIZER">
+<attr name="normalize"><![CDATA[
+
+import "${DATA_ANALYTICS_DIR}/trans/constants.ctl";
+import "${DATA_ANALYTICS_DIR}/trans/analytics.ctl";
+import "${DATA_ANALYTICS_DIR}/trans/helpers.ctl";
+
+// This transformation defines the way in which a single input record is normalized
+// into multiple output records.
+
+string[] values;
+
+// This function is called for all input records.
+// It parses each single input record and returns the number of records
+// that should be created from such input record.
+function integer count() {
+	if (isnull(dictionary.quotation)) {
+		dictionary.quotation = checkQuotationCharacter($in.0.data,escapeDelimiter(dictionary.delimiter));
+	}
+	
+	values = explode($in.0.data,dictionary.delimiter,dictionary.quotation);
+	
+	if (dictionary.headerCount != values.length()) {
+		printLog(warn,concatWithSeparator("\n",
+			"Possible broken data: unable to parse by prescription ("+ dictionary.headerCount +" header fields, '"+ dictionary.delimiter +"' delimiter).",
+			"\tData: " + $in.0.data
+		));
+		return 0;
+	}
+	
+	return dictionary.headerCount;
+}
+
+// This function creates new records for the output, based on single input record
+// that has been parsed by the count() function.
+// It is called count() times for each input record.
+// The idx argument specifies which output record is being created,
+// its values range is from 0 to count() - 1.
+function integer transform(integer idx) {
+	populateMetadataFieldRecord(values,idx);
+	$out.0.headers = false;
+
+	return OK;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if count() throws an exception.
+// function integer countOnError(string errorMessage, string stackTrace) {
+//}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace, integer idx) {
+// }
+
+// Called after transform(count-1) to return the resources that have been used to their initial state
+// so that next input record may be parsed.
+// function void clean() {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Concatenate" guiX="1264" guiY="101" id="CONCATENATE" type="CONCATENATE"/>
+<Node enabled="enableWhenInputPort0IsDisconnected" guiName="Create job token" guiX="272" guiY="217" id="CREATE_JOB_TOKEN" type="GET_JOB_INPUT">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.token = "${FILE_URL}";
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Enrich records" guiX="1449" guiY="101" id="ENRICH_RECORDS" type="ROLLUP">
+<attr name="transform"><![CDATA[//#CTL2
+
+import "${DATA_ANALYTICS_DIR}/trans/constants.ctl";
+
+FileAnalysisResult[] records;
+string[] headerLine;
+integer columns = 0;
+boolean hasHeader = true;
+
+// Called for the first data record in a new group. Starts the parsing of the new group.
+function void initGroup(VoidMetadata groupAccumulator) {
+	return;
+}
+
+// Called for each data record in the group (including the first one and the last one).
+// Implicitly returns false => updateTransform() is not called. When returns true, calls updateTransform().
+function boolean updateGroup(VoidMetadata groupAccumulator) {
+	integer idx = $in.0.position;
+	
+	if ($in.0.headers || length(records) <= idx || isNull(records[idx],0)) {
+		FileAnalysisResult new; new.* = $in.0.*;
+		records[idx] = new;
+		
+		// Not coming from header discovery?
+		if (!$in.0.headers) {
+			hasHeader = false;
+			records[idx].nullable = true;
+			//printLog(error,"Position: " + idx + " created from data record!");
+		} else {
+			records[idx].type = records[idx].type == "string" ? null
+				: records[idx].type;
+			
+			headerLine[idx] = $in.0.type;
+		}
+		
+		return false;
+	}
+	
+	records[idx].nullable = records[idx].nullable || $in.0.nullable;
+	// Let's update all information - string has to lowest possible priority
+	if ((isnull(records[idx].type) && !isnull($in.0.type)) || $in.0.type == "string") {
+		records[idx].type = $in.0.type;
+		if($in.0.type == "decimal"){
+			records[idx].length = DEFAULT_SIZE;
+			records[idx].scale = DEFAULT_SCALE;
+		}else{
+			records[idx].length = $in.0.length;
+			records[idx].scale = $in.0.scale;
+			records[idx].format = $in.0.format;
+		}
+	} else {
+		switch ($in.0.type) {
+			// integer takes lowest priority
+			case "integer":
+				
+			break;
+			// long takes above integer
+			case "long":
+				if (records[idx].type.in(["integer"])) {
+					records[idx].type = $in.0.type;
+				//
+				// Or could be a case of timestamp or date with varying formats
+				} else if (records[idx].type == "date") {
+					printLog(warn,"\n".join(
+						["Mixed date formats, unable to change format from: '"+ records[idx].format +"' to numeric.",
+						 "You can change priority of date formats in 'lib/constants.ctl' file to fix this error.",
+						 "Dates are evaluated from left to right, the more to the left date is specified, the higher priority it has."]
+					));
+					
+					records[idx].type = "string";
+					records[idx].type = null;
+				}
+			break;
+			// decimal takes above both integer and long
+			case "decimal":
+				if (records[idx].type.in(["decimal","integer","long"])) {
+					if(isnull(records[idx].length)){
+						records[idx].length = DEFAULT_SIZE;
+					}
+					if(isnull(records[idx].scale)){
+						records[idx].scale = DEFAULT_SCALE;
+					}
+					
+					// Below calculations deal with situation where there are various precisions in a data
+					// i.e. record coming with precision 12,6 when 12,2 is currently set
+					records[idx].type = $in.0.type;
+					//increase precision if necesary
+					if(records[idx].scale < $in.0.scale){
+						integer scaleDifference = $in.0.scale - records[idx].scale;
+						records[idx].scale = $in.0.scale;
+						//lenght must be increased with increased precision;
+						records[idx].length= records[idx].length + scaleDifference;
+					}
+					// takes biggest number, adjusted for scale difference
+					records[idx].length = max(	$in.0.length + max(0,records[idx].scale - $in.0.scale),
+												records[idx].length);
+				}
+			break;
+			case "date":
+				if (records[idx].type.in(["date","decimal","long","integer"])) {
+					if (records[idx].type != $in.0.type || (!isnull(records[idx].format) && records[idx].format != $in.0.format)) {
+						printLog(warn,"\n".join(
+							["Mixed date formats, unable to change format from: '"+ records[idx].format +"' to '"+ $in.0.format +"'.",
+							 "You can change priority of date formats in 'lib/constants.ctl' file to fix this error.",
+							 "Dates are evaluated from left to right, the more to the left date is specified, the higher priority it has."]
+						));
+					
+						records[idx].type = "string";
+						records[idx].format = null;
+						records[idx].length = null;
+						records[idx].scale = null;
+					} else {
+						records[idx].type = $in.0.type;
+						records[idx].format = $in.0.format;
+					}
+				}
+			break;
+		}
+	}
+	
+	return false;
+}
+
+// Called for the last data records in all groups sequentially, but only after all incoming data records have been parsed.
+// Implicitly returns true => transform() is called for the whole group.
+function boolean finishGroup(VoidMetadata groupAccumulator) {
+	foreach (string dt: headerLine) {
+		hasHeader = hasHeader && dt == "string";
+	}
+	
+	return true;
+}
+
+// Called to transform data records that have been parsed so far into user-specified number of output data record(s).
+// Counter (incremented by 1 starting from 0) stores the number of previous calls to this method for the current group update.
+// Group accumulator can optionally be used.
+// Function implicitly returns SKIP to skip sending any data records to output.
+// Returning ALL causes each data record to be sent to all output port(s).
+// Can also return a number of the output port to which individual data record should be sent.
+function integer updateTransform(integer counter, VoidMetadata groupAccumulator) {
+	raiseError("Method not implemented.");
+}
+
+// Called to transform the whole group of incoming data record(s) into user-specified number of output data record(s).
+// Counter (incremented by 1 starting from 0) stores the number of previous calls to this method for the current group update.
+// Group accumulator can optionally be used.
+// Function implicitly returns SKIP to skip sending any data records to output.
+// Returning ALL causes each data record to be sent to all output port(s).
+// Can also return a number of the output port to which individual data record should be sent.
+function integer transform(integer counter, VoidMetadata groupAccumulator) {
+	if (counter >= length(records))
+		return SKIP;
+	
+	$out.0.* = records[counter].*;
+	$out.0.__name = getFileName("${FILE_URL}");
+	$out.0.locale = !isBlank("${LOCALE}") ? "${LOCALE}" : null;
+	$out.0.timezone = !isBlank("${TIMEZONE}") ? "${TIMEZONE}" : null;
+	$out.0.delimiter = counter + 1 == length(records) ? null : dictionary.delimiter;
+	$out.0.__quoteChar = dictionary.quotation;
+	
+	if (!hasHeader) {		
+		$out.0.name = DEFAULT_FIELD_NAME + counter;
+		$out.0.type = !isnull(headerLine[counter]) ? headerLine[counter] : (!isnull($out.0.type) ? $out.0.type : "string");
+	} else {
+		$out.0.name = replace(replace(removeDiacritic(records[counter].value),"[^a-zA-Z0-9_]","_"),"^([^a-zA-Z_])","_$1");
+		$out.0.label = records[counter].value;
+		$out.0.__skipSourceRows = 1;
+		$out.0.type = nvl($out.0.type,"string");
+	}
+	
+	return ALL;
+}
+
+// Called during component initialization.
+// function void init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if initGroup(DataRecord) throws an exception.
+//function void initGroupOnError(string errorMessage, string stackTrace, VoidMetadata groupAccumulator) {
+//}
+
+// Called only if updateGroup(DataRecord) throws an exception.
+//function boolean updateGroupOnError(string errorMessage, string stackTrace, VoidMetadata groupAccumulator) {
+//}
+
+// Called only if finishGroup(DataRecord) throws an exception.
+//function boolean finishGroupOnError(string errorMessage, string stackTrace, VoidMetadata groupAccumulator) {
+//}
+
+// Called only if updateTransform(integer, DataRecord) throws an exception.
+//function integer updateTransformOnError(string errorMessage, string stackTrace, integer counter, VoidMetadata groupAccumulator) {
+//}
+
+// Called only if transform(integer, DataRecord) throws an exception.
+//function integer transformOnError(string errorMessage, string stackTrace, integer counter, VoidMetadata groupAccumulator) {
+//}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Header analysis recognized all data types" guiX="830" guiY="217" id="HEADER_ANALYSIS_RECOGNIZED_ALL_DATA_TYPES" type="SUCCESS"/>
+<Node guiName="Partition" guiX="641" guiY="217" id="PARTITION" type="PARTITION">
+<attr name="partitionSource"><![CDATA[//#CTL2
+// This transformation partitions input records into multiple output ports.
+
+long counter = 1;
+
+// Returns the number of the output port where the input record will be sent.
+function integer getOutputPort() {
+	integer out = 0;
+	
+	// If records are provided over edge;
+	// check for sample size and discard anything over threshold
+	if (counter++ > ${DATATYPE_SAMPLE_SIZE}) {
+		return 0;
+	}
+	
+	if (!dictionary.accurate || !${SKIP_EXTENDED_ANALYSIS})
+		out++;
+		
+	if (isnull(dictionary.delimiter))
+		out++;
+	
+	return out;
+}
+
+// Called during component initialization, partitionCount is the number of output ports.
+// function void init(integer partitionCount) {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources.
+// All resources allocated within this method should be released by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if getOutputPort() throws an exception.
+// function integer getOutputPortOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node charset="${CHARSET}" enabled="enableWhenInputPort0IsDisconnected" fileURL="port:$0.token:source" guiName="Read rest of file" guiX="831" guiY="316" id="READ_REST_OF_FILE" numRecords="${DATATYPE_SAMPLE_SIZE}" skipRows="1" type="DATA_READER"/>
+<Node guiName="SimpleGather" guiX="452" guiY="217" id="SIMPLE_GATHER" type="SIMPLE_GATHER"/>
+<Node guiName="SubgraphOutput" guiX="1647" guiY="6" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Node debugOutput="true" guiName="Trash" guiX="1751" guiY="101" id="TRASH" type="TRASH"/>
+<Node errorMessage="Unable to proceed with file analysis!" guiName="Unable to analyze header!" guiX="830" guiY="440" id="UNABLE_TO_ANALYZE_HEADER" type="FAIL"/>
+<Edge debugMode="true" fromNode="ANALYZE_REST_OF_FILE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="CONCATENATE:1"/>
+<Edge debugMode="true" fromNode="CONCATENATE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="ENRICH_RECORDS:0"/>
+<Edge fromNode="CREATE_JOB_TOKEN:0" guiBendpoints="" guiRouter="Manhattan" id="Edge18" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SIMPLE_GATHER:0"/>
+<Edge debugMode="true" fromNode="ENRICH_RECORDS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="PARTITION:0" guiBendpoints="" guiRouter="Manhattan" id="Edge15" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="HEADER_ANALYSIS_RECOGNIZED_ALL_DATA_TYPES:0"/>
+<Edge fromNode="PARTITION:1" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (input)" outPort="Port 1 (out)" toNode="READ_REST_OF_FILE:0"/>
+<Edge fromNode="PARTITION:2" guiBendpoints="" guiRouter="Manhattan" id="Edge14" inPort="Port 0 (in)" outPort="Port 2 (out)" toNode="UNABLE_TO_ANALYZE_HEADER:0"/>
+<Edge debugMode="true" fromNode="READ_REST_OF_FILE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (output)" toNode="ANALYZE_REST_OF_FILE:0"/>
+<Edge fromNode="SIMPLE_GATHER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge19" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="PARTITION:0"/>
+<Edge fromNode="SUBGRAPH_OUTPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge13" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="TRASH:0"/>
+</Phase>
+</Graph>

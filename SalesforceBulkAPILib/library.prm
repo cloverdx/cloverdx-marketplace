@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GraphParameters>
+<GraphParameter label="Salesforce Instance URL" name="URL" public="true" required="false" value="https://yourservice.develop.my.salesforce.com">
+<attr name="description"><![CDATA[Specifies the URL of the Salesforce instance for data retrieval.]]></attr>
+</GraphParameter>
+<GraphParameter label="Salesforce OAuth2 Connection" name="CONNECTION" public="true" required="false" value="${CONN_DIR}/SalesforceOAuth.cfg">
+<attr name="description"><![CDATA[Provides authentication credentials for secure access to Salesforce data. This must be linked to an OAuth2 connection configured in CloverDX Server.]]></attr>
+<SingleType fileExtension="*.cfg" multiple="false" name="file" selectionMode="file_only"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="Salesforce bulk API version" name="API_VERSION" public="true" value="v60.0">
+<attr name="description"><![CDATA[Specifies the version of the Salesforce Bulk API to be used.]]></attr>
+</GraphParameter>
+</GraphParameters>

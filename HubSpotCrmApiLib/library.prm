@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GraphParameters>
+<GraphParameter label="Private app token" name="PRIVATE_APP_TOKEN" public="true" required="false" secure="true">
+<attr name="description"><![CDATA[HubSpot Private App token. Takes priority over OAuth2 if both provided.]]></attr>
+<ComponentReference referencedComponent="CALL_HUB_SPOT_API" referencedProperty="__PRIVATE_APP_TOKEN"/>
+</GraphParameter>
+<GraphParameter defaultHint=".cfg file URL" label="OAuth2 connection" name="O_AUTH2_CONNECTION" public="true" required="false">
+<attr name="description"><![CDATA[File URL of the .cfg file holding an authorised CloverDX HubSpot OAuth2 connection.]]></attr>
+<SingleType fileExtension="*.cfg" multiple="false" name="file" selectionMode="file_only"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="Batch size" name="LIMIT" public="true" value="10">
+<attr name="description"><![CDATA[Size of a page. Default 10. Max (appears to be) 100. Larger value should speed up the list operation.]]></attr>
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="Http call retry count" name="HTTP_CALL_RETRY_COUNT" public="true" value="1">
+<attr name="description"><![CDATA[Defines number of retry attempts when HTTP call fails. Set to zero to disable retry after HTTP call failure.]]></attr>
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="Http call retry delay" name="HTTP_CALL_RETRY_DELAY" public="true" value="5000">
+<attr name="description"><![CDATA[Defines delay between retry attempts in milliseconds.]]></attr>
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="Http call timeout" name="HTTP_CALL_TIMEOUT" public="true" value="30s">
+<attr name="description"><![CDATA[How long the component waits to get a response. If it does not receive a response within a specified limit, the execution of the component fails. 
+Timeout is in milliseconds. Different time units can be used. See Time Intervals in CloverDX documentation.
+]]></attr>
+</GraphParameter>
+</GraphParameters>

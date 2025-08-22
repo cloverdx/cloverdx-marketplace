@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GraphParameters>
+<GraphParameter label="OAuth connection URL" name="OAUTH_URL" public="false" required="false" secure="false" value="${CONN_DIR}/xero.cfg">
+<attr name="description"><![CDATA[URL to existing OAuth connection *.cfg file. By default, it is linked from the library itself, it could be linked from another sandbox using sandboxes://<sandbox_code>/path/to/oauth.cfg]]></attr>
+</GraphParameter>
+<GraphParameter label="Xero Tenant ID" name="TENANT_ID" public="false" required="false" secure="false" value="Set OAuth connection URL first and run setTenantId init graph to get correct values.">
+<attr name="description"><![CDATA[Set OAuth connection first and run setTenantId init graph to get correct values.]]></attr>
+<SingleType allowCustomValues="true" name="simpleEnum" values="Set OAuth connection URL first and run setTenantId init graph to get correct values."/>
+</GraphParameter>
+<GraphParameter label="Date Format" name="DATE_FORMAT" public="false" required="false" secure="false" value="yyyy-MM-dd HH:mm">
+<attr name="description"><![CDATA[Set format for date data type]]></attr>
+<SingleType allowCustomValues="false" name="simpleEnum" values="yyyy-MM-dd HH:mm:ss;yyyy-MM-dd HH:mm;yyyy-MM-dd;yyyyMMddHHmmss;MM/dd/yyyy;dd/MM/yyyy"/>
+</GraphParameter>
+</GraphParameters>

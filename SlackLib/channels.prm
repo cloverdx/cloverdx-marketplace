@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GraphParameters>
+<GraphParameter label="Channel" name="CHANNEL" public="true" required="false">
+<attr name="description"><![CDATA[Id of a channel where the message will be posted. Using the channel name might work too.]]></attr>
+<SingleType allowCustomValues="true" name="simpleEnum"/>
+</GraphParameter>
+</GraphParameters>

@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Branislav Repcek" category="readers" created="Wed Mar 08 13:41:03 CET 2023" description="Get customer contacts in an OnlineStore. Contacts have name, address, email and phone." guiVersion="6.5.0.24" id="1678280293718" largeIconPath="${SUBGRAPH_DIR}/icons/OnlineStoreContacts64.png" licenseCode="CLCDSCLOVE85208925SP" mediumIconPath="${SUBGRAPH_DIR}/icons/OnlineStoreContacts32.png" name="Online store contacts" nature="subgraph" showComponentDetails="true" smallIconPath="${SUBGRAPH_DIR}/icons/OnlineStoreContacts16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" name="0"/>
+</outputPorts>
+<Metadata id="Metadata3">
+<Record fieldDelimiter="\t" name="AreaCode" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="stateName" type="string"/>
+<Field name="areaCodes" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata4">
+<Record fieldDelimiter="\t" name="AreaCodeList" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="stateName" type="string"/>
+<Field name="stateCode" type="string"/>
+<Field containerType="list" name="areaCodes" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="Contact" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field label="Contact id" name="id" trim="true" type="long">
+<attr name="description"><![CDATA[Id of the contact]]></attr>
+</Field>
+<Field label="First name" name="firstName" type="string"/>
+<Field label="Middle name/initial" name="middleName" type="string">
+<attr name="description"><![CDATA[Middle name or initial. Can be empty.]]></attr>
+</Field>
+<Field label="Last name" name="lastName" type="string"/>
+<Field label="Street address" name="streetAddress" type="string">
+<attr name="description"><![CDATA[Full street address including street name and house number.]]></attr>
+</Field>
+<Field label="Postal code" name="postalCode" type="string">
+<attr name="description"><![CDATA[Postal (ZIP) code]]></attr>
+</Field>
+<Field label="City" name="city" type="string">
+<attr name="description"><![CDATA[City name]]></attr>
+</Field>
+<Field label="State/territory" name="state" type="string">
+<attr name="description"><![CDATA[State or territory name, not all countries use them, can be empty]]></attr>
+</Field>
+<Field label="Country" name="country" type="string">
+<attr name="description"><![CDATA[Country name or code.]]></attr>
+</Field>
+<Field format="yyyy-MM-dd" label="Date of birth" name="dateOfBirth" trim="true" type="date">
+<attr name="description"><![CDATA[Customer date of birth]]></attr>
+</Field>
+<Field label="Gender" name="gender" type="string">
+<attr name="description"><![CDATA[M or F]]></attr>
+</Field>
+<Field label="Email" name="email" type="string">
+<attr name="description"><![CDATA[Contact email. Can be empty if now known.]]></attr>
+</Field>
+<Field label="Phone number" name="phone" type="string">
+<attr name="description"><![CDATA[Unformatted phone number. May contain multiple phone numbers separated with comma.]]></attr>
+</Field>
+</Record>
+</Metadata>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="\t" name="StateCode" previewAttachment="${DATAIN_DIR}/addresses/legacy/USAStateCodes.txt" previewAttachmentCharset="UTF-8" quoteChar="both" quotedStrings="false" recordDelimiter="\r\n" skipSourceRows="1" type="delimited">
+<Field name="name" type="string"/>
+<Field name="code" type="string"/>
+<Field eofAsDelimiter="true" name="type" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter label="Output language" name="OUTPUT_LANGUAGE" public="true" required="false">
+<ComponentReference referencedComponent="GENERATE_PERSON" referencedProperty="__LANGUAGE"/>
+</GraphParameter>
+<GraphParameter label="Number of records to generate" name="RECORD_COUNT" public="true" required="false">
+<ComponentReference referencedComponent="GENERATE_PERSON" referencedProperty="__RECORD_COUNT"/>
+</GraphParameter>
+<GraphParameter label="Minimum customer age (years)" name="MIN_AGE_YEARS" public="true" value="18">
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter name="NUM_OF_PREVIEW_RECORDS"/>
+<GraphParameter label="Min date of birth for contact" name="DOB__MIN" public="false" required="false" value="1940-01-01">
+<SingleType format="yyyy-MM-dd" name="datetime"/>
+</GraphParameter>
+<GraphParameter label="Max date of birth for contact" name="DOB_MAX" public="false" required="false">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return date2str(dateAdd(today(), -${MIN_AGE_YEARS}, year), "yyyy-MM-dd");
+}
+]]></attr>
+<SingleType name="string"/>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<LookupTable charset="UTF-8" id="LookupTable0" initialSize="512" key="stateCode" metadata="Metadata4" name="AreaCodesByStateLkp" type="simpleLookup"/>
+<LookupTable charset="UTF-8" fileURL="${DATAIN_DIR}/addresses/EN-US/USAStateCodes.txt" id="LookupTable1" initialSize="512" key="name" metadata="Metadata2" name="StateCodeByNameLkp" type="simpleLookup"/>
+<Dictionary>
+<Entry contentType="string" input="false" name="allStateCodes" output="false" type="list"/>
+</Dictionary>
+</Global>
+<Phase number="0">
+<Node guiName="Add state code" guiX="727" guiY="397" id="ADD_STATE_CODE" joinKey="stateName" leftOuterJoin="true" lookupTable="LookupTable1" type="LOOKUP_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+string[] tmp;
+dictionary.allStateCodes = tmp;
+clear(dictionary.allStateCodes);
+
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.stateCode = $in.1.code;
+
+	push(dictionary.allStateCodes, $in.1.code);
+
+	return ALL;
+}
+
+function void postExecute() {
+	printLog(info, "All states: " + join(",", dictionary.allStateCodes));
+}]]></attr>
+</Node>
+<Node fileURL="${DATAIN_DIR}/addresses/EN-US/AreaCodesUSA.txt" guiName="Area codes" guiX="281" guiY="397" id="AREA_CODES" type="FLAT_FILE_READER"/>
+<Node guiName="AreaCodesByStateLkp" guiX="984" guiY="397" id="AREA_CODES_BY_STATE_LKP" lookupTable="LookupTable0" type="LOOKUP_TABLE_READER_WRITER"/>
+<Node guiName="Decode list" guiX="508" guiY="397" id="DECODE_LIST" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.stateName = $in.0.stateName;
+	$out.0.areaCodes = split($in.0.areaCodes, ", ");
+	
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="200" guiY="10" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+</Node>
+<Edge fromNode="ADD_STATE_CODE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 0 (in)" metadata="Metadata4" outPort="Port 0 (joined records)" toNode="AREA_CODES_BY_STATE_LKP:0"/>
+<Edge fromNode="AREA_CODES:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 0 (output)" toNode="DECODE_LIST:0"/>
+<Edge fromNode="DECODE_LIST:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 0 (in)" metadata="Metadata4" outPort="Port 0 (out)" toNode="ADD_STATE_CODE:0"/>
+</Phase>
+<Phase number="5">
+<Node guiName="Combine" guiX="579" guiY="100" id="COMBINE" type="COMBINE">
+<attr name="transform"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.* = $in.1.*;
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node __LANGUAGE="${OUTPUT_LANGUAGE}" __RECORD_COUNT="${RECORD_COUNT}" guiName="GenerateAddress" guiX="281" guiY="233" id="GENERATE_ADDRESS" jobURL="${SUBGRAPH_DIR}/GenerateAddresses.sgrf" type="SUBGRAPH">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.NUM_OF_PREVIEW_RECORDS = getParamValue("NUM_OF_PREVIEW_RECORDS");
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node __DOB_MAX="${DOB_MAX}" __DOB_MIN="${DOB__MIN}" __LANGUAGE="${OUTPUT_LANGUAGE}" __RECORD_COUNT="${RECORD_COUNT}" guiName="GeneratePerson" guiX="281" guiY="100" id="GENERATE_PERSON" jobURL="${SUBGRAPH_DIR}/GeneratePerson.sgrf" type="SUBGRAPH">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.NUM_OF_PREVIEW_RECORDS = getParamValue("NUM_OF_PREVIEW_RECORDS");
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="Generate phone" guiX="807" guiY="100" id="GENERATE_PHONE" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+import "${TRANS_DIR}/Common.ctl";
+
+function integer transform() {
+	$out.0.* = $in.0.*;
+	
+	// Number is mandatory here. Most people will have just one, but there are few who have 2 or 3.
+	// Very small fraction of users will have no number - i.e. their data is incomplete.
+	integer phoneNumberCount;
+	number x = random();
+	
+	if (x < 0.7) {
+		phoneNumberCount = 1;
+	} else if (x < 0.9) {
+		phoneNumberCount = 2;
+	} else if (x < 0.995) {
+		phoneNumberCount = 3;
+	} else {
+		// phoneNumberCount = 0;
+		return ALL; // Nothing else to do here.
+	}
+
+	string[] phoneNumbers;
+	for (integer i = 0; i < phoneNumberCount; ++i) {
+		push(phoneNumbers, generatePhoneNo());
+	}
+
+	$out.0.phone = join(",", phoneNumbers);
+
+	return ALL;
+}
+
+function string generatePhoneNo() {
+	// There's a chance that "out of state" number is used.
+	string stateCode = $in.0.state;
+	if (random() < 0.5) {
+		// Pick random state from list of all states.
+		stateCode = getRandomListItem(dictionary.allStateCodes);
+	}
+	
+	return generatePhoneNoInArea(stateCode);
+}
+
+string[] PHONE_DELIMITERS = ["", ".", "-"];
+
+function string generatePhoneNoInArea(string stateCode) {
+	AreaCodeList ac = lookup(AreaCodesByStateLkp).get(stateCode);
+	if (ac == null) {
+		//raiseError("Unknown state code \"" + stateCode + "\".");
+		return null;
+	}	
+	
+	string areaCode = getRandomListItem(ac.areaCodes);
+	string mid = num2str(randomInteger(1, 999), "000"); // Do not generate 3 zeroes.
+	string end = num2str(randomInteger(1, 9999), "0000"); // Do not generate 4 zeroes.
+
+	boolean internationalFormat = random() < 0.05;
+	string intPrefix = internationalFormat ? (random() < 0.3 ? "001" : "+1") : "";
+
+	string delim = getRandomListItem(PHONE_DELIMITERS);
+	
+	return (internationalFormat ? intPrefix + delim : "")+ areaCode + delim + mid + delim + end;
+}
+]]></attr>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1238" guiY="10" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Edge fromNode="COMBINE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="GENERATE_PHONE:0"/>
+<Edge fromNode="GENERATE_ADDRESS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="COMBINE:1"/>
+<Edge fromNode="GENERATE_PERSON:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="COMBINE:0"/>
+<Edge fromNode="GENERATE_PHONE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+</Phase>
+</Graph>

@@ -1,0 +1,70 @@
+{
+  "descriptor" : {
+    "version" : "1.1",
+    "name" : "AirtableLib",
+    "description" : "Integrate Airtable with CloverDX. Read/write records, create bases/tables, and auto-generate CloverDX metadata from Airtable structure.",
+    "productVersion" : "6.4.0.1824",
+    "initializationJob" : "",
+    "minProductVersion" : "",
+    "lastModificationDate" : "2024-04-11T12:48:36Z",
+    "maxProductVersion" : "",
+    "author" : "CloverDX"
+  },
+  "connections" : {
+    "oauth2Connections" : [ {
+      "jobPath" : "graph/subgraph/CreateBase.sgrf",
+      "path" : "conn/Airtable.cfg"
+    } ]
+  },
+  "healthCheck" : {
+    "description" : "",
+    "path" : ""
+  },
+  "publicInterface" : {
+    "subgraphs" : [ {
+      "mediumIcon" : "./icons/airtable32x32.png",
+      "largeIcon" : "./icons/airtable64x64.png",
+      "icon" : "./icons/airtable16x16.png",
+      "description" : "Creates a new base with the provided tables and returns the schema for the newly created base.",
+      "path" : "graph/subgraph/CreateBase.sgrf"
+    }, {
+      "mediumIcon" : "./icons/airtable32x32.png",
+      "largeIcon" : "./icons/airtable64x64.png",
+      "icon" : "./icons/airtable16x16.png",
+      "description" : "Creates a new table and returns the schema for the newly created table.",
+      "path" : "graph/subgraph/CreateTable.sgrf"
+    }, {
+      "mediumIcon" : "./icons/airtable32x32.png",
+      "largeIcon" : "./icons/airtable64x64.png",
+      "icon" : "./icons/airtable16x16.png",
+      "description" : "This subgraph will generate clover metadata based on table structure in a specific Airtable Base. Result is stored in location defined in Metadata Path parameter.",
+      "path" : "graph/subgraph/GenerateMetadata.sgrf"
+    }, {
+      "mediumIcon" : "./icons/airtable32x32.png",
+      "largeIcon" : "./icons/airtable64x64.png",
+      "icon" : "./icons/airtable16x16.png",
+      "description" : "Returns the schema of the tables in the specified base.",
+      "path" : "graph/subgraph/GetBaseSchema.sgrf"
+    }, {
+      "mediumIcon" : "./icons/airtable32x32.png",
+      "largeIcon" : "./icons/airtable64x64.png",
+      "icon" : "./icons/airtable16x16.png",
+      "description" : "Content of an Airtable table will be read on an output edge based on given Base Id, Table Id and output metadata. ",
+      "path" : "graph/subgraph/ReadData.sgrf"
+    }, {
+      "mediumIcon" : "./icons/airtable32x32.png",
+      "largeIcon" : "./icons/airtable64x64.png",
+      "icon" : "./icons/airtable16x16.png",
+      "description" : "Writes data on an edge into target Airtable table.",
+      "path" : "graph/subgraph/WriteData.sgrf"
+    } ],
+    "metadata" : [ ],
+    "dataConnectors" : {
+      "sources" : [ ],
+      "targets" : [ ]
+    },
+    "restJobs" : [ ],
+    "jobflows" : [ ],
+    "graphs" : [ ]
+  }
+}

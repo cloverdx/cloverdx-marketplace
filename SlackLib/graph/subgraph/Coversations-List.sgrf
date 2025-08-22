@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Martin" category="readers" created="Fri May 12 11:12:07 CEST 2023" description="Lists all channels in a Slack team/available visible using this auth token." guiVersion="5.17.0.3" id="1684763105985" largeIconPath="${PROJECT}/icons/SlackIcon64.png" licenseCode="CLCDSCLOVE24765514SP" mediumIconPath="${PROJECT}/icons/SlackIcon32.png" name="Conversations-List" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/SlackIcon16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" name="0"/>
+<singlePort connected="false" keepEdge="true" name="1" required="false"/>
+</outputPorts>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="Conversation" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="id" type="string"/>
+<Field name="name" type="string"/>
+<Field name="is_channel" type="boolean"/>
+<Field name="is_group" type="boolean"/>
+<Field name="is_im" type="boolean"/>
+<Field name="created" type="string"/>
+<Field name="creator" type="string"/>
+<Field name="is_archived" type="boolean"/>
+<Field name="is_general" type="boolean"/>
+<Field name="unlinked" type="string"/>
+<Field name="name_normalized" type="string"/>
+<Field name="is_shared" type="boolean"/>
+<Field name="is_ext_shared" type="boolean"/>
+<Field name="is_org_shared" type="boolean"/>
+<Field name="pending_shared" type="variant"/>
+<Field name="is_pending_ext_shared" type="boolean"/>
+<Field name="is_member" type="boolean"/>
+<Field name="is_private" type="boolean"/>
+<Field name="is_mpim" type="boolean"/>
+<Field name="is_open" type="boolean"/>
+<Field name="updated" type="string"/>
+<Field containerType="list" name="previous_names" type="string"/>
+<Field name="num_members" type="integer"/>
+<Field name="priority" type="integer"/>
+<Field name="user" type="string"/>
+<Field name="is_user_deleted" type="boolean"/>
+<Field name="topic" type="string"/>
+<Field name="topic_creator" type="string"/>
+<Field name="topic_last_set" type="string"/>
+<Field name="purpose" type="string"/>
+<Field name="purpose_creator" type="string"/>
+<Field name="purpose_last_set" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="debugInput1" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="field1" type="string"/>
+<Field name="field2" type="string"/>
+<Field name="field3" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata4">
+<Record fieldDelimiter="|" name="error" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="errorMessage" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="HTTPConnector_Response" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="content" type="string"/>
+<Field name="contentByte" type="byte"/>
+<Field name="outputFilePath" type="string"/>
+<Field name="statusCode" trim="true" type="integer"/>
+<Field containerType="map" name="header" type="string"/>
+<Field containerType="list" name="rawHeaders" type="string"/>
+<Field name="isError" type="boolean"/>
+<Field name="errorMessage" type="string"/>
+<Field name="slack_cursor" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata3">
+<Record fieldDelimiter="|" name="TypeFilter" recordDelimiter="\r\n" type="delimited">
+<Field name="public_channel" type="string"/>
+<Field name="private_channel" type="string"/>
+<Field name="mpim" type="string"/>
+<Field name="im" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter category="advanced" label="Exclude archived" name="EXCLUDE_ARCHIVED" public="true" value="true">
+<attr name="description"><![CDATA[Set to true to exclude archived channels from the list.]]></attr>
+<SingleType name="bool"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="Limit" name="LIMIT" public="true" value="100">
+<attr name="description"><![CDATA[The maximum number of items to return. Fewer than the requested number of items may be returned, even if the end of the list hasn't been reached. Must be an integer no larger than 1000.]]></attr>
+</GraphParameter>
+<GraphParameter label="Conversation type filter" name="TYPES" public="true" value="private_channel;public_channel">
+<attr name="description"><![CDATA[Mix and match channel types by providing a comma-separated (or semicolon - will be converted automatically) list of any combination of public_channel, private_channel, mpim, im.]]></attr>
+<SingleType metadata="Metadata3" name="fields"/>
+</GraphParameter>
+<GraphParameter name="_TYPES">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return translate(getParamValue("TYPES"),";",",");
+}
+]]></attr>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="DAD8C9" folded="false" fontSize="medium" height="123" id="Note0" textColor="444444" width="563" x="258" y="-33">
+<attr name="text"><![CDATA[h3. coversations.list
+
+Lists all channels in a Slack team/available visible using this auth token.
+
+[API endpoint documentation|https://api.slack.com/methods/conversations.list]
+
+]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node enabled="enableWhenOutputPort1IsDisconnected" guiName="Fail" guiX="1369" guiY="395" id="FAIL" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = $in.0.errorMessage;
+	return ALL;
+}]]></attr>
+</Node>
+<Node guiName="Get start token" guiX="358" guiY="105" id="GET_START_TOKEN" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+// Generates output record.
+function integer generate() {
+	return ALL;
+}]]></attr>
+</Node>
+<Node guiName="HTTPConnector" guiX="605" guiY="231" id="HTTPCONNECTOR" redirectErrorOutput="true" requestMethod="GET" timeout="${_HTTP_CONNECTOR_TIMEOUT}" type="HTTP_CONNECTOR" url="https://slack.com/api/conversations.list">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.URL = "https://slack.com/api/conversations.list"
+		+ queryParameters({
+			"cursor" -> $in.0.slack_cursor,
+			"limit" -> getParamValue("LIMIT"),
+			"team_id" -> getParamValue("TEAM_ID"),
+			"types" -> getParamValue("_TYPES")
+		});
+	
+	$out.0.additionalHTTPHeaders = {
+		"Authorization" -> "Bearer ${BEARER_TOKEN}"
+	};
+	
+	return ALL;
+}
+
+function string queryParameters(map[string, string] params){
+	list[string] tmp;
+	foreach(string param : getKeys(params)){
+		if( not isBlank(params[param])){
+			tmp.append(param + "=" + params[param]);
+		}
+	}
+	if(isEmpty(tmp)){
+		return "";	
+	}
+	return "?" + join("&",tmp);
+}
+]]></attr>
+</Node>
+<Node guiName="JSONExtract" guiX="1294" guiY="105" id="JSONEXTRACT" schema="${META_DIR}/example_json" sourceUri="port:$0.content:discrete" type="JSON_EXTRACT">
+<attr name="mapping"><![CDATA[<Mappings>
+	<Mapping element="json_object">
+		<Mapping element="channels" outPort="0"
+				xmlFields="{}created;{}creator;{}id;{}is_archived;{}is_channel;{}is_ext_shared;{}is_general;{}is_group;{}is_im;{}is_member;{}is_mpim;{}is_open;{}is_org_shared;{}is_pending_ext_shared;{}is_private;{}is_shared;{}is_user_deleted;{}name;{}name_normalized;{}num_members;{}pending_shared;{}previous_names;{}priority;{}unlinked;{}updated;{}user"
+				cloverFields="created;creator;id;is_archived;is_channel;is_ext_shared;is_general;is_group;is_im;is_member;is_mpim;is_open;is_org_shared;is_pending_ext_shared;is_private;is_shared;is_user_deleted;name;name_normalized;num_members;pending_shared;previous_names;priority;unlinked;updated;user">
+			<Mapping element="topic" useParentRecord="true"
+					xmlFields="{}creator;{}last_set;{}value"
+					cloverFields="topic_creator;topic_last_set;topic">
+			</Mapping>
+			<Mapping element="purpose" useParentRecord="true"
+					xmlFields="{}creator;{}last_set;{}value"
+					cloverFields="purpose_creator;purpose_last_set;purpose">
+			</Mapping>
+		</Mapping>
+	</Mapping>
+</Mappings>
+]]></attr>
+</Node>
+<Node guiName="Loop for paging" guiX="545" guiY="105" id="LOOP_FOR_PAGING" type="LOOP">
+<attr name="whileCondition"><![CDATA[//#CTL2
+	not nvl($in.0.isError, false)
+and
+	(		not isBlank($in.0.slack_cursor)
+		or
+			$in.1.iterationNumber == 0
+	)]]></attr>
+</Node>
+<Node guiName="SimpleCopy" guiX="988" guiY="231" id="SIMPLE_COPY" type="SIMPLE_COPY"/>
+<Node guiName="SimpleCopy" guiX="1208" guiY="348" id="SIMPLE_COPY1" type="SIMPLE_COPY"/>
+<Node guiName="Skip on error" guiX="1152" guiY="105" id="SKIP_ON_ERROR" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	if( $in.0.isError ){
+		return SKIP;	
+	}
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="200" guiY="-28" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1530" guiY="-28" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="368" name="1"/>
+<Port guiY="438" name="2"/>
+</Node>
+<Node guiName="Sucess? Paging?" guiX="802" guiY="231" id="SUCESS_PAGING" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	
+	if($in.0.statusCode != 200){
+		$out.1.errorMessage = $in.0.errorMessage;
+		if(isBlank($in.0.errorMessage)){
+			try{
+				$out.1.errorMessage = "Response status: " + $in.0.statusCode + " Message: " + parseJson($in.0.content)["error"];
+			}catch (CTLException e){
+				$out.1.errorMessage = "Response status: " + $in.0.statusCode;
+			}
+		}
+	}else{
+		try{
+			variant v = parseJson($in.0.content) ;
+			
+			if (v typeof map) {
+				if (v ["ok"] != null){
+					if(cast(v ["ok"], boolean)) {
+						if(		containsKey(v,"response_metadata")
+							and
+								containsKey(v["response_metadata"],"next_cursor")
+						){
+							$out.0.slack_cursor = cast(v["response_metadata"]["next_cursor"], string);
+						}
+						$out.0.isError = false;
+						return 0;
+					}
+					else if	(v ["error"] !=null ){
+						$out.1.errorMessage = cast(v ["error"], string);
+					}
+				}
+			}else{
+				$out.1.errorMessage = "Unable to parse reponse:\r\n" + $in.0.content;
+			}
+			
+			
+		}
+		catch (CTLException e){
+			$out.1.errorMessage = 	"Unable to parse reponse:\r\n" + $in.0.content 
+									+ "\r\n\r\nException:\r\n" + e;
+		}
+	}
+	$out.0.isError = true;
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="Trash" guiX="738" guiY="105" id="TRASH" type="TRASH"/>
+<Edge fromNode="GET_START_TOKEN:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (input token)" outPort="Port 0 (out)" toNode="LOOP_FOR_PAGING:0"/>
+<Edge fromNode="HTTPCONNECTOR:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="SUCESS_PAGING:0"/>
+<Edge fromNode="JSONEXTRACT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge13" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="LOOP_FOR_PAGING:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" outPort="Port 0 (end of loop)" toNode="TRASH:0"/>
+<Edge fromNode="LOOP_FOR_PAGING:1" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 1 (continue loop)" toNode="HTTPCONNECTOR:0"/>
+<Edge fromNode="SIMPLE_COPY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 1 (back from loop)" outPort="Port 0 (out)" toNode="LOOP_FOR_PAGING:1"/>
+<Edge fromNode="SIMPLE_COPY:1" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="SKIP_ON_ERROR:0"/>
+<Edge fromNode="SIMPLE_COPY1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:1"/>
+<Edge fromNode="SIMPLE_COPY1:1" guiBendpoints="" guiRouter="Manhattan" id="Edge21" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="FAIL:0"/>
+<Edge fromNode="SKIP_ON_ERROR:0" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 0 (input)" outPort="Port 0 (out)" toNode="JSONEXTRACT:0"/>
+<Edge fromNode="SUCESS_PAGING:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SIMPLE_COPY:0"/>
+<Edge fromNode="SUCESS_PAGING:1" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 0 (in)" metadata="Metadata4" outPort="Port 1 (out)" toNode="SIMPLE_COPY1:0"/>
+</Phase>
+</Graph>

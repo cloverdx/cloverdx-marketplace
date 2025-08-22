@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Branislav Repcek" category="readers" created="Sun Mar 12 23:33:12 CET 2023" description="Generate random orders complete with dates, addresses and line items." guiVersion="6.0.0.1544" id="1678672351975" largeIconPath="${SUBGRAPH_DIR}/icons/GenerateOrders64.png" licenseCode="CloverDX-Internal-License" mediumIconPath="${SUBGRAPH_DIR}/icons/GenerateOrders32.png" name="Generate orders" nature="subgraph" showComponentDetails="true" smallIconPath="${SUBGRAPH_DIR}/icons/GenerateOrders16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" keepEdge="true" name="0" required="false"/>
+<singlePort connected="false" keepEdge="true" name="1" required="false"/>
+</outputPorts>
+<Metadata id="Metadata3">
+<Record fieldDelimiter="|" name="LineItem" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="orderId" type="long"/>
+<Field name="productCode" type="long"/>
+<Field length="10" name="units" scale="2" type="decimal"/>
+<Field length="10" name="totalPrice" scale="2" type="decimal"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="Order" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field label="Order id" name="orderId" type="long"/>
+<Field label="Customer id" name="customerId" type="long"/>
+<Field format="yyyy-MM-dd HH:mm:ss" label="Order date/time UTC" name="orderDatetime" timeZone="UTC" type="date"/>
+<Field label="Override billing address" name="overrideBillingAddress" type="boolean"/>
+<Field label="Billing street address" name="billingStreetAddress" type="string">
+<attr name="description"><![CDATA[Full street address including street name and house number.]]></attr>
+</Field>
+<Field label="Billing postal code" name="billingPostalCode" type="string"/>
+<Field label="Billing city" name="billingCity" type="string"/>
+<Field label="Billing state/territory" name="billingState" type="string">
+<attr name="description"><![CDATA[State or territory depending on country. Can be empty if no states/territories in given country.]]></attr>
+</Field>
+<Field label="Billing country" name="billingCountry" type="string">
+<attr name="description"><![CDATA[Country name or code.]]></attr>
+</Field>
+<Field label="Override shipping address" name="overrideShippingAddress" type="boolean"/>
+<Field label="Shipping street address" name="shippingStreetAddress" type="string">
+<attr name="description"><![CDATA[Full street address including street name and house number.]]></attr>
+</Field>
+<Field label="Shipping postal code" name="shippingPostalCode" type="string"/>
+<Field label="Shipping city" name="shippingCity" type="string"/>
+<Field label="Shipping state/territory" name="shippingState" type="string">
+<attr name="description"><![CDATA[State or territory depending on country. Can be empty if no states/territories in given country.]]></attr>
+</Field>
+<Field label="Shipping country" name="shippingCountry" type="string">
+<attr name="description"><![CDATA[Country name or code.]]></attr>
+</Field>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter label="Number of orders to generate" name="RECORD_COUNT" public="true" value="10000"/>
+<GraphParameter label="Language for contacts and addresses" name="LANGUAGE" public="true" required="false" value="EN-US">
+<ComponentReference referencedComponent="ONLINE_STORE_CONTACTS" referencedProperty="__OUTPUT_LANGUAGE"/>
+</GraphParameter>
+<GraphParameter label="Minimum customer age (years)" name="MIN_AGE_YEARS" public="true" required="false" value="18">
+<ComponentReference referencedComponent="ONLINE_STORE_CONTACTS" referencedProperty="__MIN_AGE_YEARS"/>
+</GraphParameter>
+<GraphParameter label="Percentage of accounts who have made an order" name="ACCOUNTS_WITH_ORDERS_PERCENT" public="true" value="95"/>
+<GraphParameter label="Minimum number of orders per customer" name="MIN_ORDERS_PER_CUSTOMER" public="true" required="false" value="1">
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter label="Maximum number of orders per customer" name="MAX_ORDERS_PER_CUSTOMER" public="true" required="false" value="8">
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter label="Minimum number of items per order" name="MIN_ITEMS_PER_ORDER" public="true" required="false" value="1">
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter label="Maximum number of items per order" name="MAX_ITEMS_PER_ORDER" public="true" required="false" value="5">
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter label="Minimum order date" name="ORDER_MIN_DATE" public="true" value="2018-01-01">
+<SingleType format="yyyy-MM-dd" name="datetime"/>
+</GraphParameter>
+<GraphParameter label="Maximum order date" name="ORDER_MAX_DATE" public="true" value="2023-03-28">
+<SingleType format="yyyy-MM-dd" name="datetime"/>
+</GraphParameter>
+<GraphParameter name="SAMPLE_SIZE">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	// Convert percentage to fractions and then convert to string. No error checking is done to keep it simple.
+	return num2str(${ACCOUNTS_WITH_ORDERS_PERCENT} / 100.0);
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter name="CONTACTS_TO_GENERATE">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	// How many contacts are needed to get requested record count with given sampling rate.
+	return num2str(100 * ${RECORD_COUNT} / ${ACCOUNTS_WITH_ORDERS_PERCENT});
+}
+]]></attr>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<Dictionary>
+<Entry contentType="map" input="false" name="allProducts" output="false" type="variant"/>
+<Entry contentType="map" input="false" name="addressPool" output="false" type="variant"/>
+</Dictionary>
+</Global>
+<Phase number="0">
+<Node guiName="CollectEntitiesSimple" guiX="514" guiY="302" id="COLLECT_ENTITIES_SIMPLE" jobURL="${GRAPH_DIR}/helpers/CollectEntitiesSimple.sgrf" type="SUBGRAPH"/>
+<Node guiName="CollectEntitiesSimple" guiX="514" guiY="437" id="COLLECT_ENTITIES_SIMPLE1" jobURL="${GRAPH_DIR}/helpers/CollectEntitiesSimple.sgrf" type="SUBGRAPH"/>
+<Node guiName="GenerateAddress" guiX="276" guiY="437" id="GENERATE_ADDRESS" jobURL="${SUBGRAPH_DIR}/GenerateAddresses.sgrf" type="SUBGRAPH">
+<attr name="__LANGUAGE"><![CDATA[${LANGUAGE}]]></attr>
+<attr name="__RECORD_COUNT"><![CDATA[${RECORD_COUNT}]]></attr>
+</Node>
+<Node guiName="OnlineStoreProducts" guiX="276" guiY="302" id="ONLINE_STORE_PRODUCTS" jobURL="${SUBGRAPH_DIR}/OnlineStoreProducts.sgrf" type="SUBGRAPH"/>
+<Node guiName="SubgraphInput" guiX="200" guiY="10" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+</Node>
+<Node guiName="To dictionary" guiX="786" guiY="302" id="TO_DICTIONARY" type="SET_JOB_OUTPUT">
+<attr name="mapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	dictionary.allProducts = $in.0.entities;
+	
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="To dictionary" guiX="786" guiY="437" id="TO_DICTIONARY1" type="SET_JOB_OUTPUT">
+<attr name="mapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	dictionary.addressPool = $in.0.entities;
+	
+	return ALL;
+}
+]]></attr>
+</Node>
+<Edge fromNode="COLLECT_ENTITIES_SIMPLE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="TO_DICTIONARY:0"/>
+<Edge fromNode="COLLECT_ENTITIES_SIMPLE1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge14" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="TO_DICTIONARY1:0"/>
+<Edge fromNode="GENERATE_ADDRESS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge13" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="COLLECT_ENTITIES_SIMPLE1:0"/>
+<Edge fromNode="ONLINE_STORE_PRODUCTS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="COLLECT_ENTITIES_SIMPLE:0"/>
+</Phase>
+<Phase number="1">
+<Node guiName="DataSampler" guiX="525" guiY="100" id="DATA_SAMPLER" sampleSize="${SAMPLE_SIZE}" samplingMethod="Simple" type="DATA_SAMPLER"/>
+<Node guiName="Generate line items" guiX="1304" guiY="175" id="GENERATE_LINE_ITEMS" type="NORMALIZER">
+<attr name="normalize"><![CDATA[//#CTL2
+import "${TRANS_DIR}/Common.ctl";
+
+function integer count() {
+	return getRandomIntGaussian(${MIN_ITEMS_PER_ORDER}, ${MAX_ITEMS_PER_ORDER});
+}
+
+function integer transform(integer i) {
+	variant product = getRandomProduct();
+
+	$out.0.orderId = $in.0.orderId;
+	$out.0.units = randomInteger(1, 10); // Do not bother with fractions here - some products do not make sense with fractional quantities.
+	$out.0.productCode = cast(product["productCode"], long);
+	$out.0.totalPrice = $out.0.units * cast(product["unitPrice"], decimal);
+
+	return OK;
+}
+
+function variant getRandomProduct() {
+	integer idx = randomInteger(0, length(dictionary.allProducts) - 1);
+	return dictionary.allProducts[idx];
+}
+
+function void preExecute() {
+	setRandomSeed(${GLOBAL_RANDOM_SEED});
+}
+]]></attr>
+</Node>
+<Node guiName="Generate orders" guiX="772" guiY="100" id="GENERATE_ORDERS" type="NORMALIZER">
+<attr name="normalize"><![CDATA[//#CTL2
+import "${TRANS_DIR}/Common.ctl";
+
+const integer TOTAL_ORDERS_TO_GENERATE = ${RECORD_COUNT};
+long orderId = 0;
+
+function integer count() {
+	return getRandomIntGaussian(${MIN_ORDERS_PER_CUSTOMER}, ${MAX_ORDERS_PER_CUSTOMER});
+}
+
+function integer transform(integer i) {
+	$out.0.orderId = orderId++;
+	
+	// Simple way of doing this - not everyone will get an order but we will not generate more records than asked for.
+	if ($out.0.orderId >= TOTAL_ORDERS_TO_GENERATE) {
+		return SKIP;
+	}
+	
+	$out.0.customerId = $in.0.id;
+	$out.0.orderDatetime = randomDate(${ORDER_MIN_DATE}, ${ORDER_MAX_DATE});
+	
+	$out.0.overrideBillingAddress = false;
+	$out.0.overrideShippingAddress = false;
+	
+	if (random() < 0.2) {
+		$out.0.overrideBillingAddress = true;
+		
+		variant address = getRandomAddress();
+		
+		$out.0.billingStreetAddress = cast(address["streetAddress"], string);
+		$out.0.billingPostalCode  = cast(address["postalCode"], string);
+		$out.0.billingCity = cast(address["city"], string);
+		$out.0.billingState = cast(address["state"], string);
+		$out.0.billingCountry = cast(address["country"], string);
+	}
+	
+	if (random() < 0.2) {
+		$out.0.overrideShippingAddress = true;
+		
+		variant address = getRandomAddress();
+		
+		$out.0.shippingStreetAddress = cast(address["streetAddress"], string);
+		$out.0.shippingPostalCode  = cast(address["postalCode"], string);
+		$out.0.shippingCity = cast(address["city"], string);
+		$out.0.shippingState = cast(address["state"], string);
+		$out.0.shippingCountry = cast(address["country"], string);
+	}
+
+	return OK;
+}
+
+function variant getRandomAddress() {
+	integer idx = randomInteger(0, length(dictionary.addressPool) - 1);
+	
+	return dictionary.addressPool[idx];
+}
+
+function void preExecute() {
+	setRandomSeed(${GLOBAL_RANDOM_SEED});
+}
+]]></attr>
+</Node>
+<Node guiName="OnlineStoreContacts" guiX="277" guiY="100" id="ONLINE_STORE_CONTACTS" jobURL="${SUBGRAPH_DIR}/OnlineStoreContacts.sgrf" type="SUBGRAPH">
+<attr name="__MIN_AGE_YEARS"><![CDATA[${MIN_AGE_YEARS}]]></attr>
+<attr name="__RECORD_COUNT"><![CDATA[${CONTACTS_TO_GENERATE}]]></attr>
+<attr name="__OUTPUT_LANGUAGE"><![CDATA[${LANGUAGE}]]></attr>
+</Node>
+<Node guiName="SimpleCopy" guiX="1035" guiY="100" id="SIMPLE_COPY" type="SIMPLE_COPY"/>
+<Edge fromNode="DATA_SAMPLER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="GENERATE_ORDERS:0"/>
+<Edge fromNode="GENERATE_LINE_ITEMS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 1 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:1"/>
+<Edge fromNode="GENERATE_ORDERS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="SIMPLE_COPY:0"/>
+<Edge fromNode="ONLINE_STORE_CONTACTS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="DATA_SAMPLER:0"/>
+<Edge fromNode="SIMPLE_COPY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="SIMPLE_COPY:1" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="GENERATE_LINE_ITEMS:0"/>
+</Phase>
+<Phase number="3">
+<Node guiName="SubgraphOutput" guiX="1604" guiY="10" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="199" name="1"/>
+<Port guiY="315" name="2"/>
+</Node>
+</Phase>
+</Graph>

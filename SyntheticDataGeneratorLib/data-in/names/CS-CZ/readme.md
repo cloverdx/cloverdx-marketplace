@@ -1,0 +1,4 @@
+- `last_name_male.csv`: list of Czech last names comes from here: https://cs.wikipedia.org/wiki/Seznam_%C4%8Desk%C3%BDch_p%C5%99%C3%ADjmen%C3%AD
+- `last_name_female.csv`: generated from male names with `Make Czech female name.grf`
+- `first_name_male.csv`: data from https://krestnijmeno.prijmeni.cz/nejoblibenejsi_muzska_jmena
+- `first_name_female.csv`: data from https://krestnijmeno.prijmeni.cz/nejoblibenejsi_zenska_jmena/2016

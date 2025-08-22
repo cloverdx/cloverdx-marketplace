@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GraphParameters>
+<GraphParameter category="security" label="Username for Salesforce account" name="SALESFORCE_USER" public="false" required="false">
+<attr name="description"><![CDATA[Username for Salesforce account]]></attr>
+</GraphParameter>
+<GraphParameter category="security" label="Password for Salesforce account" name="SALESFORCE_PASSWORD" public="false" required="false" secure="true">
+<attr name="description"><![CDATA[Password for Salesforce account]]></attr>
+</GraphParameter>
+<GraphParameter category="security" label="Salesforce security token" name="SALESFORCE_SECURITY_TOKEN" public="false" required="false" secure="true">
+<attr name="description"><![CDATA[Salesforce security token]]></attr>
+</GraphParameter>
+</GraphParameters>

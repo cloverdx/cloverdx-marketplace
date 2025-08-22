@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Pavel Svec" category="writers" created="Mon Apr 11 09:51:35 EDT 2016" description="Write messages to a SQS queue." guiVersion="5.15.0.15" id="1460406580607" largeIconPath="${PROJECT}/icons/amazon-sqs-logo64.png" licenseCode="CLP1DJAVLI51655480BY" licenseType="Commercial" mediumIconPath="${PROJECT}/icons/amazon-sqs-logo32.png" modified="Mon Apr 25 17:44:08 EDT 2016" modifiedBy="Pavel Svec" name="SQSWriter" nature="subgraph" revision="1.109" showComponentDetails="true" smallIconPath="${PROJECT}/icons/amazon-sqs-logo16.png">
+<Global>
+<inputPorts>
+<singlePort connected="true" name="0"/>
+<singlePort connected="true" keepEdge="false" name="1" required="false"/>
+</inputPorts>
+<Metadata id="Metadata2" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="|" name="SqsAttribute" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\r\n" type="delimited">
+<Field name="messageId" type="long"/>
+<Field name="dataType" type="string"/>
+<Field name="name" type="string"/>
+<Field name="value" type="string"/>
+<Field name="valueByte" type="byte"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata3" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="|" name="SqsAttributeConfig" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\r\n" type="delimited">
+<Field name="dataType" type="string"/>
+<Field name="name" type="string"/>
+<Field name="value" type="string"/>
+<Field name="valueByte" type="byte"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="|" name="SqsMessage" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\r\n" type="delimited">
+<Field name="id" type="long"/>
+<Field name="body" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter category="advanced" label="Body attribute" name="BODY_ATTR" public="false" value="body">
+<SingleType edge="Edge1" fieldType="string" name="field"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="Join key" name="JOIN_KEY" public="false" required="false" value="$id(a)#$messageId(a);">
+<ComponentReference referencedComponent="EXT_MERGE_JOIN1" referencedProperty="joinKey"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="Attribute mapping" name="TRANSFORM" public="false" required="false">
+<attr name="value"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+
+	return ALL;
+}]]></attr>
+<ComponentReference referencedComponent="TO_ATTRIBUTE_CONFIG" referencedProperty="transform"/>
+</GraphParameter>
+<GraphParameter name="DBG_RECORDS" value="1"/>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="amazonsqs.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="ECF0F0" folded="false" fontSize="medium" height="226" id="Note0" textColor="444444" width="668" x="249" y="325">
+<attr name="text"><![CDATA[h3. Default editor override]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node enabled="enableWhenInputPort1IsConnected" guiName="Attribute has to have ID" guiX="297" guiY="166" id="ATTRIBUTE_HAS_TO_HAVE_ID1" type="PARTITION">
+<attr name="partitionSource"><![CDATA[//#CTL2
+// This transformation partitions input records into multiple output ports.
+
+integer[] keys;
+
+// Returns the number of the output port where the input record will be sent.
+function integer getOutputPort() {
+	foreach (integer k: keys) {
+		if (k > -1 && isNull($in.0,k))
+			return 1;
+	}
+	
+	return 0;
+}
+
+// Called during component initialization, partitionCount is the number of output ports.
+// function void init(integer partitionCount) {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources.
+// All resources allocated within this method should be released by the postExecute() method.
+function void preExecute() {
+	SqsAttribute attr;
+	foreach (string k: "${JOIN_KEY}".split(";")) {
+		append(keys,getFieldIndex(attr,substring(k.split("#")[1],1)));
+	}	
+}
+
+// Called only if getOutputPort() throws an exception.
+// function integer getOutputPortOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="DataGenerator" guiX="269" guiY="404" id="DATA_GENERATOR" recordsNumber="0" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the generate. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if generate() throws an exception.
+// function integer generateOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node debugInput="true" guiName="DebugInput" guiX="-5" guiY="100" id="DATA_GENERATOR0" recordsNumber="${DBG_RECORDS}" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+integer i = 0;
+
+// Generates output record.
+function integer generate() {
+	$out.0.id = i++;
+	$out.0.body = randomString(3,5);
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the generate. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if generate() throws an exception.
+// function integer generateOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node debugInput="true" guiName="DebugInput" guiX="-211" guiY="226" id="DATA_GENERATOR1" recordsNumber="${DBG_RECORDS}" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+integer i = 0;
+
+// Generates output record.
+function integer generate() {
+	$out.0.messageId = i++;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the generate. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if generate() throws an exception.
+// function integer generateOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node enabled="enableWhenInputPort1IsConnected" guiName="ExtMergeJoin" guiX="490" guiY="404" id="EXT_MERGE_JOIN1" joinKey="${JOIN_KEY}" type="EXT_MERGE_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node debugInput="true" guiName="Normalizer" guiX="-5" guiY="226" id="NORMALIZER" type="NORMALIZER">
+<attr name="normalize"><![CDATA[//#CTL2
+// This transformation defines the way in which a single input record is normalized
+// into multiple output records.
+
+// This function is called for all input records.
+// It parses each single input record and returns the number of records
+// that should be created from such input record.
+function integer count() {
+	return randomInteger(0,10);
+}
+
+// This function creates new records for the output, based on single input record
+// that has been parsed by the count() function.
+// It is called count() times for each input record.
+// The idx argument specifies which output record is being created,
+// its values range is from 0 to count() - 1.
+function integer transform(integer idx) {
+	$out.0.messageId = $in.0.messageId;
+	$out.0.name = randomString(5,8);
+	
+	switch (randomInteger(0,3)) {
+		case 0:
+			$out.0.dataType = "String";
+			$out.0.value = randomString(1,2);
+			break;
+		case 1:
+			$out.0.dataType = "Number";
+			$out.0.value = randomInteger(0,20000).toString();
+			break;
+		case 2:
+			$out.0.dataType = "Binary";
+			$out.0.valueByte = long2packDecimal(randomLong());
+			break;
+		case 3:
+			$out.0.dataType = "String." + randomString(5,5);
+			$out.0.value = randomString(10,10);
+			break;
+	}
+	
+	return OK;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if count() throws an exception.
+// function integer countOnError(string errorMessage, string stackTrace) {
+//}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace, integer idx) {
+// }
+
+// Called after transform(count-1) to return the resources that have been used to their initial state
+// so that next input record may be parsed.
+// function void clean() {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node AWSAccessKey="${AWS_ACCESS_KEY}" AWSSecretKey="${AWS_SECRET_KEY}" JoinKey="${JOIN_KEY}" MessageBodyField="${BODY_ATTR}" SQSQueueName="${SQS_QUEUE_NAME}" SQSRegion="${SQS_REGION}" Transform="${TRANSFORM}" genericTransformClass="com.cloverdx.libraries.sqs.Writer" guiName="Send to SQS" guiX="563" guiY="100" id="SEND_TO_SQS" type="GENERIC_WRITER"/>
+<Node guiName="SubgraphInput" guiX="165" guiY="10" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+<Port guiY="257" name="2"/>
+</Node>
+<Node enabled="enableWhenInputPort1IsConnected" guiName="To attribute config" guiX="557" guiY="226" id="TO_ATTRIBUTE_CONFIG" type="REFORMAT">
+<attr name="transform"><![CDATA[${TRANSFORM}]]></attr>
+</Node>
+<Node guiName="Trash" guiX="770" guiY="404" id="TRASH" type="TRASH"/>
+<Node enabled="enableWhenInputPort1IsConnected" guiName="Unassigned message ID" guiX="801" guiY="226" id="UNASSIGNED_MESSAGE_ID" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = concat("Attribute '",$in.0.name,"' does not have message ID assigned.");
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="ATTRIBUTE_HAS_TO_HAVE_ID1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="SEND_TO_SQS:1"/>
+<Edge debugMode="true" fromNode="ATTRIBUTE_HAS_TO_HAVE_ID1:1" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="TO_ATTRIBUTE_CONFIG:0"/>
+<Edge fromNode="DATA_GENERATOR:0" guiBendpoints="" guiRouter="Manhattan" id="Edge14" inPort="Port 0 (driver)" metadataRef="#//Edge1" outPort="Port 0 (out)" toNode="EXT_MERGE_JOIN1:0"/>
+<Edge fromNode="DATA_GENERATOR:1" guiBendpoints="" guiRouter="Manhattan" id="Edge16" inPort="Port 1 (slave)" metadataRef="#//Edge3" outPort="Port 1 (out)" toNode="EXT_MERGE_JOIN1:1"/>
+<Edge fromNode="DATA_GENERATOR0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_INPUT0:0"/>
+<Edge fromNode="DATA_GENERATOR1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" metadataRef="#//Edge8" metadataRefState="invalid" outPort="Port 0 (out)" toNode="NORMALIZER:0"/>
+<Edge debugMode="false" fromNode="EXT_MERGE_JOIN1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="TRASH:0"/>
+<Edge fromNode="NORMALIZER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_INPUT0:1"/>
+<Edge fromNode="SEND_TO_SQS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge17" inPort="Port 1 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="TRASH:1"/>
+<Edge debugMode="true" fromNode="SUBGRAPH_INPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="SEND_TO_SQS:0"/>
+<Edge fromNode="SUBGRAPH_INPUT0:1" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 1 (out)" toNode="ATTRIBUTE_HAS_TO_HAVE_ID1:0"/>
+<Edge debugMode="true" fromNode="TO_ATTRIBUTE_CONFIG:0" guiBendpoints="" guiRouter="Manhattan" id="Edge13" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="UNASSIGNED_MESSAGE_ID:0"/>
+</Phase>
+<Phase number="5">
+<Node guiName="SubgraphOutput" guiX="979" guiY="10" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+</Node>
+</Phase>
+</Graph>

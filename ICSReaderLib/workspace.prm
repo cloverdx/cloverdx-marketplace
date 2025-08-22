@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GraphParameters>
+<GraphParameter name="ICS_READER_DIR" value="."/>
+</GraphParameters>

@@ -1,0 +1,67 @@
+{
+  "descriptor" : {
+    "version" : "1.2",
+    "description" : "Perform file operations in Azure File Storage: copy, create, delete, list files, retrieve content and properties—all via CloverDX subgraphs.",
+    "name" : "AzureFileStorageLib",
+    "author" : "CloverDX",
+    "productVersion" : "6.5.0.9",
+    "initializationJob" : "",
+    "minProductVersion" : "6.0",
+    "maxProductVersion" : "",
+    "lastModificationDate" : "2024-09-30T15:48:18Z"
+  },
+  "connections" : {
+    "oauth2Connections" : [ ]
+  },
+  "publicInterface" : {
+    "metadata" : [ ],
+    "dataConnectors" : {
+      "sources" : [ ],
+      "targets" : [ ]
+    },
+    "graphs" : [ ],
+    "jobflows" : [ ],
+    "restJobs" : [ ],
+    "subgraphs" : [ {
+      "largeIcon" : "./graph/subgraph/icons/azure-file-storage-icon-64x64.png",
+      "icon" : "./graph/subgraph/icons/azure-file-storage-icon-16x16.png",
+      "mediumIcon" : "./graph/subgraph/icons/azure-file-storage-icon-32x32.png",
+      "description" : "Implementation of the Copy File operation, which copies a blob or file to a destination file within the storage account.",
+      "path" : "graph/subgraph/CopyAzureFSFiles.sgrf"
+    }, {
+      "largeIcon" : "./graph/subgraph/icons/azure-file-storage-icon-64x64.png",
+      "icon" : "./graph/subgraph/icons/azure-file-storage-icon-16x16.png",
+      "mediumIcon" : "./graph/subgraph/icons/azure-file-storage-icon-32x32.png",
+      "description" : "Implementation of the Create File operation. It creates a new file or replaces a file. When you call Create File, you only initialize the file. ",
+      "path" : "graph/subgraph/CreateAzureFSFile.sgrf"
+    }, {
+      "largeIcon" : "./graph/subgraph/icons/azure-file-storage-icon-64x64.png",
+      "icon" : "./graph/subgraph/icons/azure-file-storage-icon-16x16.png",
+      "mediumIcon" : "./graph/subgraph/icons/azure-file-storage-icon-32x32.png",
+      "description" : "Implementation of the the Delete File operation, which immediately removes the file from the storage account.\n",
+      "path" : "graph/subgraph/DeleteAzureFSFile.sgrf"
+    }, {
+      "largeIcon" : "./graph/subgraph/icons/azure-file-storage-icon-64x64.png",
+      "icon" : "./graph/subgraph/icons/azure-file-storage-icon-16x16.png",
+      "mediumIcon" : "./graph/subgraph/icons/azure-file-storage-icon-32x32.png",
+      "description" : "Implementation of the Get File operation, which reads or downloads a file from the system, including its metadata and properties.",
+      "path" : "graph/subgraph/GetAzureFSFile.sgrf"
+    }, {
+      "largeIcon" : "./graph/subgraph/icons/azure-file-storage-icon-64x64.png",
+      "icon" : "./graph/subgraph/icons/azure-file-storage-icon-16x16.png",
+      "mediumIcon" : "./graph/subgraph/icons/azure-file-storage-icon-32x32.png",
+      "description" : "Implementation of the Get File Properties operation, which returns all user-defined metadata, standard HTTP properties, and system properties for the file. It does not return the content of the file.",
+      "path" : "graph/subgraph/GetAzureFSFileProperties.sgrf"
+    }, {
+      "largeIcon" : "./graph/subgraph/icons/azure-file-storage-icon-64x64.png",
+      "icon" : "./graph/subgraph/icons/azure-file-storage-icon-16x16.png",
+      "mediumIcon" : "./graph/subgraph/icons/azure-file-storage-icon-32x32.png",
+      "description" : "Implementation of the List Directories and Files operation, which returns a list of files or directories under the specified share or directory. It lists the contents only for a single level of the directory hierarchy.\n",
+      "path" : "graph/subgraph/ListAzureFSFiles.sgrf"
+    } ]
+  },
+  "healthCheck" : {
+    "description" : "",
+    "path" : ""
+  }
+}

@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="others" created="Wed Aug 30 10:14:20 CEST 2023" description="BigQueryExecuteCommand allows to execute Big Query commands, typically DDL statements. It is not expected to run SELECT command, anyway, it is posssible to run this command but only first 20 MB data will be returned in a JSON format. For reading from Big Query tables, please use Big Query Reader compoennt (will be available later in this library)." guiVersion="6.2.0.14" id="1693996746571" largeIconPath="${PROJECT}/icons/google_bigquery_logo_64.png" licenseCode="CloverDX-Internal-License" mediumIconPath="${PROJECT}/icons/google_bigquery_logo_32.png" name="BigQueryGetTableSchema" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/google_bigquery_logo_16.png">
+<Global>
+<inputPorts>
+<singlePort connected="true" keepEdge="true" name="0" required="false"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="false" name="0"/>
+</outputPorts>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="BigQueryStatement" recordDelimiter="\n" type="delimited">
+<Field name="statement" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="debugInput1" recordDelimiter="\n" type="delimited">
+<Field name="field1" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="TableSchema" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="result" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="library.prm"/>
+<GraphParameter label="Command" name="_COMMAND" public="true" required="false">
+<attr name="description"><![CDATA[Big Query Command]]></attr>
+</GraphParameter>
+<GraphParameter label="Return results" name="_RETURN__RESULTS" public="true" value="true">
+<SingleType name="bool"/>
+</GraphParameter>
+<GraphParameter label="Fail on error" name="_FAIL__ON__ERROR" public="true" required="false" value="true">
+<attr name="description"><![CDATA[If an error occurs during processing, the component fails (when set to true), or finishes OK (when set to false).]]></attr>
+<SingleType name="bool"/>
+</GraphParameter>
+<GraphParameter name="_PATH__TO__CREDENTIALS_ABSOLUTE">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return toAbsolutePath(getParamValue("_PATH__TO__CREDENTIALS"));
+}
+]]></attr>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<Dictionary/>
+<ExecutionConfig>
+<Property name="classloader_caching" value="true"/>
+</ExecutionConfig>
+</Global>
+<Phase number="0">
+<Node debugInput="true" guiName="DataGenerator" guiX="-73" guiY="100" id="DATA_GENERATOR1" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+	$out.0.statement = "SELECT * FROM MyDataset1.MyTable1";
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the generate. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if generate() throws an exception.
+// function integer generateOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node COMMAND="${_COMMAND}" DATASET_NAME="${_DATASET__NAME}" FAIL_ON_ERROR="${_FAIL__ON__ERROR}" PATH_TO_CREDENTIALS="${_PATH__TO__CREDENTIALS_ABSOLUTE}" PROJECT_ID="${_PROJECT__ID}" RETURN_RESULTS="${_RETURN__RESULTS}" TABLE_NAME="${_TABLE__NAME}" genericTransformClass="com.cloverdx.libraries.gcloud.BigQueryExecuteCommand" guiName="ExecuteCommand" guiX="561" guiY="100" id="EXECUTE_COMMAND" metadataPropagationAlgorithmClass="com.cloverdx.libraries.gcloud.BigQueryExecuteCommandMetadataProvider" type="GENERIC_READER"/>
+<Node guiName="Generate empty token" guiX="158" guiY="218" id="GENERATE_EMPTY_TOKEN" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the generate. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if generate() throws an exception.
+// function integer generateOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Map optional input" guiX="357" guiY="100" id="MAP_OPTIONAL_INPUT" incompleteTuples="true" type="COMBINE">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	if($in.0.statement!=null){
+		$out.0.statement = $in.0.statement;
+	}
+	else{
+		$out.0.statement = null;
+	
+	}
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="101" guiY="10" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="800" guiY="10" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Edge fromNode="DATA_GENERATOR1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_INPUT0:0"/>
+<Edge fromNode="EXECUTE_COMMAND:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="GENERATE_EMPTY_TOKEN:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 1 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="MAP_OPTIONAL_INPUT:1"/>
+<Edge fromNode="MAP_OPTIONAL_INPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="EXECUTE_COMMAND:0"/>
+<Edge fromNode="SUBGRAPH_INPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="MAP_OPTIONAL_INPUT:0"/>
+</Phase>
+</Graph>

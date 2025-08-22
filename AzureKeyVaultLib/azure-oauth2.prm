@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GraphParameters>
+<GraphParameter name="AZURE_ACCESS_TOKEN_NAME" value="keyvault-access-token"/>
+<GraphParameter label="Azure tenant ID" name="AZURE_TENANT_ID" public="false" required="false" secure="true" value="enc#Y/Mi08Yi3QkRXT+Ps9RXyGqsvpYsUihAXdL4GXHqPG0WPmYNkr/Quz0C2JddJ8Ha"/>
+<GraphParameter label="Azure application ID (Client ID)" name="AZURE_CLIENT_ID" public="false" required="false" secure="true" value="enc#J2glRms5SCM0xO0Su9ZbD+wipttUZeq6pplx4HvLIr7331tZ8fD27VEwGPYwvRj+"/>
+<GraphParameter label="Azure API Client secret" name="AZURE_CLIENT_SECRET" public="false" required="false" secure="true" value="enc#t8KNb+gAPDjJSjsIlJPHTKmU9lUs89JPaYOCMfi1q8W93Yoh3IxicYTMBAN5DbdTy1FhSxxxfRk="/>
+<GraphParameter label="Authorization token redirect URI" name="AZURE_APP_REDIRECT_URI" public="false" required="false" value="https://cloverdx.com/keyvault-access-example"/>
+<GraphParameter label="Authorization code" name="AZURE_AUTHORIZATION_CODE" public="false" required="false" secure="true" value="enc#rMRNWeURjDSSgmUVpGoTjaEdt9b9ulp61fekhIaViSOKfkTcewB9222XdEWvsikB8Ad+D0J5VMn6IuGVzTu0AatFbdrgVaGxOFWqruDcT05R9ChOtL9xoGtjwU+Odk/nu1FYDiOZkkn4q6sro3cQvj+8K8XnypQdbRVmJVshGlIQ/N252DDAkLv3s7TcD9F2mcEgsNiXu0k0O/5BH81A0hwmNHY58nxyDJJdnms1werwqi7Y0dAfeYFVNnt4KjcVoxMeSAVOdxquWYglJVQ+N1v9fSxZUHBiIaRaPZ0mmcx0OZRNfMdxL5196rl/1OJ0lbo3T99yH195y/rH/QiB0UpZL/KlVMdwbnLDl3BcDQwxppCuHFekfBNN5hPh+jhi0QKyfs19lwvDVLc6sQuYEFnSA815cVQH36pwh9kBI8/SSMsh5yV+8rr/Ig8UXYnNC10hYyfKVlUOzUpr0NUe0uUAVV69GzaYMiyhi3i8ELQmii+1R4xJAzbzPVGcIhKIu64kr3XZ1ktVsU/SYsvtOTYZ2/C2kR1+tFE19RNbsBX1Hn9cxcvNO5zXRd2uUDEVQDNLijZjygYOubwVfWplQ83m/N+6Y+XmPw+txjSwVAGR5sc4/RT7/XfsG0lHrimAUvcXs3jfjvciXjBzYXIeFdJ6sqzqoUiQviJl8SYU5L2jCkVg4an3fv9Hfb1a85pWmZbWGlWLXax6WCgui6kiO1OoEL72UpVmt4w2kdHXYSdc6MJhx84t+i3ZzXubpaFuK8l733Lq0hdkVeMg619lHWR6XNj1EuY1g9jhCLfyEEzCN1KmVEg67g=="/>
+</GraphParameters>

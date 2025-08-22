@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="readers" created="Thu Nov 24 20:52:32 GMT 2022" description="Get supplier invoices with coresponding customer details with due date in the next X days." guiVersion="6.6.0.4" id="1669324521431" largeIconPath="${PROJECT}/icons/xero_logo_64.png" licenseCode="CLCDSCLOVE72646208SP" mediumIconPath="${PROJECT}/icons/xero_logo_32.png" name="getAccountsPayableNearDueDate" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/xero_logo_16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" keepEdge="true" name="0" required="false"/>
+<singlePort connected="false" keepEdge="true" name="1" required="false"/>
+<singlePort connected="false" keepEdge="true" name="2" required="false"/>
+<singlePort connected="false" keepEdge="true" name="3" required="false"/>
+</outputPorts>
+<GraphParameters>
+<GraphParameter label="Number of days before due date" name="NUMBER_OF_DAYS_LIMIT" public="true" value="7">
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node dedupKey="ContactID(a)" guiName="Dedup" guiX="808" guiY="188" id="DEDUP" sorted="false" type="DEDUP"/>
+<Node __STATUS="AUTHORISED" __TYPE="ACCPAY" guiName="Get AUTHORISED ACCPAY" guiX="214" guiY="134" id="GET_AUTHORISED_ACCPAY1" jobURL="${SUBGRAPH_DIR}/GetInvoices.sgrf" type="SUBGRAPH">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.OAUTH_URL = getParamValue("OAUTH_URL");
+	$out.0.TENANT_ID = getParamValue("TENANT_ID");
+	$out.0.DATE_FORMAT = getParamValue("DATE_FORMAT");
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="GetContacts" guiX="1154" guiY="188" id="GET_CONTACTS" jobURL="${SUBGRAPH_DIR}/GetContactsByID.sgrf" type="SUBGRAPH">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.OAUTH_URL = getParamValue("OAUTH_URL");
+	$out.0.TENANT_ID = getParamValue("TENANT_ID");
+	$out.0.DATE_FORMAT = getParamValue("DATE_FORMAT");
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Map" guiX="982" guiY="188" id="MAP" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.ContactID = $in.0.ContactID;
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="SimpleCopy" guiX="635" guiY="134" id="SIMPLE_COPY" type="SIMPLE_COPY"/>
+<Node guiName="SubgraphInput" guiX="50" guiY="10" id="SUBGRAPH_INPUT" type="SUBGRAPH_INPUT">
+<Port guiY="110" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1348" guiY="10" id="SUBGRAPH_OUTPUT" type="SUBGRAPH_OUTPUT">
+<Port guiY="151" name="0"/>
+<Port guiY="202" name="1"/>
+<Port guiY="272" name="2"/>
+<Port guiY="342" name="3"/>
+<Port guiY="412" name="4"/>
+</Node>
+<Node guiName="X days before due date" guiX="430" guiY="134" id="X_DAYS_BEFORE_DUE_DATE1" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.Status != "PAID" and dateDiff($in.0.DueDate, today(), day) <= ${NUMBER_OF_DAYS_LIMIT}]]></attr>
+</Node>
+<Edge fromNode="DEDUP:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" outPort="Port 0 (unique)" toNode="MAP:0"/>
+<Edge fromNode="GET_AUTHORISED_ACCPAY1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="X_DAYS_BEFORE_DUE_DATE1:0"/>
+<Edge fromNode="GET_CONTACTS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:1"/>
+<Edge fromNode="GET_CONTACTS:1" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 2 (in)" outPort="Port 1 (out)" toNode="SUBGRAPH_OUTPUT:2"/>
+<Edge fromNode="GET_CONTACTS:2" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 3 (in)" outPort="Port 2 (out)" toNode="SUBGRAPH_OUTPUT:3"/>
+<Edge fromNode="MAP:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="GET_CONTACTS:0"/>
+<Edge fromNode="SIMPLE_COPY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:0"/>
+<Edge fromNode="SIMPLE_COPY:1" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="DEDUP:0"/>
+<Edge fromNode="X_DAYS_BEFORE_DUE_DATE1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" outPort="Port 0 (accepted)" toNode="SIMPLE_COPY:0"/>
+</Phase>
+</Graph>

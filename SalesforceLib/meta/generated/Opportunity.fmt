@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Record fieldDelimiter="," name="Query_Result" recordDelimiter="\n" type="delimited">
+   <Field name="Id" salesforce_field_type="id" type="string"/>
+   <Field name="IsDeleted" salesforce_field_type="_boolean" trim="true" type="boolean"/>
+   <Field name="AccountId" salesforce_field_type="reference" type="string"/>
+   <Field name="IsPrivate" salesforce_field_type="_boolean" trim="true" type="boolean"/>
+   <Field name="Name" salesforce_field_type="string" type="string"/>
+   <Field name="Description" salesforce_field_type="textarea" type="string"/>
+   <Field name="StageName" salesforce_field_type="picklist" type="string"/>
+   <Field length="18" name="Amount" salesforce_field_type="currency" scale="2"
+          trim="true"
+          type="decimal"/>
+   <Field length="3" name="Probability" salesforce_field_type="percent" scale="0"
+          trim="true"
+          type="decimal"/>
+   <Field length="18" name="ExpectedRevenue" salesforce_field_type="currency" scale="2"
+          trim="true"
+          type="decimal"/>
+   <Field length="18" name="TotalOpportunityQuantity" salesforce_field_type="_double"
+          scale="2"
+          trim="true"
+          type="decimal"/>
+   <Field format="yyyy-MM-dd" name="CloseDate" salesforce_field_type="date"
+          timeZone="UTC"
+          trim="true"
+          type="date"/>
+   <Field name="Type" salesforce_field_type="picklist" type="string"/>
+   <Field name="NextStep" salesforce_field_type="string" type="string"/>
+   <Field name="LeadSource" salesforce_field_type="picklist" type="string"/>
+   <Field name="IsClosed" salesforce_field_type="_boolean" trim="true" type="boolean"/>
+   <Field name="IsWon" salesforce_field_type="_boolean" trim="true" type="boolean"/>
+   <Field name="ForecastCategory" salesforce_field_type="picklist" type="string"/>
+   <Field name="ForecastCategoryName" salesforce_field_type="picklist" type="string"/>
+   <Field name="CampaignId" salesforce_field_type="reference" type="string"/>
+   <Field name="HasOpportunityLineItem" salesforce_field_type="_boolean" trim="true"
+          type="boolean"/>
+   <Field name="Pricebook2Id" salesforce_field_type="reference" type="string"/>
+   <Field name="OwnerId" salesforce_field_type="reference" type="string"/>
+   <Field format="yyyy-MM-dd'T'HH:mm:ss.SSSXX" name="CreatedDate"
+          salesforce_field_type="datetime"
+          timeZone="UTC"
+          trim="true"
+          type="date"/>
+   <Field name="CreatedById" salesforce_field_type="reference" type="string"/>
+   <Field format="yyyy-MM-dd'T'HH:mm:ss.SSSXX" name="LastModifiedDate"
+          salesforce_field_type="datetime"
+          timeZone="UTC"
+          trim="true"
+          type="date"/>
+   <Field name="LastModifiedById" salesforce_field_type="reference" type="string"/>
+   <Field format="yyyy-MM-dd'T'HH:mm:ss.SSSXX" name="SystemModstamp"
+          salesforce_field_type="datetime"
+          timeZone="UTC"
+          trim="true"
+          type="date"/>
+   <Field format="yyyy-MM-dd" name="LastActivityDate" salesforce_field_type="date"
+          timeZone="UTC"
+          trim="true"
+          type="date"/>
+   <Field name="PushCount" salesforce_field_type="_int" trim="true" type="integer"/>
+   <Field format="yyyy-MM-dd'T'HH:mm:ss.SSSXX" name="LastStageChangeDate"
+          salesforce_field_type="datetime"
+          timeZone="UTC"
+          trim="true"
+          type="date"/>
+   <Field name="FiscalQuarter" salesforce_field_type="_int" trim="true" type="integer"/>
+   <Field name="FiscalYear" salesforce_field_type="_int" trim="true" type="integer"/>
+   <Field name="Fiscal" salesforce_field_type="string" type="string"/>
+   <Field name="ContactId" salesforce_field_type="reference" type="string"/>
+   <Field format="yyyy-MM-dd'T'HH:mm:ss.SSSXX" name="LastViewedDate"
+          salesforce_field_type="datetime"
+          timeZone="UTC"
+          trim="true"
+          type="date"/>
+   <Field format="yyyy-MM-dd'T'HH:mm:ss.SSSXX" name="LastReferencedDate"
+          salesforce_field_type="datetime"
+          timeZone="UTC"
+          trim="true"
+          type="date"/>
+   <Field name="HasOpenActivity" salesforce_field_type="_boolean" trim="true"
+          type="boolean"/>
+   <Field name="HasOverdueTask" salesforce_field_type="_boolean" trim="true"
+          type="boolean"/>
+   <Field name="LastAmountChangedHistoryId" salesforce_field_type="reference"
+          type="string"/>
+   <Field name="LastCloseDateChangedHistoryId" salesforce_field_type="reference"
+          type="string"/>
+   <Field name="DeliveryInstallationStatus__c" salesforce_field_type="picklist"
+          type="string"/>
+   <Field name="TrackingNumber__c" salesforce_field_type="string" type="string"/>
+   <Field name="OrderNumber__c" salesforce_field_type="string" type="string"/>
+   <Field name="CurrentGenerators__c" salesforce_field_type="string" type="string"/>
+   <Field name="MainCompetitors__c" salesforce_field_type="string" type="string"/>
+</Record>

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="others" created="Mon Jun 03 13:54:19 CEST 2024" description="Delete all data sets in the Data Manager." guiVersion="7.0.0.15" id="1717486136600" largeIconPath="${PROJECT}/icons/DeleteAllDataSets64.png" licenseCode="CloverDX-Internal-License" mediumIconPath="${PROJECT}/icons/DeleteAllDataSets48.png" name="DeleteAllDataSets" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/DeleteAllDataSets16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" keepEdge="true" name="0" required="false"/>
+<singlePort connected="false" keepEdge="false" name="1" required="false"/>
+</outputPorts>
+<Metadata fileURL="${META_DIR}/ErrorOutput.fmt" id="Metadata2"/>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="DeletedDataSet" recordDelimiter="\n" type="delimited">
+<Field name="dataSetName" type="string"/>
+<Field name="dataSetCode" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="DeleteResponse" recordDelimiter="\n" type="delimited">
+<Field name="dataSetName" type="string"/>
+<Field name="dataSetCode" type="string"/>
+<Field name="content" type="string"/>
+<Field name="statusCode" trim="true" type="integer"/>
+<Field name="errorMessage" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node __CLOVERDX_PASS="${CLOVERDX_PASS}" __CLOVERDX_SERVER="${CLOVERDX_SERVER}" __CLOVERDX_USER="${CLOVERDX_USER}" guiName="DeleteDataSet" guiX="695" guiY="100" id="DELETE_DATA_SET" jobURL="${SUBGRAPH_DIR}/DeleteDataSet.sgrf" type="SUBGRAPH">
+<attr name="__INPUT_MAPPING"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.dataSetCode = $in.0.code;
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node enabled="enableWhenOutputPort1IsDisconnected" guiName="Fail" guiX="1245" guiY="475" id="FAIL" type="FAIL"/>
+<Node guiName="Format error" guiX="870" guiY="325" id="FORMAT_ERROR" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = $in.0.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Format error" guiX="870" guiY="475" id="FORMAT_ERROR1" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = $in.0.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node __CLOVERDX_PASS="${CLOVERDX_PASS}" __CLOVERDX_SERVER="${CLOVERDX_SERVER}" __CLOVERDX_USER="${CLOVERDX_USER}" guiName="GetDataSetsOverview" guiX="345" guiY="100" id="GET_DATA_SETS_OVERVIEW1" jobURL="${SUBGRAPH_DIR}/GetDataSetsOverview.sgrf" type="SUBGRAPH"/>
+<Node guiName="SimpleGather" guiX="1070" guiY="375" id="SIMPLE_GATHER" type="SIMPLE_GATHER"/>
+<Node guiName="SubgraphInput" guiX="195" guiY="5" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1395" guiY="5" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="192" name="1"/>
+<Port guiY="267" name="2"/>
+</Node>
+<Edge fromNode="DELETE_DATA_SET:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="DELETE_DATA_SET:1" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="FORMAT_ERROR:0"/>
+<Edge fromNode="FORMAT_ERROR:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="SIMPLE_GATHER:0"/>
+<Edge fromNode="FORMAT_ERROR1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 1 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="SIMPLE_GATHER:1"/>
+<Edge fromNode="GET_DATA_SETS_OVERVIEW1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="DELETE_DATA_SET:0"/>
+<Edge fromNode="GET_DATA_SETS_OVERVIEW1:1" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="FORMAT_ERROR1:0"/>
+<Edge fromNode="SIMPLE_GATHER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 1 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:1"/>
+<Edge fromNode="SIMPLE_GATHER:1" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 1 (out)" toNode="FAIL:0"/>
+</Phase>
+</Graph>

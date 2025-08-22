@@ -1,0 +1,558 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" created="Wed Jan 18 09:26:15 CET 2023" guiVersion="5.17.0.1498" id="1674046592046" licenseCode="CLCDSCLOVE85208925SP" name="getSitesAndPersonalDrive" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata4">
+<Record fieldDelimiter="|" name="CreateEnumOut" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="Value" type="string"/>
+<Field name="Label" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="DenormalizerOutput" recordDelimiter="\r\n" type="delimited">
+<Field name="EnumValues" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata7">
+<Record fieldDelimiter="|" name="Dictionary" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="SITEIDLine" type="string"/>
+<Field name="DRIVEIDLine" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="Error" recordDelimiter="\r\n" type="delimited">
+<Field name="errorMessage" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata6">
+<Record fieldDelimiter="|" name="MeDriveResponseOutput" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="id" type="string"/>
+<Field name="name" type="string"/>
+<Field name="displayName" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata3">
+<Record eofAsDelimiter="true" fieldDelimiter="\r\n\\|\n\\|\r\\|\n\r" name="ReadPrmLines" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n\\|\n\\|\r\\|\n\r" type="delimited">
+<Field name="line" type="string"/>
+<Field auto_filling="global_row_count" name="lineId" type="long"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="SitesResponseOutput" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="id" type="string"/>
+<Field name="name" type="string"/>
+<Field name="displayName" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata5">
+<Record fieldDelimiter="|" name="XMLExtract" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="line" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+<GraphParameter name="USE_OAUTH2">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	if(!isBlank(getParamValue("O_AUTH2_CONNECTION"))){
+		return "true";
+	}
+	return "false";
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter name="GET_SITES_URL" value="https://graph.microsoft.com/v1.0/sites/root/sites?search=*"/>
+<GraphParameter name="GET_ME_DRIVE_URL" value="https://graph.microsoft.com/v1.0/me/drive"/>
+</GraphParameters>
+<RichTextNote backgroundColor="FAF6D6" folded="false" fontSize="medium" height="117" id="Note0" textColor="444444" width="651" x="101" y="53">
+<attr name="text"><![CDATA[h3. SharePoint Sites]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="FAF6D6" folded="false" fontSize="medium" height="94" id="Note1" textColor="444444" width="429" x="101" y="450">
+<attr name="text"><![CDATA[h3. Me Drive (Personal OneDrive)]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="FAF6D6" folded="false" fontSize="medium" height="187" id="Note2" textColor="444444" width="303" x="1241" y="713">
+<attr name="text"><![CDATA[h3. Error fail in last phase
+]]></attr>
+</RichTextNote>
+<Dictionary>
+<Entry input="false" name="SITEIDLine" output="false" type="string"/>
+<Entry input="false" name="DRIVEIDLine" output="false" type="string"/>
+</Dictionary>
+</Global>
+<Phase number="0">
+<Node guiName="Concatenate" guiX="751" guiY="778" id="CONCATENATE" type="CONCATENATE"/>
+<Node guiName="create enum" guiX="996" guiY="204" id="CREATE_ENUM" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.Value = $in.0.id;
+	$out.0.Label = $in.0.displayName + " (" + $in.0.name + ")";
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="create enum" guiX="1104" guiY="574" id="CREATE_ENUM1" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+string value;
+string label;
+
+// Transforms input record into output record.
+function integer transform() {
+	value = $in.0.id;
+	label = $in.0.displayName + " (" + $in.0.name + ")";
+	$out.0.EnumValues =	concatWithSeparator("|", value, label);
+	
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Denormalizer" guiX="1241" guiY="204" id="DENORMALIZER" type="DENORMALIZER">
+<attr name="denormalize"><![CDATA[//#CTL2
+// This transformation defines the way in which multiple input records 
+// (with the same key) are denormalized into one output record. 
+
+list[string] values;
+
+// This function is called for each input record from a group of records
+// with the same key.
+function integer append() {
+	append(values, concatWithSeparator("|", $in.0.Value, $in.0.Label));
+	return 0;
+}
+
+// This function is called once after the append() function was called for all records
+// of a group of input records defined by the key.
+// It creates a single output record for the whole group.
+function integer transform() {
+	$out.0.EnumValues = join(";", values);
+	return OK;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if append() throws an exception.
+// function integer appendOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called only if transform() throws an exception.
+//function integer transformOnError(string errorMessage, string stackTrace) {
+//}
+
+// Called after transform() to return the resources that have been used to their initial state
+// so that next group of records with different key may be parsed.
+// function void clean() {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Denormalizer" guiX="1017" guiY="778" id="DENORMALIZER1" type="DENORMALIZER">
+<attr name="denormalize"><![CDATA[//#CTL2
+// This transformation defines the way in which multiple input records 
+// (with the same key) are denormalized into one output record. 
+
+list[string] errors;
+
+// This function is called for each input record from a group of records
+// with the same key.
+function integer append() {
+	append(errors, $in.0.errorMessage);
+	return 0;
+}
+
+// This function is called once after the append() function was called for all records
+// of a group of input records defined by the key.
+// It creates a single output record for the whole group.
+function integer transform() {
+	$out.0.errorMessage = join(";\n", errors);
+	return OK;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if append() throws an exception.
+// function integer appendOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called only if transform() throws an exception.
+//function integer transformOnError(string errorMessage, string stackTrace) {
+//}
+
+// Called after transform() to return the resources that have been used to their initial state
+// so that next group of records with different key may be parsed.
+// function void clean() {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="name error" guiX="510" guiY="701" id="NAME_ERROR" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.errorMessage = "Get sites error: " + $in.0.errorMessage;
+	
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="name error" guiX="510" guiY="790" id="NAME_ERROR1" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.errorMessage = "Get personal OneDrive error: " + $in.0.errorMessage;
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node __URL="${GET_SITES_URL}" __USE_OAUTH2="${USE_OAUTH2}" guiName="OneDriveCore" guiX="299" guiY="204" id="ONE_DRIVE_CORE" jobURL="${SUBGRAPH_DIR}/internal/MSGraphCore.sgrf" skipCheckConfig="true" type="SUBGRAPH"/>
+<Node __URL="${GET_ME_DRIVE_URL}" __USE_OAUTH2="${USE_OAUTH2}" guiName="OneDriveCore" guiX="299" guiY="574" id="ONE_DRIVE_CORE1" jobURL="${SUBGRAPH_DIR}/internal/MSGraphCore.sgrf" skipCheckConfig="true" type="SUBGRAPH"/>
+<Node guiName="parse response" guiX="732" guiY="204" id="PARSE_RESPONSE" schema="${META_DIR}/responseSchemas/Get_sites_response_json" sourceUri="port:$0.content:discrete" type="JSON_EXTRACT">
+<attr name="mapping"><![CDATA[<Mappings>
+	<Mapping element="json_object">
+		<Mapping element="value" outPort="0">
+		</Mapping>
+	</Mapping>
+</Mappings>
+]]></attr>
+</Node>
+<Node guiName="parse response" guiX="732" guiY="574" id="PARSE_RESPONSE1" schema="${META_DIR}/responseSchemas/Get_me_drive_response_json" sourceUri="port:$0.content:discrete" type="JSON_EXTRACT">
+<attr name="mapping"><![CDATA[<Mappings>
+	<Mapping element="json_object" outPort="0">
+		<Mapping element="owner">
+			<Mapping element="user">
+				<Mapping element="displayName" useParentRecord="true"
+						xmlFields="../{}displayName"
+						cloverFields="displayName">
+				</Mapping>
+			</Mapping>
+		</Mapping>
+	</Mapping>
+</Mappings>
+]]></attr>
+</Node>
+<Node guiName="SetJobOutput" guiX="1766" guiY="204" id="SET_JOB_OUTPUT" type="SET_JOB_OUTPUT">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	dictionary.SITEIDLine = $in.0.line;
+	
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="SetJobOutput" guiX="1774" guiY="574" id="SET_JOB_OUTPUT1" type="SET_JOB_OUTPUT">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	dictionary.DRIVEIDLine = $in.0.line;
+	
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node fileURL="port:$0.line:discrete" guiName="XMLWriter" guiX="1497" guiY="204" id="XMLWRITER" omitXMLDeclaration="true" recordCount="1" type="EXT_XML_WRITER">
+<attr name="mapping"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<SingleType xmlns:clover="http://www.cloveretl.com/ns/xmlmapping" allowCustomValues="true" name="simpleEnum" values="$0.EnumValues" clover:inPort="0"/>]]></attr>
+</Node>
+<Node fileURL="port:$0.line:discrete" guiName="XMLWriter" guiX="1497" guiY="574" id="XMLWRITER1" omitXMLDeclaration="true" recordCount="1" type="EXT_XML_WRITER">
+<attr name="mapping"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<SingleType xmlns:clover="http://www.cloveretl.com/ns/xmlmapping" allowCustomValues="true" name="simpleEnum" values="$0.EnumValues" clover:inPort="0"/>]]></attr>
+</Node>
+<Edge fromNode="CONCATENATE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge24" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="DENORMALIZER1:0"/>
+<Edge fromNode="CREATE_ENUM:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" metadata="Metadata4" outPort="Port 0 (out)" toNode="DENORMALIZER:0"/>
+<Edge fromNode="CREATE_ENUM1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge17" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="XMLWRITER1:0"/>
+<Edge fromNode="DENORMALIZER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="XMLWRITER:0"/>
+<Edge fromNode="DENORMALIZER1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge25" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="HTTP_FAIL1:0"/>
+<Edge fromNode="NAME_ERROR:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="CONCATENATE:0"/>
+<Edge fromNode="NAME_ERROR1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="CONCATENATE:1"/>
+<Edge fromNode="ONE_DRIVE_CORE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge19" inPort="Port 0 (input)" outPort="Port 0 (out)" toNode="PARSE_RESPONSE:0"/>
+<Edge fromNode="ONE_DRIVE_CORE:1" guiBendpoints="" guiRouter="Manhattan" id="Edge20" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="NAME_ERROR:0"/>
+<Edge fromNode="ONE_DRIVE_CORE1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge21" inPort="Port 0 (input)" outPort="Port 0 (out)" toNode="PARSE_RESPONSE1:0"/>
+<Edge fromNode="ONE_DRIVE_CORE1:1" guiBendpoints="" guiRouter="Manhattan" id="Edge22" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="NAME_ERROR1:0"/>
+<Edge fromNode="PARSE_RESPONSE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="CREATE_ENUM:0"/>
+<Edge fromNode="PARSE_RESPONSE1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge16" inPort="Port 0 (in)" metadata="Metadata6" outPort="Port 0 (out)" toNode="CREATE_ENUM1:0"/>
+<Edge fromNode="XMLWRITER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" metadata="Metadata5" outPort="Port 0 (out)" toNode="SET_JOB_OUTPUT:0"/>
+<Edge fromNode="XMLWRITER1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge18" inPort="Port 0 (in)" metadata="Metadata5" outPort="Port 0 (out)" toNode="SET_JOB_OUTPUT1:0"/>
+</Phase>
+<Phase number="5">
+<Node guiName="CrossJoin" guiX="2157" guiY="373" id="CROSS_JOIN" type="CROSS_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+
+/*
+  <?xml version="1.0" encoding="UTF-8"?>
+  <GraphParameters>
+  <GraphParameter name="TEST_ENUM" public="true">
+  <SingleType allowCustomValues="true" name="simpleEnum" values="Value1|Label1;Value2|Label2;Value3|Label3"/>
+  </GraphParameter>
+  </GraphParameters>
+*/
+
+boolean isParameterFlag = false;
+string parameterName = "";
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	
+	if (trim($in.0.line) ~= '.*<GraphParameter.* name="SITE_ID".*'){
+		isParameterFlag = true;
+        parameterName = "SITE_ID";	
+	} else if (trim($in.0.line) ~= '.*<GraphParameter.* name="DRIVE_ID".*'){
+		isParameterFlag = true;
+        parameterName = "DRIVE_ID";
+	}
+
+    if (isParameterFlag){
+        if (trim($in.0.line) ~= '<SingleType.*'){
+            if (parameterName == "SITE_ID"){
+			    if ($in.1.SITEIDLine == null) { // if null keep the current line
+				    $out.0.line = $in.0.line;
+			    } else {
+				    $out.0.line = $in.1.SITEIDLine;		
+			    }
+            } else if (parameterName == "DRIVE_ID"){
+			    if ($in.1.DRIVEIDLine == null) { // if null keep the current line
+				    $out.0.line = $in.0.line;
+			    } else {
+				    $out.0.line = $in.1.DRIVEIDLine;		
+			    }
+            }
+        }
+        
+        
+        if (trim($in.0.line) == '</GraphParameter>'){
+			isParameterFlag = false;
+            parameterName = "";
+		}
+    }
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="GetJobInput" guiX="1766" guiY="390" id="GET_JOB_INPUT" type="GET_JOB_INPUT">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.SITEIDLine = dictionary.SITEIDLine;
+	$out.0.DRIVEIDLine = dictionary.DRIVEIDLine;
+	
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node fileURL="${PROJECT}/library.prm" guiName="read prm template" guiX="1749" guiY="59" id="READ_PRM_TEMPLATE" type="FLAT_FILE_READER"/>
+<Edge fromNode="CROSS_JOIN:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="UPDATE_PRM_FILE:0"/>
+<Edge fromNode="GET_JOB_INPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 1 (slave)" metadata="Metadata7" outPort="Port 0 (out)" toNode="CROSS_JOIN:1"/>
+<Edge fromNode="READ_PRM_TEMPLATE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 0 (master)" metadata="Metadata3" outPort="Port 0 (output)" toNode="CROSS_JOIN:0"/>
+</Phase>
+<Phase number="10">
+<Node excludeFields="lineId" fileURL="${PROJECT}/library.prm" guiName="update prm file" guiX="2487" guiY="373" id="UPDATE_PRM_FILE" type="FLAT_FILE_WRITER"/>
+</Phase>
+<Phase number="20">
+<Node guiName="Http Fail" guiX="1287" guiY="773" id="HTTP_FAIL1" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = $in.0.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+</Phase>
+</Graph>

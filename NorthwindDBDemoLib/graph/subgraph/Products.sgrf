@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" created="Tue Feb 28 16:10:51 CET 2023" description="Products list" guiVersion="6.0.0.21" id="1677597151805" largeIconPath="${PROJECT}/icons/icon_64.png" licenseCode="CLCDSCLOVE85208925SP" mediumIconPath="${PROJECT}/icons/icon_32.png" name="Products" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/icon_16.png">
+<Global>
+<outputPorts>
+<singlePort connected="true" name="0"/>
+</outputPorts>
+<Metadata id="Metadata0">
+<Record fieldDelimiter=";" name="products_with_categories" recordDelimiter="\n" type="delimited">
+<Field name="product_id" size="5" type="integer"/>
+<Field name="product_name" size="40" type="string"/>
+<Field name="supplier_id" size="5" type="integer"/>
+<Field name="category_id" size="5" type="integer"/>
+<Field name="quantity_per_unit" size="20" type="string"/>
+<Field name="unit_price" size="8" type="number"/>
+<Field name="units_in_stock" size="5" type="integer"/>
+<Field name="units_on_order" size="5" type="integer"/>
+<Field name="reorder_level" size="5" type="integer"/>
+<Field name="discontinued" size="10" type="integer"/>
+<Field name="category_name" size="15" type="string"/>
+<Field name="description" type="string"/>
+</Record>
+</Metadata>
+<Connection dbConfig="${CONN_DIR}/NorthwindDB.cfg" id="JDBC0" type="JDBC"/>
+<GraphParameters>
+<GraphParameter name="NUM_OF_PREVIEW_RECORDS">
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter name="LIMIT_CLAUSE">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+
+	string preview= getParamValue("NUM_OF_PREVIEW_RECORDS");
+	
+	if (!isBlank(preview)) {
+		return "LIMIT "+preview;
+	} else {
+		return "";
+	}
+}
+]]></attr>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node dbConnection="JDBC0" guiName="ReadProducts" guiX="200" guiY="134" id="READ_PRODUCTS" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[select  "public"."products"."product_id","public"."products"."product_name","public"."products"."supplier_id","public"."products"."category_id","public"."products"."quantity_per_unit","public"."products"."unit_price","public"."products"."units_in_stock","public"."products"."units_on_order","public"."products"."reorder_level","public"."products"."discontinued",
+"public"."categories"."category_name","public"."categories"."description"
+
+from "public"."products" , "public"."categories" where "public"."products"."category_id" = "public"."categories"."category_id" 
+
+ ${LIMIT_CLAUSE}]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="50" guiY="10" id="SUBGRAPH_INPUT" type="SUBGRAPH_INPUT">
+<Port guiY="110" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="442" guiY="10" id="SUBGRAPH_OUTPUT" type="SUBGRAPH_OUTPUT">
+<Port guiY="151" name="0"/>
+<Port guiY="221" name="1"/>
+</Node>
+<Node debugOutput="true" guiName="Trash" guiX="593" guiY="134" id="TRASH" type="TRASH"/>
+<Edge fromNode="READ_PRODUCTS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:0"/>
+<Edge fromNode="SUBGRAPH_OUTPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="TRASH:0"/>
+</Phase>
+</Graph>

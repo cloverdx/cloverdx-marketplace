@@ -1,0 +1,525 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="martin" category="writers" created="Wed Mar 01 13:41:51 CET 2023" description="Posts messages in a Slack channel." guiVersion="5.17.0.3" id="1678193268179" largeIconPath="${PROJECT}/icons/SlackIcon64.png" licenseCode="CLCDSCLOVE72646208SP" mediumIconPath="${PROJECT}/icons/SlackIcon32.png" name="Chat-PostMessage" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/SlackIcon16.png">
+<Global>
+<inputPorts>
+<singlePort connected="true" name="0"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="false" keepEdge="true" name="0" required="false"/>
+<singlePort connected="false" keepEdge="true" name="1" required="false"/>
+</outputPorts>
+<Metadata fileURL="${META_DIR}/slackMessagePrefixed.fmt" id="Metadata4"/>
+<Metadata id="Metadata7">
+<Record fieldDelimiter="|" name="checkConfigResult" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="is_ok" type="boolean"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="debugInput1" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="field1" type="string"/>
+<Field name="field2" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="error" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="errorMessage" type="string"/>
+<Field name="recordIndex" type="integer"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata6">
+<Record fieldDelimiter="|" name="httpConnectorResponse" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="content" type="string"/>
+<Field name="contentByte" type="byte"/>
+<Field name="outputFilePath" type="string"/>
+<Field name="statusCode" trim="true" type="integer"/>
+<Field containerType="map" name="header" type="string"/>
+<Field containerType="list" name="rawHeaders" type="string"/>
+<Field name="errorMessage" type="string"/>
+<Field name="recordIndex" type="integer"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="slackMessage" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="channel" type="string"/>
+<Field name="blocks" type="string"/>
+<Field name="text" type="string"/>
+<Field name="attachments" type="string"/>
+<Field name="icon_emoji" type="string"/>
+<Field name="icon_url" type="string"/>
+<Field name="metadata" type="string"/>
+<Field name="mrkdwn" type="boolean"/>
+<Field name="reply_broadcast" type="boolean"/>
+<Field name="thread_ts" type="string"/>
+<Field name="unfurl_links" type="boolean"/>
+<Field name="unfurl_media" type="boolean"/>
+<Field name="username" type="string"/>
+<Field name="token" type="string"/>
+<Field name="record_index" type="integer"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata5">
+<Record fieldDelimiter="|" name="slackMessageTemplated" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field delimiter=" " name="template" type="string"/>
+<Field name="channel" type="string"/>
+<Field name="blocks" type="string"/>
+<Field name="text" type="string"/>
+<Field name="attachments" type="string"/>
+<Field name="icon_emoji" type="string"/>
+<Field name="icon_url" type="string"/>
+<Field name="metadata" type="string"/>
+<Field name="mrkdwn" type="boolean"/>
+<Field name="reply_broadcast" type="boolean"/>
+<Field name="thread_ts" type="string"/>
+<Field name="unfurl_links" type="boolean"/>
+<Field name="unfurl_media" type="boolean"/>
+<Field name="username" type="string"/>
+<Field name="token" type="string"/>
+<Field name="record_index" type="integer"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata3">
+<Record eofAsDelimiter="true" fieldDelimiter=" " name="template" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field delimiter=" " name="template" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter label="Message template" name="MESSAGE_TEMPLATE" public="true">
+<attr name="description"><![CDATA[Message template in JSON format with placeholders that will be replaced by field values.
+Placeholder format: $in.<fieldName>]]></attr>
+<SingleType name="multiline"/>
+</GraphParameter>
+<GraphParameter label="Message template URL" name="MESSAGE_TEMPLATE_URL" public="true">
+<attr name="description"><![CDATA[URL of a JSON file with message template. Only used when MESSAGE_TEMPLATE parameter is blank.]]></attr>
+<SingleType multiple="false" name="file" selectionMode="file_only"/>
+</GraphParameter>
+<GraphParameter name="_READ_TEMPLATE_FILE">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	
+	return iif(isBlank(getParamValue("MESSAGE_TEMPLATE")) AND !isBlank(getParamValue("MESSAGE_TEMPLATE_URL")),"true","false");
+}
+]]></attr>
+<attr name="description"><![CDATA[Allows reading message template from file when MESSAGE_TEMPLATE is empty and MESSAGE_TEMPLATE_URL is not empty.]]></attr>
+</GraphParameter>
+<GraphParameter name="_VALIDATE_TEMPALTED_MESSAGE">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return toString(
+			not isBlank(getParamValue("MESSAGE_TEMPLATE"))
+		or
+			not isBlank(getParamValue("MESSAGE_TEMPLATE_URL"))
+	);
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter category="advanced" label="Rate limit delay (ms)" name="RATE_LIMIT_DELAY" public="true" value="1000">
+<attr name="description"><![CDATA[This API endpoint is limited at 1 message per second per channel. See https://api.slack.com/docs/rate-limits. Input value in milliseconds. True limit appears to be much higher than advertised.]]></attr>
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+<GraphParameterFile fileURL="channels.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="DAD8C9" folded="false" fontSize="medium" height="214" id="Note0" textColor="444444" width="684" x="-474" y="-166">
+<attr name="text"><![CDATA[h3. chat.postMessage
+
+Posts messages in a Slack channel.
+
+Messages may be composed in 2 ways:
+* using a user supplied tempate, in which placeholders are substituted with values from incoming records
+* specifiying the request parameter directly on input edge
+
+[API endpoint documentation|https://api.slack.com/methods/chat.postMessage]
+
+The records on the output, both normal or error,  will have an index that indicates the related input record. ]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="FAF6D6" folded="false" fontSize="medium" height="314" id="Note1" textColor="444444" width="337" x="-474" y="59">
+<attr name="text"><![CDATA[h3. Check graph configuration
+
+]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="FAF6D6" folded="false" fontSize="medium" height="394" id="Note2" textColor="444444" width="822" x="-110" y="59">
+<attr name="text"><![CDATA[h3. Load and fill in templates]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="FFFFFF" folded="false" fontSize="medium" height="215" id="Note3" textColor="444444" width="385" x="209" y="-166">
+<attr name="text"><![CDATA[h3. Using templates
+
+Template is a JSON documents using the [block-kit|https://api.slack.com/reference/block-kit/blocks] syntax/structure.
+
+You can use the [builder app|https://app.slack.com/block-kit-builder] to help you construct the template.
+
+Use $in.fieldname syntax to substitute values from input port.]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="FFFFFF" folded="false" fontSize="medium" height="215" id="Note4" textColor="444444" width="361" x="592" y="-166">
+<attr name="text"><![CDATA[h3. Using edge input
+
+This subgraph is able to pass most of the parameters accepted by the API endpoint from the input edge. Simply use metadata that have a field named the same as  the parameter plus a slack_prefix, e.g. to send a "text" parameter the metadata should have a "slack_text" field.
+
+You can derive your metadata from _*slackMessagePrefixed.fmt*_ file.]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="Build block message" guiX="287" guiY="103" id="BUILD_BLOCK_MESSAGE" type="CROSS_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+integer index = 0;
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.record_index = ++ index;
+	
+	if(not $in.2.is_ok){
+		return SKIP;
+	}
+	
+	string template = $in.1.template;
+	slackMessagePrefixed meta;
+	
+	// copy values from input meta to slack request parameters if field name matches
+	// the parameter name plus a "slack_" prefix
+	for(integer i = 0; i < length(meta); i++){
+		string prefixedFieldName = getFieldName(meta,i);
+		string fieldName = chop(prefixedFieldName,'^slack_');
+		if(getFieldIndex($in.0, prefixedFieldName) != -1){
+			setValue($out.0,fieldName, getValue($in.0,prefixedFieldName));
+		}
+	}
+	
+	if(getFieldIndex($in.0, "slack_channel") == -1){
+		$out.0.channel = getParamValue("CHANNEL");
+	}
+	
+	if(not isBlank(template)){
+		//replace placeholders with values from record
+		for(integer i = 0;i < length($in.0); i++){
+			string fieldName = "\\$in." + getFieldName($in.0,i);
+			 template = replace(template,fieldName,getValueAsString($in.0,i));
+		}
+	}
+	
+	$out.0.template = template;
+	
+	return ALL;
+}]]></attr>
+<attr name="guiDescription"><![CDATA[Replaces placeholders with values from record if templates are used. Discards records if graph configuration check fails. Indexes records for output reference.]]></attr>
+</Node>
+<Node guiName="Check config" guiX="-457" guiY="135" id="CHECK_CONFIG" type="DATA_GENERATOR">
+<attr name="guiDescription"><![CDATA[Copy input meta]]></attr>
+<attr name="generate"><![CDATA[//#CTL2
+function integer generate() {return ALL;}]]></attr>
+</Node>
+<Node guiName="Check config" guiX="-303" guiY="135" id="CHECK_CONFIG1" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+
+// Transforms input record into output record.
+function integer transform() {
+	
+	// verify bearer token is specified
+	if(	isBlank(getParamValue("BEARER_TOKEN"))
+			and
+		getFieldIndex($in.0,"slack_token") == -1)
+	{ 
+		return Error("Bearer token for Slack API not specified.");
+	}
+	
+	// verify channel is specified
+	if(	isBlank(getParamValue("CHANNEL"))
+			and
+		getFieldIndex($in.0,"slack_channel") == -1)
+	{ 
+		return Error("Slack channel not specified.");
+	}
+	
+
+	// check if some way to form a message is provided
+	
+	if ( getFieldIndex($in.0,"slack_blocks") != -1
+			or
+		 getFieldIndex($in.0,"slack_text") != -1
+		 	or
+		 getFieldIndex($in.0,"slack_attachments") != -1
+	){
+		printLog(info, "Slack notifier message input method: Edge - metadata contains one of the compulsory fields [blocks/text/attachements]");
+	} else if (not isBlank(getParamValue("MESSAGE_TEMPLATE"))){
+		printLog(info, "Slack notifier message input method: Template - from parameter");
+	} else if (not isBlank(getParamValue("MESSAGE_TEMPLATE_URL"))){
+		printLog(info, "Slack notifier message input method: Template - from file");
+	} else {
+		return Error("Slack notifier message input method: None - Input metadata do not contain any of the fields that could be used to form the message and no templates have been provided by parameter either.");
+	}
+	
+	$out.1.is_ok = true;
+	return 1;
+}
+
+/*
+ * Sets the error message on error port and adds it to graph log too. Sets failed status on the second output port.
+ */
+function integer Error(string message){
+	$out.0.errorMessage = message;
+	printLog(error, $out.0.errorMessage);
+	$out.1.is_ok = false;
+	return ALL;
+}]]></attr>
+</Node>
+<Node debugInput="true" guiName="DebugInput" guiX="-679" guiY="100" id="DATA_GENERATOR0" recordsNumber="1" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+	$out.0.field1 = "field 1 value";
+	$out.0.field2 = "field 2 value";
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the generate. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if generate() throws an exception.
+// function integer generateOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Error" guiX="1212" guiY="191" id="ERROR" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	
+	$out.0.errorMessage = $in.0.errorMessage;
+	
+	if(isBlank($in.0.errorMessage)){
+		try{
+			$out.0.errorMessage = "Response status: " + $in.0.statusCode + " Message: " + parseJson($in.0.content)["error"];
+		}catch (CTLException e){
+			$out.0.errorMessage = "Response status: " + $in.0.statusCode;
+		}
+	}
+	$out.0.recordIndex = $in.0.recordIndex;
+
+	return ALL;
+}]]></attr>
+</Node>
+<Node enabled="enableWhenOutputPort1IsDisconnected" guiName="Fail" guiX="1849" guiY="386" id="FAIL" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = $in.0.errorMessage;
+	return ALL;
+}]]></attr>
+</Node>
+<Node guiName="Parse response" guiX="1212" guiY="103" id="PARSE_RESPONSE" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	
+	try{
+		variant v = parseJson($in.0.content) ;
+		
+		if (v typeof map) {
+			if (v ["ok"] != null){
+				if(cast(v ["ok"], boolean)) {
+					$out.0.* = $in.0.*;
+					$out.0.recordIndex = $in.0.recordIndex;
+					return 0;
+				}
+				else if	(v ["error"] !=null ){
+					$out.1.errorMessage = cast(v ["error"], string);
+					$out.1.recordIndex = $in.0.recordIndex;
+					return 1;
+				}
+			}
+		}
+		
+		$out.1.errorMessage = "Unable to parse reponse:\r\n" + $in.0.content;
+		$out.1.recordIndex = $in.0.recordIndex;
+		return 1;
+		
+		
+	}
+	catch (CTLException e){
+		$out.1.errorMessage = 	"Unable to parse reponse:\r\n" + $in.0.content 
+								+ "\r\n\r\nException:\r\n" + e;
+		$out.1.recordIndex = $in.0.recordIndex;
+		return 1;
+	}
+	
+}
+]]></attr>
+</Node>
+<Node enabled="${_READ_TEMPLATE_FILE}" fileURL="${MESSAGE_TEMPLATE_URL}" guiName="Read template file" guiX="-31" guiY="209" id="READ_TEMPLATE_FILE" type="FLAT_FILE_READER"/>
+<Node guiName="Read template from parameter" guiX="-31" guiY="309" id="READ_TEMPLATE_FROM_PARAMETER" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+	$out.0.template = getParamValue("MESSAGE_TEMPLATE");
+	if(str2bool(getParamValue("_READ_TEMPLATE_FILE"))){
+		return SKIP;	
+	}
+	return ALL;
+}]]></attr>
+</Node>
+<Node addInputFieldsAsParameters="true" addInputFieldsAsParametersTo="BODY" guiName="Send message" guiX="804" guiY="103" id="SEND_MESSAGE" requestMethod="POST" timeout="${_HTTP_CONNECTOR_TIMEOUT}" type="HTTP_CONNECTOR" url="https://slack.com/api/chat.postMessage">
+<attr name="errorOutputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.1.errorMessage = $in.1.errorMessage;
+	$out.1.recordIndex = $in.0.record_index;
+	return ALL;
+}]]></attr>
+<attr name="inputMapping"><![CDATA[//#CTL2
+boolean isFisrtRecord = true;
+integer delay = str2integer(getParamValue("RATE_LIMIT_DELAY")) : 1000;
+
+// Transforms input record into output record.
+function integer transform() {
+	
+	// try to uphold rate limits
+	if( isFisrtRecord ){
+		isFisrtRecord = false;
+	}else{
+		sleep(delay);
+	}
+	
+	list[string] ignoredFields = ["record_index"];
+	for (integer i = 0; i < length($in.0); i++){
+		if(isNull($in.0,i)){
+			ignoredFields.append(getFieldName($in.0,i));
+		}
+	}
+	
+	$out.0.ignoredFields = join(";",ignoredFields);
+	
+	if(not isBlank(getParamValue("BEARER_TOKEN"))){
+		$out.0.additionalHTTPHeaders = {
+			"Authorization" -> "Bearer ${BEARER_TOKEN}"
+		};
+	}
+	return ALL;
+}
+]]></attr>
+<attr name="standardOutputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.1.*;
+	$out.0.recordIndex = $in.0.record_index;
+	return ALL;
+}]]></attr>
+</Node>
+<Node guiName="SimpleCopy" guiX="1687" guiY="340" id="SIMPLE_COPY" type="SIMPLE_COPY"/>
+<Node guiName="SimpleGather" guiX="209" guiY="209" id="SIMPLE_GATHER1" type="SIMPLE_GATHER"/>
+<Node guiName="SimpleGather" guiX="1519" guiY="340" id="SIMPLE_GATHER2" type="SIMPLE_GATHER"/>
+<Node guiName="Status code" guiX="1006" guiY="103" id="STATUS_CODE" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.statusCode == 200]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="-509" guiY="-160" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="2028" guiY="-160" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+<Port guiY="257" name="2"/>
+</Node>
+<Node enabled="${_VALIDATE_TEMPALTED_MESSAGE}" guiName="Validate templated message" guiX="504" guiY="103" id="VALIDATE_TEMPLATED_MESSAGE" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	variant blocks = [];
+	$out.0.* = $in.0.*;
+	
+	//build the message payload and validate the output message is a valid JSON
+	try{
+		
+		blocks = parseJson($in.0.template)["blocks"];
+		if(isnull(blocks)){
+			$out.1.errorMessage = "\"blocks\" element missing from message: \r\n" + $in.0.template;
+			return 1;
+		}
+		$out.0.channel = "${CHANNEL}";
+		$out.0.blocks = writeJson(blocks);
+		return 0;
+	}
+	catch(CTLException e)
+	{
+		$out.1.errorMessage = "Message: \r\n" + $in.0.template + "\r\nIs not in a valid JSON format.";
+		$out.1.recordIndex = $in.0.record_index;
+		return 1;
+	}
+	
+}]]></attr>
+</Node>
+<Node guiName="*" guiX="363" guiY="209" id="_" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge fromNode="BUILD_BLOCK_MESSAGE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 0 (in)" metadata="Metadata5" outPort="Port 0 (out)" toNode="VALIDATE_TEMPLATED_MESSAGE:0"/>
+<Edge fromNode="CHECK_CONFIG:0" guiBendpoints="" guiRouter="Manhattan" id="Edge27" inPort="Port 0 (in)" metadataRef="#//Edge1" outPort="Port 0 (out)" toNode="CHECK_CONFIG1:0"/>
+<Edge fromNode="CHECK_CONFIG1:0" guiBendpoints="-135:153|-135:328" guiLocks="-135|-143|null" guiRouter="Manual" id="Edge25" inPort="Port 4 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="SIMPLE_GATHER2:4"/>
+<Edge fromNode="CHECK_CONFIG1:1" guiBendpoints="" guiRouter="Manhattan" id="Edge29" inPort="Port 2 (slave)" metadata="Metadata7" outPort="Port 1 (out)" toNode="BUILD_BLOCK_MESSAGE:2"/>
+<Edge fromNode="DATA_GENERATOR0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SUBGRAPH_INPUT0:0"/>
+<Edge fromNode="ERROR:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="SIMPLE_GATHER2:1"/>
+<Edge fromNode="PARSE_RESPONSE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="PARSE_RESPONSE:1" guiBendpoints="" guiRouter="Manhattan" id="Edge19" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="SIMPLE_GATHER2:0"/>
+<Edge fromNode="READ_TEMPLATE_FILE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge13" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 0 (output)" toNode="SIMPLE_GATHER1:0"/>
+<Edge fromNode="READ_TEMPLATE_FROM_PARAMETER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge16" inPort="Port 1 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="SIMPLE_GATHER1:1"/>
+<Edge fromNode="SEND_MESSAGE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" metadata="Metadata6" outPort="Port 0 (out)" toNode="STATUS_CODE:0"/>
+<Edge fromNode="SEND_MESSAGE:1" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 2 (in)" outPort="Port 1 (out)" toNode="SIMPLE_GATHER2:2"/>
+<Edge fromNode="SIMPLE_COPY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge20" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:1"/>
+<Edge fromNode="SIMPLE_COPY:1" guiBendpoints="" guiRouter="Manhattan" id="Edge21" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="FAIL:0"/>
+<Edge fromNode="SIMPLE_GATHER1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge17" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="_:0"/>
+<Edge fromNode="SIMPLE_GATHER2:0" guiBendpoints="" guiRouter="Manhattan" id="Edge18" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SIMPLE_COPY:0"/>
+<Edge fromNode="STATUS_CODE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" outPort="Port 0 (accepted)" toNode="PARSE_RESPONSE:0"/>
+<Edge fromNode="STATUS_CODE:1" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" outPort="Port 1 (rejected)" toNode="ERROR:0"/>
+<Edge fromNode="SUBGRAPH_INPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (master)" outPort="Port 0 (out)" toNode="BUILD_BLOCK_MESSAGE:0"/>
+<Edge fromNode="VALIDATE_TEMPLATED_MESSAGE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge15" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="SEND_MESSAGE:0"/>
+<Edge fromNode="VALIDATE_TEMPLATED_MESSAGE:1" guiBendpoints="" guiRouter="Manhattan" id="Edge14" inPort="Port 3 (in)" metadata="Metadata2" outPort="Port 1 (out)" toNode="SIMPLE_GATHER2:3"/>
+<Edge fromNode="_:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 1 (slave)" metadata="Metadata5" outPort="Port 0 (out)" toNode="BUILD_BLOCK_MESSAGE:1"/>
+</Phase>
+</Graph>

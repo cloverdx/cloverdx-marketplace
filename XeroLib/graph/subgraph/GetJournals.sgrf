@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="readers" created="Tue Nov 08 23:02:28 GMT 2022" description="Retrieve the journal data." guiVersion="6.0.0.1547" id="1667949413116" largeIconPath="${PROJECT}/icons/xero_logo_64.png" licenseCode="CLCDSCLOVE72646208SP" mediumIconPath="${PROJECT}/icons/xero_logo_32.png" name="getJournals" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/xero_logo_16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" keepEdge="true" name="0" required="false"/>
+<singlePort connected="false" keepEdge="true" name="1" required="false"/>
+<singlePort connected="false" keepEdge="true" name="2" required="false"/>
+<singlePort connected="false" keepEdge="true" name="3" required="false"/>
+</outputPorts>
+<Metadata fileURL="${META_DIR}/responseInfo.fmt" id="Metadata0"/>
+<Metadata id="Metadata3">
+<Record fieldDelimiter="|" name="Journal" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="JournalID" type="string"/>
+<Field format="${DATE_FORMAT}" name="JournalDate" type="date"/>
+<Field name="JournalNumber" type="integer"/>
+<Field format="${DATE_FORMAT}" name="CreatedDateUTC" type="date"/>
+<Field name="Reference" type="string"/>
+<Field name="SourceID" type="string"/>
+<Field name="SourceType" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="JournalINPUT" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="JournalID" type="string"/>
+<Field name="JournalDate" type="string"/>
+<Field name="JournalNumber" type="integer"/>
+<Field name="CreatedDateUTC" type="string"/>
+<Field name="Reference" type="string"/>
+<Field name="SourceID" type="string"/>
+<Field name="SourceType" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="JournalLine" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="JournalID" type="string"/>
+<Field name="JournalLineID" type="string"/>
+<Field name="AccountID" type="string"/>
+<Field name="AccountCode" type="string"/>
+<Field name="AccountType" type="string"/>
+<Field name="AccountName" type="string"/>
+<Field name="Description" type="string"/>
+<Field name="NetAmount" type="string"/>
+<Field name="GrossAmount" type="string"/>
+<Field name="TaxAmount" type="string"/>
+<Field name="TaxType" type="string"/>
+<Field name="TaxName" type="string"/>
+<Field name="TrackingCategories_Name" type="string"/>
+<Field name="TrackingCategories_Option" type="string"/>
+<Field name="TrackingCategories_TrackingCategoryID" type="string"/>
+<Field name="TrackingCategories_TrackingOptionID" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+<GraphParameterFile fileURL="xeroApi.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="DEF4AB" folded="false" fontSize="medium" height="155" id="Note0" textColor="444444" width="409" x="214" y="277">
+<attr name="text"><![CDATA[h3. Journals
+
+[https://developer.xero.com/documentation/api/accounting/journals]]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="convert" guiX="704" guiY="134" id="CONVERT" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.* = $in.0.*;
+	// /Date(1666259038377+0000)/
+	
+	$out.0.JournalDate = long2date(str2long(replace(replace($in.0.JournalDate, '\+0000\)/', ""), '/Date\(', "")));
+	$out.0.CreatedDateUTC = long2date(str2long(replace(replace($in.0.CreatedDateUTC, '\+0000\)/', ""), '/Date\(', "")));
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node enabled="enableWhenOutputPort3IsDisconnected" guiName="Fail" guiX="849" guiY="417" id="FAIL" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = $in.0.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="GET Journals" guiX="214" guiY="134" id="GET_JOURNALS" jobURL="${XERO_CORE_CONNECTOR_URL}" type="SUBGRAPH">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.OAUTH_URL = getParamValue("OAUTH_URL");
+	$out.0.TENANT_ID = getParamValue("TENANT_ID");
+	$out.0.DATE_FORMAT = getParamValue("DATE_FORMAT");
+	$out.0.CALL = "https://api.xero.com/api.xro/2.0/Journals";
+	
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="parse Journals response" guiX="455" guiY="134" id="PARSE_JOURNALS_RESPONSE" schema="${META_DIR}/responseSchemas/Journals" sourceUri="port:$0.content:discrete" type="JSON_EXTRACT">
+<attr name="mapping"><![CDATA[<Mappings>
+	<Mapping element="json_object" outPort="0">
+		<Mapping element="Journals" outPort="1"
+				xmlFields="{}CreatedDateUTC;{}JournalDate;{}JournalID;{}JournalNumber;{}Reference;{}SourceID;{}SourceType"
+				cloverFields="CreatedDateUTC;JournalDate;JournalID;JournalNumber;Reference;SourceID;SourceType">
+			<Mapping element="JournalLines" outPort="2"
+					xmlFields="../{}JournalID;{}AccountCode;{}AccountID;{}AccountName;{}AccountType;{}Description;{}GrossAmount;{}JournalLineID;{}NetAmount;{}TaxAmount;{}TaxName;{}TaxType"
+					cloverFields="JournalID;AccountCode;AccountID;AccountName;AccountType;Description;GrossAmount;JournalLineID;NetAmount;TaxAmount;TaxName;TaxType">
+				<Mapping element="TrackingCategories" useParentRecord="true"
+						xmlFields="{}Name;{}Option;{}TrackingCategoryID;{}TrackingOptionID"
+						cloverFields="TrackingCategories_Name;TrackingCategories_Option;TrackingCategories_TrackingCategoryID;TrackingCategories_TrackingOptionID">
+				</Mapping>
+			</Mapping>
+		</Mapping>
+	</Mapping>
+</Mappings>
+]]></attr>
+</Node>
+<Node guiName="SimpleCopy" guiX="636" guiY="344" id="SIMPLE_COPY" type="SIMPLE_COPY"/>
+<Node guiName="SubgraphInput" guiX="59" guiY="10" id="SUBGRAPH_INPUT" type="SUBGRAPH_INPUT">
+<Port guiY="110" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1025" guiY="10" id="SUBGRAPH_OUTPUT" type="SUBGRAPH_OUTPUT">
+<Port guiY="151" name="0"/>
+<Port guiY="221" name="1"/>
+<Port guiY="291" name="2"/>
+<Port guiY="361" name="3"/>
+<Port guiY="431" name="4"/>
+</Node>
+<Edge fromNode="CONVERT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:0"/>
+<Edge fromNode="GET_JOURNALS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge16" inPort="Port 0 (input)" outPort="Port 0 (out)" toNode="PARSE_JOURNALS_RESPONSE:0"/>
+<Edge fromNode="GET_JOURNALS:1" guiBendpoints="" guiRouter="Manhattan" id="Edge18" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="SIMPLE_COPY:0"/>
+<Edge fromNode="PARSE_JOURNALS_RESPONSE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge28" inPort="Port 2 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:2"/>
+<Edge fromNode="PARSE_JOURNALS_RESPONSE:1" guiBendpoints="" guiRouter="Manhattan" id="Edge27" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 1 (out)" toNode="CONVERT:0"/>
+<Edge fromNode="PARSE_JOURNALS_RESPONSE:2" guiBendpoints="" guiRouter="Manhattan" id="Edge26" inPort="Port 1 (in)" metadata="Metadata2" outPort="Port 2 (out)" toNode="SUBGRAPH_OUTPUT:1"/>
+<Edge fromNode="SIMPLE_COPY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 3 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:3"/>
+<Edge fromNode="SIMPLE_COPY:1" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="FAIL:0"/>
+</Phase>
+</Graph>

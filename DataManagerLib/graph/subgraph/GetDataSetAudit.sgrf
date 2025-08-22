@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="others" created="Tue Jun 04 13:10:06 CEST 2024" description="Return audit records for given data set." guiVersion="7.1.0.8" id="1717596816267" largeIconPath="${PROJECT}/icons/GetDataSetAudit64.png" licenseCode="CloverDX-Internal-License" mediumIconPath="${PROJECT}/icons/GetDataSetAudit48.png" name="GetDataSetAudit" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/GetDataSetAudit16.png">
+<Global>
+<inputPorts>
+<singlePort connected="true" name="0"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="false" name="0"/>
+</outputPorts>
+<Metadata id="Metadata1">
+<Record fieldDelimiter=";" name="AuditEntry" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="id" size="19" type="long"/>
+<Field format="yyyy-MM-dd'T'HH:mm:ss.SSSX" name="event_timestamp" size="29" type="date"/>
+<Field name="username" size="64" type="string"/>
+<Field name="column_name" size="64" type="string"/>
+<Field name="old_value" type="string"/>
+<Field name="new_value" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="HTTPConnector_Response" recordDelimiter="\n" type="delimited">
+<Field name="rowId" trim="true" type="long"/>
+<Field name="content" type="string"/>
+<Field name="statusCode" trim="true" type="integer"/>
+<Field containerType="list" name="rawHeaders" type="string"/>
+<Field name="errorMessage" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="RowId" recordDelimiter="\r\n" type="delimited">
+<Field name="rowId" type="long"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter label="Data set code" name="DATA_SET_CODE" public="true" required="true" value="Listings"/>
+<GraphParameter defaultHint="yyyy-MM-dd HH:mm:ss (leave empty to disable filter)" label="Min date/time of the audit event" name="EVENT_DATETIME_MIN" public="true">
+<SingleType format="yyyy-MM-dd HH:mm:ss" name="datetime"/>
+</GraphParameter>
+<GraphParameter defaultHint="yyyy-MM-dd HH:mm:ss (leave empty to disable filter)" label="Max date/time of the audit event" name="EVENT_DATETIME_MAX" public="true">
+<SingleType format="yyyy-MM-dd HH:mm:ss" name="datetime"/>
+</GraphParameter>
+<GraphParameter defaultHint="Leave empty to disable column filter" label="Column name" name="COLUMN_NAME" public="true"/>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+<GraphParameterFile fileURL="data-manager-api.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node debugInput="true" guiName="DataGenerator" guiX="-55" guiY="100" id="DATA_GENERATOR" type="DATA_GENERATOR"/>
+<Node guiName="Date filter" guiX="995" guiY="100" id="DATE_FILTER1" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+const date MIN_DATE = getDateParam("EVENT_DATETIME_MIN");
+const date MAX_DATE = getDateParam("EVENT_DATETIME_MAX");
+
+function integer transform() {
+	if (MIN_DATE != null) {
+		if ($in.0.event_timestamp < MIN_DATE) {
+			return SKIP;
+		}
+	}
+	
+	if (MAX_DATE != null) {
+		if ($in.0.event_timestamp > MAX_DATE) {
+			return SKIP;
+		}
+	}
+
+	$out.0.* = $in.0.*;
+
+	return OK;
+}
+
+function date getDateParam(string paramName) {
+	string value = getParamValue(paramName);
+	if (value == null || value == "") {
+		return null;
+	}
+	
+	return str2date(value, "yyyy-MM-dd HH:mm:ss");
+}
+]]></attr>
+</Node>
+<Node guiName="Fail" guiX="820" guiY="275" id="FAIL" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+import "${TRANS_DIR}/ApiFailReporter.ctl";
+// Transforms input record into output record.
+function integer transform() {
+	mapErrorMessage();
+	return ALL;
+}]]></attr>
+</Node>
+<Node guiName="Filter" guiX="670" guiY="100" id="FILTER" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.statusCode == 200]]></attr>
+</Node>
+<Node guiName="GET data-sets/{DATA_SET_CODE}/rows/{rowId}/audit" guiX="270" guiY="100" id="GET_DATA_SETS_DATA_SET_CODE_ROWS_ROW_ID_AUDIT" password="${CLOVERDX_PASS}" type="HTTP_CONNECTOR" url="${API_URL}/data-sets/${DATA_SET_CODE}/rows/*{rowId}/audit" username="${CLOVERDX_USER}">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	string columnName = getParamValue("COLUMN_NAME");
+	if (columnName != null && columnName != "") {
+		$out.0.requestParameters["columnName"] = columnName;
+	}
+
+	return ALL;
+}
+]]></attr>
+<attr name="standardOutputMapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.* = $in.1.*;
+	$out.0.rowId = $in.0.rowId;
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="JSONExtract" guiX="820" guiY="100" id="JSONEXTRACT" schema="${META_DIR}/audit_json" sourceUri="port:$0.content:discrete" type="JSON_EXTRACT">
+<attr name="mapping"><![CDATA[<Mappings>
+	<Mapping element="json_object">
+		<Mapping element="members" outPort="0"
+				xmlFields="{}columnName;{}modifiedBy;{}modifiedTime;{}newValue;{}oldValue"
+				cloverFields="column_name;username;event_timestamp;new_value;old_value">
+			<FieldMapping inputField="rowId" outputField="id" />
+		</Mapping>
+	</Mapping>
+</Mappings>
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="195" guiY="5" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="192" name="1"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1220" guiY="5" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="192" name="1"/>
+</Node>
+<Edge fromNode="DATA_GENERATOR:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SUBGRAPH_INPUT0:0"/>
+<Edge fromNode="DATE_FILTER1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="FILTER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (input)" outPort="Port 0 (accepted)" toNode="JSONEXTRACT:0"/>
+<Edge fromNode="FILTER:1" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" outPort="Port 1 (rejected)" toNode="FAIL:0"/>
+<Edge fromNode="GET_DATA_SETS_DATA_SET_CODE_ROWS_ROW_ID_AUDIT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="FILTER:0"/>
+<Edge fromNode="JSONEXTRACT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="DATE_FILTER1:0"/>
+<Edge fromNode="SUBGRAPH_INPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="GET_DATA_SETS_DATA_SET_CODE_ROWS_ROW_ID_AUDIT:0"/>
+</Phase>
+</Graph>

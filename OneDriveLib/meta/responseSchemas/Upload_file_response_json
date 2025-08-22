@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="json_object" type="json_objectType"/>
+  <xs:complexType name="applicationType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="id"/>
+      <xs:element type="xs:string" name="displayName"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="userType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="email"/>
+      <xs:element type="xs:string" name="id"/>
+      <xs:element type="xs:string" name="displayName"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="createdByType">
+    <xs:sequence>
+      <xs:element type="applicationType" name="application"/>
+      <xs:element type="userType" name="user"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="lastModifiedByType">
+    <xs:sequence>
+      <xs:element type="applicationType" name="application"/>
+      <xs:element type="userType" name="user"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="parentReferenceType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="driveType"/>
+      <xs:element type="xs:string" name="driveId"/>
+      <xs:element type="xs:string" name="id"/>
+      <xs:element type="xs:string" name="path"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="hashesType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="quickXorHash"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="fileType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="mimeType"/>
+      <xs:element type="hashesType" name="hashes"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="fileSystemInfoType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="createdDateTime"/>
+      <xs:element type="xs:string" name="lastModifiedDateTime"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="sharedType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="scope"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="json_objectType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="_x0040odata.context"/>
+      <xs:element type="xs:string" name="_x0040microsoft.graph.downloadUrl"/>
+      <xs:element type="xs:string" name="createdDateTime"/>
+      <xs:element type="xs:string" name="eTag"/>
+      <xs:element type="xs:string" name="id"/>
+      <xs:element type="xs:string" name="lastModifiedDateTime"/>
+      <xs:element type="xs:string" name="name"/>
+      <xs:element type="xs:string" name="webUrl"/>
+      <xs:element type="xs:string" name="cTag"/>
+      <xs:element type="xs:string" name="size"/>
+      <xs:element type="createdByType" name="createdBy"/>
+      <xs:element type="lastModifiedByType" name="lastModifiedBy"/>
+      <xs:element type="parentReferenceType" name="parentReference"/>
+      <xs:element type="fileType" name="file"/>
+      <xs:element type="fileSystemInfoType" name="fileSystemInfo"/>
+      <xs:element type="sharedType" name="shared"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

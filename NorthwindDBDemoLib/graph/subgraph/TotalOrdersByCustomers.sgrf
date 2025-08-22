@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" created="Tue Feb 28 16:10:51 CET 2023" description="Customers life time value - by total amount of revenue per customer" guiVersion="6.0.0.21" id="1677597151805" largeIconPath="${PROJECT}/icons/icon_64.png" licenseCode="CLCDSCLOVE85208925SP" mediumIconPath="${PROJECT}/icons/icon_32.png" name="TotalOrdersByCustomers" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/icon_16.png">
+<Global>
+<outputPorts>
+<singlePort connected="true" name="0"/>
+</outputPorts>
+<Metadata id="Metadata0">
+<Record fieldDelimiter=";" name="total_order_value" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="order_id" size="5" type="integer"/>
+<Field name="customer_id" size="5" type="string"/>
+<Field name="employee_id" size="5" type="integer"/>
+<Field format="yyyy-MM-dd" name="order_date" size="13" type="date"/>
+<Field format="yyyy-MM-dd" name="required_date" size="13" type="date"/>
+<Field format="yyyy-MM-dd" name="shipped_date" size="13" type="date"/>
+<Field name="ship_via" size="5" type="integer"/>
+<Field name="freight" size="8" type="number"/>
+<Field name="ship_name" size="40" type="string"/>
+<Field name="ship_address" size="60" type="string"/>
+<Field name="ship_city" size="15" type="string"/>
+<Field name="ship_region" size="15" type="string"/>
+<Field name="ship_postal_code" size="10" type="string"/>
+<Field name="ship_country" size="15" type="string"/>
+<Field name="num_products" size="19" type="long"/>
+<Field length="16" name="order_total_value" scale="8" size="17" type="decimal"/>
+</Record>
+</Metadata>
+<Connection dbConfig="${CONN_DIR}/NorthwindDB.cfg" id="JDBC0" type="JDBC"/>
+<GraphParameters>
+<GraphParameter name="NUM_OF_PREVIEW_RECORDS">
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter name="LIMIT_CLAUSE">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+
+	string preview= getParamValue("NUM_OF_PREVIEW_RECORDS");
+	
+	if (!isBlank(preview)) {
+		return "LIMIT "+preview;
+	} else {
+		return "";
+	}
+}
+]]></attr>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="SubgraphInput" guiX="50" guiY="10" id="SUBGRAPH_INPUT" type="SUBGRAPH_INPUT">
+<Port guiY="110" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="442" guiY="10" id="SUBGRAPH_OUTPUT" type="SUBGRAPH_OUTPUT">
+<Port guiY="151" name="0"/>
+<Port guiY="221" name="1"/>
+</Node>
+<Node dbConnection="JDBC0" guiName="TotalOrdersByCustomers" guiX="160" guiY="134" id="TOTAL_ORDERS_BY_CUSTOMERS" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[select  "public"."orders"."order_id","public"."orders"."customer_id","public"."orders"."employee_id","public"."orders"."order_date","public"."orders"."required_date","public"."orders"."shipped_date","public"."orders"."ship_via","public"."orders"."freight","public"."orders"."ship_name","public"."orders"."ship_address","public"."orders"."ship_city","public"."orders"."ship_region","public"."orders"."ship_postal_code","public"."orders"."ship_country",
+count("public"."order_details"."product_id") as num_products, sum("public"."order_details"."unit_price" * "public"."order_details"."quantity") as order_total_value
+from "orders" , "order_details" where "orders"."order_id"= "order_details"."order_id"
+group by "public"."orders"."order_id","public"."orders"."customer_id","public"."orders"."employee_id","public"."orders"."order_date","public"."orders"."required_date","public"."orders"."shipped_date","public"."orders"."ship_via","public"."orders"."freight","public"."orders"."ship_name","public"."orders"."ship_address","public"."orders"."ship_city","public"."orders"."ship_region","public"."orders"."ship_postal_code","public"."orders"."ship_country"
+${LIMIT_CLAUSE}
+]]></attr>
+</Node>
+<Node debugOutput="true" guiName="Trash" guiX="551" guiY="134" id="TRASH" type="TRASH"/>
+<Edge fromNode="SUBGRAPH_OUTPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="TRASH:0"/>
+<Edge fromNode="TOTAL_ORDERS_BY_CUSTOMERS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:0"/>
+</Phase>
+</Graph>

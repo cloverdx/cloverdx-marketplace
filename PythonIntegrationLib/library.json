@@ -1,0 +1,16 @@
+{
+  "descriptor" : {
+    "author" : "CloverDX",
+    "name" : "PythonIntegrationLib",
+    "version" : "1.0",
+    "productVersion" : "5.14.0.13",
+    "description" : "Run Python scripts directly from CloverDX to enhance data workflows with external logic or custom processing."
+  },
+  "publicInterface" : {
+    "subgraphs" : [ {
+      "path" : "graph/subgraph/PythonExecute.sgrf",
+      "description" : "Simple wrapper that can make running Python script in CloverDX easier.",
+      "icon" : "${SUBGRAPH_DIR}/PythonExecute16.png"
+    } ]
+  }
+}

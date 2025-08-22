@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Record fieldDelimiter="|" name="Product" previewAttachmentCharset="UTF-8" quoteChar="&quot;" quotedStrings="true" recordDelimiter="\r\n" skipSourceRows="1" type="delimited">
+<Field label="Product name" name="productName" type="string">
+<attr name="description"><![CDATA[Full name of the product]]></attr>
+</Field>
+<Field label="Product code" name="productCode" type="long"/>
+<Field label="Unit price" name="unitPrice" type="decimal">
+<attr name="description"><![CDATA[Unit price in USD]]></attr>
+</Field>
+<Field label="Supplier" name="supplierName" type="string">
+<attr name="description"><![CDATA[Name of the preferred supplier for the product]]></attr>
+</Field>
+<Field label="Profit margin" name="profitMargin" type="decimal">
+<attr name="description"><![CDATA[Average profit margin for the product]]></attr>
+</Field>
+</Record>

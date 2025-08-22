@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="others" created="Wed May 22 16:28:01 CEST 2024" description="Get basic information about all data sets in the Data Manager." guiVersion="7.1.0.8" id="1716463505622" largeIconPath="${PROJECT}/icons/GetDataSetsOverview64.png" licenseCode="Unlicensed" mediumIconPath="${PROJECT}/icons/GetDataSetsOverview48.png" name="GetDataSetsOverview" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/GetDataSetsOverview16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" name="0"/>
+<singlePort connected="false" keepEdge="false" name="1" required="false"/>
+</outputPorts>
+<Metadata fileURL="${META_DIR}/ErrorOutput.fmt" id="Metadata0"/>
+<Metadata id="HTTPConnector_Request">
+<Record fieldDelimiter="|" name="DataSetOverview" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="name" type="string"/>
+<Field name="code" type="string"/>
+<Field name="enabled" trim="true" type="boolean"/>
+<Field name="dataRetentionDays" type="long"/>
+<Field name="callerPermission" type="string"/>
+<Field name="newRows" type="long"/>
+<Field name="editedRows" type="long"/>
+<Field name="approvedRows" type="long"/>
+<Field name="committedRows" type="long"/>
+<Field name="lastLoadRows" type="long"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="data-manager-api.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="EAEAEA" folded="false" fontSize="medium" height="376" id="Note0" textColor="444444" width="650" x="625" y="250">
+<attr name="text"><![CDATA[h3. Error handling]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node enabled="enableWhenOutputPort1IsDisconnected" guiName="Fail" guiX="1095" guiY="475" id="FAIL" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = $in.0.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Filter" guiX="520" guiY="75" id="FILTER" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.statusCode == 200]]></attr>
+</Node>
+<Node guiName="Format error" guiX="695" guiY="475" id="FORMAT_ERROR" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.errorMessage = "Unable to create data set: " + $in.0.errorMessage;
+	return ALL;
+}]]></attr>
+</Node>
+<Node guiName="Format error" guiX="695" guiY="325" id="FORMAT_ERROR1" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+import "${TRANS_DIR}/ApiFailReporter.ctl";
+
+// Transforms input record into output record.
+function integer transform() {
+	mapErrorMessage();
+	return ALL;
+}]]></attr>
+</Node>
+<Node guiName="GET data-sets-overview" guiX="195" guiY="75" id="GET_DATA_SETS_OVERVIEW1" password="${CLOVERDX_PASS}" requestMethod="GET" type="HTTP_CONNECTOR" url="${API_URL}/data-sets-overview" username="${CLOVERDX_USER}">
+<attr name="headerProperties"><![CDATA[Content-Type=application/json
+]]></attr>
+</Node>
+<Node charset="UTF-8" fileURL="port:$0.content:discrete" guiName="Parse response" guiX="795" guiY="75" id="PARSE_RESPONSE" implicitMapping="true" type="JSON_READER">
+<attr name="mapping"><![CDATA[<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<Context xpath="/root/object">
+	<Context xpath="members" outPort="0">
+		<Mapping cloverField="newRows" xpath="stats/newRows"/>
+		<Mapping cloverField="editedRows" xpath="stats/editedRows"/>
+		<Mapping cloverField="approvedRows" xpath="stats/approvedRows"/>
+		<Mapping cloverField="committedRows" xpath="stats/committedRows"/>
+		<Mapping cloverField="lastLoadRows" xpath="stats/lastLoadRows"/>
+	</Context>
+</Context>
+]]></attr>
+</Node>
+<Node guiName="SimpleGather" guiX="920" guiY="325" id="SIMPLE_GATHER" type="SIMPLE_GATHER"/>
+<Node guiName="SubgraphInput" guiX="45" guiY="-2" id="SUBGRAPH_INPUT" type="SUBGRAPH_INPUT">
+<Port guiY="110" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1320" guiY="-20" id="SUBGRAPH_OUTPUT" type="SUBGRAPH_OUTPUT">
+<Port guiY="92" name="0"/>
+<Port guiY="165" name="1"/>
+<Port guiY="240" name="2"/>
+</Node>
+<Edge fromNode="FILTER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 0 (accepted)" toNode="PARSE_RESPONSE:0"/>
+<Edge fromNode="FILTER:1" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 1 (rejected)" toNode="FORMAT_ERROR1:0"/>
+<Edge fromNode="FORMAT_ERROR:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 1 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SIMPLE_GATHER:1"/>
+<Edge fromNode="FORMAT_ERROR1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SIMPLE_GATHER:0"/>
+<Edge fromNode="GET_DATA_SETS_OVERVIEW1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="FILTER:0"/>
+<Edge fromNode="GET_DATA_SETS_OVERVIEW1:1" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="FORMAT_ERROR:0"/>
+<Edge fromNode="PARSE_RESPONSE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="HTTPConnector_Request" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:0"/>
+<Edge fromNode="SIMPLE_GATHER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:1"/>
+<Edge fromNode="SIMPLE_GATHER:1" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 1 (out)" toNode="FAIL:0"/>
+</Phase>
+</Graph>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GraphParameters>
+<GraphParameter defaultHint="jdbc:postgresql://server/northwind" label="JDBC connection string" name="DB_URL" public="false" required="false" value="jdbc:postgresql://server:5432/northwind">
+<attr name="description"><![CDATA[JDBC connection string in format: postgresql://[userspec@][hostspec][/dbname][?paramspec]
+]]></attr>
+</GraphParameter>
+<GraphParameter label="Database User" name="DB_USER" public="false" required="false"/>
+<GraphParameter label="Database password" name="DB_PASSWORD" public="false" required="false" secure="true"/>
+</GraphParameters>

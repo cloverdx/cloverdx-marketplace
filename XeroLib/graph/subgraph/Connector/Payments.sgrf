@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="readers" created="Tue Nov 08 23:02:28 GMT 2022" description="Provides payments data with optional filter conditions." guiVersion="6.0.0.1544" id="1667949032764" largeIconPath="${PROJECT}/icons/xero_logo_64.png" licenseCode="CLCDSCLOVE72646208SP" mediumIconPath="${PROJECT}/icons/xero_logo_32.png" name="getPayments" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/xero_logo_16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" name="0" required="true"/>
+</outputPorts>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="Payment" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="PaymentID" type="string"/>
+<Field name="BatchPaymentID" type="string">
+<attr name="description"><![CDATA[Present if the payment was created as part of a batch]]></attr>
+</Field>
+<Field format="${DATE_FORMAT}" name="Date" type="date">
+<attr name="description"><![CDATA[Date the payment is being made]]></attr>
+</Field>
+<Field name="BankAmount" type="decimal"/>
+<Field name="Amount" type="decimal">
+<attr name="description"><![CDATA[The amount of the payment. Must be less than or equal to the outstanding amount owing on the invoice e.g. 200.00]]></attr>
+</Field>
+<Field name="Reference" type="string">
+<attr name="description"><![CDATA[An optional description for the payment e.g. Direct Debit]]></attr>
+</Field>
+<Field name="CurrencyRate" type="decimal">
+<attr name="description"><![CDATA[Exchange rate when payment is received. Only used for non base currency invoices and credit notes e.g. 0.7500]]></attr>
+</Field>
+<Field name="PaymentType" type="string">
+<attr name="description"><![CDATA[Payment Type]]></attr>
+</Field>
+<Field name="Status" type="string">
+<attr name="description"><![CDATA[The status of the payment.]]></attr>
+</Field>
+<Field format="${DATE_FORMAT}" name="UpdatedDateUTC" type="date">
+<attr name="description"><![CDATA[UTC timestamp of last update to the payment]]></attr>
+</Field>
+<Field name="HasAccount" type="boolean"/>
+<Field name="IsReconciled" type="boolean">
+<attr name="description"><![CDATA[An optional parameter for the payment. Conversion related apps can utilise the IsReconciled flag in scenarios when a matching bank statement line is not available.]]></attr>
+</Field>
+<Field name="Account_AccountID" type="string">
+<attr name="description"><![CDATA[The Account the payment was made from]]></attr>
+</Field>
+<Field name="Account_Code" type="string"/>
+<Field name="Invoice_InvoiceID" type="string">
+<attr name="description"><![CDATA[The Invoice the payment was made against]]></attr>
+</Field>
+<Field name="Invoice_InvoiceNumber" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="PaymentINPUT" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="PaymentID" type="string"/>
+<Field name="BatchPaymentID" type="string"/>
+<Field name="Date" type="string"/>
+<Field name="BankAmount" type="decimal"/>
+<Field name="Amount" type="decimal"/>
+<Field name="Reference" type="string"/>
+<Field name="CurrencyRate" type="decimal"/>
+<Field name="PaymentType" type="string"/>
+<Field name="Status" type="string"/>
+<Field name="UpdatedDateUTC" type="string"/>
+<Field name="HasAccount" type="boolean"/>
+<Field name="IsReconciled" type="boolean"/>
+<Field name="HasValidationErrors" type="boolean"/>
+<Field name="BatchPayment_Account_AccountID" type="string"/>
+<Field name="BatchPayment_Account_Code" type="string"/>
+<Field name="BatchPayment_BatchPaymentID" type="string"/>
+<Field name="BatchPayment_DateString" type="string"/>
+<Field name="BatchPayment_Date" type="string"/>
+<Field name="BatchPayment_Type" type="string"/>
+<Field name="BatchPayment_Status" type="string"/>
+<Field name="BatchPayment_TotalAmount" type="decimal"/>
+<Field name="BatchPayment_UpdatedDateUTC" type="string"/>
+<Field name="BatchPayment_IsReconciled" type="boolean"/>
+<Field name="Account_AccountID" type="string"/>
+<Field name="Account_Code" type="string"/>
+<Field name="Invoice_Type" type="string"/>
+<Field name="Invoice_InvoiceID" type="string"/>
+<Field name="Invoice_InvoiceNumber" type="string"/>
+<Field name="Invoice_IsDiscounted" type="boolean"/>
+<Field name="Invoice_HasErrors" type="boolean"/>
+<Field name="Invoice_CurrencyCode" type="string"/>
+<Field name="Invoice_Contact_ContactID" type="string"/>
+<Field name="Invoice_Contact_Name" type="string"/>
+<Field name="Invoice_Contact_HasValidationErrors" type="boolean"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter defaultHint="Optional filter by type" label="Payment type" name="PAYMENT_TYPE" public="true">
+<SingleType name="string"/>
+</GraphParameter>
+<GraphParameter defaultHint="Optional filter by status" label="Status" name="STATUS" public="true">
+<SingleType allowCustomValues="true" name="simpleEnum" values="AUTHORISED;DELETED&#10;"/>
+</GraphParameter>
+<GraphParameter defaultHint="Optional filter by date - greater than condition (e.g. Date&gt;DateTime(2020, 01, 01))" label="Date" name="DATE" public="true">
+<SingleType format="yyyy-MM-dd" name="datetime"/>
+</GraphParameter>
+<GraphParameter name="PARAMS">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	string [] paramList;
+	
+	if (getParamValue("PAYMENT_TYPE") != null and trim(getParamValue("PAYMENT_TYPE")) != ""){
+		append(paramList, escapeUrlFragment(concat('PaymentType="', getParamValue("PAYMENT_TYPE"), '"')));
+	}
+	if (getParamValue("STATUS") != null and trim(getParamValue("STATUS")) != ""){
+		append(paramList, escapeUrlFragment(concat('Status="', getParamValue("STATUS"), '"')));
+	}
+	if (getParamValue("DATE") != null and trim(getParamValue("DATE")) != ""){
+		date datetmp = str2date(getParamValue("DATE"), "yyyy-MM-dd");
+		append(paramList, escapeUrlFragment(concat('Date>DateTime(', num2str(getYear(datetmp)), ', ', num2str(getMonth(datetmp)), ', ', num2str(getDay(datetmp)), ')')));
+	}
+	
+	if (length(paramList) > 0){
+		return concat("?where=", join("+AND+", paramList));	
+	}
+	
+	return "";
+}
+]]></attr>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+<GraphParameterFile fileURL="xeroApi.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="DEF4AB" folded="false" fontSize="medium" height="155" id="Note0" textColor="444444" width="405" x="214" y="256">
+<attr name="text"><![CDATA[h3. Payments
+
+[https://developer.xero.com/documentation/api/accounting/payments]]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="convert and handle preview" guiX="727" guiY="134" id="CONVERT_AND_HANDLE_PREVIEW" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+integer NUM_OF_PREVIEW_RECORDS = null;
+integer count = 0;
+
+function void init(){
+	
+	if (getParamValue("NUM_OF_PREVIEW_RECORDS") != null and trim(getParamValue("NUM_OF_PREVIEW_RECORDS")) != ""){
+		if (isInteger(getParamValue("NUM_OF_PREVIEW_RECORDS"))){
+			NUM_OF_PREVIEW_RECORDS = str2integer(getParamValue("NUM_OF_PREVIEW_RECORDS"));
+		}else{
+			raiseError(concat('Parameter for number of records in preview (NUM_OF_PREVIEW_RECORDS) is expected to be the whole number. Not "', getParamValue("NUM_OF_PREVIEW_RECORDS"), '"'));
+		}	
+	}
+	
+}
+
+
+function integer transform() {
+	//handling preview driven by NUM_OF_PREVIEW_RECORDS parameter
+	if (NUM_OF_PREVIEW_RECORDS != null and count >= NUM_OF_PREVIEW_RECORDS){
+		return SKIP;
+	}
+	count++;
+	
+	
+	$out.0.* = $in.0.*;
+	// /Date(1666259038377+0000)/
+	
+	$out.0.UpdatedDateUTC = long2date(str2long(replace(replace($in.0.UpdatedDateUTC, '\+0000\)/', ""), '/Date\(', "")));
+	$out.0.Date = long2date(str2long(replace(replace($in.0.Date, '\+0000\)/', ""), '/Date\(', "")));
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="Fail" guiX="727" guiY="245" id="FAIL1" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = $in.0.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="GET Payments" guiX="214" guiY="134" id="GET_PAYMENTS" jobURL="${XERO_CORE_PAGING_CONNECTOR_URL}" type="SUBGRAPH">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.OAUTH_URL = getParamValue("OAUTH_URL");
+	$out.0.TENANT_ID = getParamValue("TENANT_ID");
+	$out.0.DATE_FORMAT = getParamValue("DATE_FORMAT");
+	$out.0.NUM_OF_PREVIEW_RECORDS = getParamValue("NUM_OF_PREVIEW_RECORDS");
+	$out.0.CALL = concat("https://api.xero.com/api.xro/2.0/Payments", getParamValue("PARAMS"));
+	
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="parse Payments response" guiX="445" guiY="134" id="PARSE_PAYMENTS_RESPONSE" schema="${META_DIR}/responseSchemas/Payments" sourceUri="port:$0.content:discrete" type="JSON_EXTRACT">
+<attr name="mapping"><![CDATA[<Mappings>
+		<Mapping element="Payments" outPort="0"
+				xmlFields="{}Amount;{}BankAmount;{}BatchPaymentID;{}CurrencyRate;{}Date;{}HasAccount;{}HasValidationErrors;{}IsReconciled;{}PaymentID;{}PaymentType;{}Reference;{}Status;{}UpdatedDateUTC"
+				cloverFields="Amount;BankAmount;BatchPaymentID;CurrencyRate;Date;HasAccount;HasValidationErrors;IsReconciled;PaymentID;PaymentType;Reference;Status;UpdatedDateUTC">
+			<Mapping element="BatchPayment" useParentRecord="true"
+					xmlFields="{}BatchPaymentID;{}Date;{}DateString;{}IsReconciled;{}Status;{}TotalAmount;{}Type;{}UpdatedDateUTC"
+					cloverFields="BatchPayment_BatchPaymentID;BatchPayment_Date;BatchPayment_DateString;BatchPayment_IsReconciled;BatchPayment_Status;BatchPayment_TotalAmount;BatchPayment_Type;BatchPayment_UpdatedDateUTC">
+				<Mapping element="Account" useParentRecord="true"
+						xmlFields="{}AccountID;{}Code"
+						cloverFields="BatchPayment_Account_AccountID;BatchPayment_Account_Code">
+				</Mapping>
+			</Mapping>
+			<Mapping element="Account" useParentRecord="true"
+					xmlFields="{}AccountID;{}Code"
+					cloverFields="Account_AccountID;Account_Code">
+			</Mapping>
+			<Mapping element="Invoice" useParentRecord="true"
+					xmlFields="{}CurrencyCode;{}HasErrors;{}InvoiceID;{}InvoiceNumber;{}IsDiscounted;{}Type"
+					cloverFields="Invoice_CurrencyCode;Invoice_HasErrors;Invoice_InvoiceID;Invoice_InvoiceNumber;Invoice_IsDiscounted;Invoice_Type">
+				<Mapping element="Contact" useParentRecord="true"
+						xmlFields="{}ContactID;{}HasValidationErrors;{}Name"
+						cloverFields="Invoice_Contact_ContactID;Invoice_Contact_HasValidationErrors;Invoice_Contact_Name">
+				</Mapping>
+			</Mapping>
+		</Mapping>
+</Mappings>
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="50" guiY="10" id="SUBGRAPH_INPUT" type="SUBGRAPH_INPUT">
+<Port guiY="110" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="990" guiY="10" id="SUBGRAPH_OUTPUT" type="SUBGRAPH_OUTPUT">
+<Port guiY="151" name="0"/>
+<Port guiY="221" name="1"/>
+</Node>
+<Edge fromNode="CONVERT_AND_HANDLE_PREVIEW:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:0"/>
+<Edge fromNode="GET_PAYMENTS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge25" inPort="Port 0 (input)" outPort="Port 0 (out)" toNode="PARSE_PAYMENTS_RESPONSE:0"/>
+<Edge fromNode="GET_PAYMENTS:1" guiBendpoints="" guiRouter="Manhattan" id="Edge24" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="FAIL1:0"/>
+<Edge fromNode="PARSE_PAYMENTS_RESPONSE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="CONVERT_AND_HANDLE_PREVIEW:0"/>
+</Phase>
+</Graph>

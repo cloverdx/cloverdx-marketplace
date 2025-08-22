@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="com.cloveretl.gui.CLOVER_ENGINE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="trans"/>
+	<classpathentry exported="true" kind="lib" path="lib/metadata-factory-0.1b.jar"/>
+	<classpathentry kind="output" path="trans"/>
+</classpath>

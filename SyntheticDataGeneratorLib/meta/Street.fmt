@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Record fieldDelimiter="," name="Street" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" skipSourceRows="1" type="delimited">
+<Field name="streetName" type="string"/>
+<Field name="streetType" type="string"/>
+<Field name="minHouseNum" type="integer"/>
+<Field name="maxHouseNum" type="integer"/>
+</Record>

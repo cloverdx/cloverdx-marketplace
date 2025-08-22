@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Record fieldDelimiter="|" name="company" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="primary_associated_company_id" type="string">
+<attr name="description"><![CDATA[The unique ID for this record in HubSpot.]]></attr>
+</Field>
+<Field groupName="companyinformation" hubspotSubtype="text" hubspotType="string" label="Company name" name="primary_associated_company_name" options="[]" type="string">
+<attr name="description"><![CDATA[The name of the company or organization. Powered by HubSpot Insights.]]></attr>
+</Field>
+<Field groupName="companyinformation" hubspotSubtype="text" hubspotType="string" label="Company country/region" name="primary_associated_company_country" options="[]" type="string">
+<attr name="description"><![CDATA[Country in which the company or organization is located. Powered by HubSpot Insights.]]></attr>
+</Field>
+<Field groupName="companyinformation" hubspotSubtype="text" hubspotType="string" label="Company domain Name" name="primary_associated_company_domain" options="[]" type="string">
+<attr name="description"><![CDATA[The domain name of the company or organization]]></attr>
+</Field>
+<Field hubspotProperty="description" hubspotPropertyGroup="companyinformation" hubspotSubtype="textarea" hubspotType="string" label="Company description" name="primary_associated_company_description" options="[]" type="string">
+<attr name="description"><![CDATA[A short statement about the company's mission and goals. Powered by HubSpot Insights.]]></attr>
+</Field>
+<Field hubspotProperty="hubspot_owner_id" hubspotPropertyGroup="sales_properties" hubspotSubtype="select" hubspotType="enumeration" label="Company HubSpot owner" name="primary_associated_company_hubspot_owner_id" options="[]" type="string">
+<attr name="description"><![CDATA[The owner of the company]]></attr>
+</Field>
+<Field groupName="sales_properties" hubspotSubtype="select" hubspotType="enumeration" label="Company HubSpot team" name="primary_associated_company_hubspot_team_id" options="[]" type="string">
+<attr name="description"><![CDATA[The team of the owner of the company.]]></attr>
+</Field>
+</Record>

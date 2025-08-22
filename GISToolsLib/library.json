@@ -1,0 +1,20 @@
+{
+  "descriptor" : {
+    "author" : "CloverDX",
+    "name" : "GISToolsLib",
+    "version" : "1.0",
+    "productVersion" : "5.15.1.14",
+    "description" : "Extract and filter geometries from ESRI shapefiles. Includes spatial operations like intersection and containment."
+  },
+  "publicInterface" : {
+    "subgraphs" : [ {
+      "path" : "graph/subgraph/ShapeFileReader.sgrf",
+      "description" : "Implemetation of reader capable parsing .shp file (shapefile).",
+      "icon" : "./graph/subgraph/icons/esri-16.png"
+    }, {
+      "path" : "graph/subgraph/ShapeIntersect.sgrf",
+      "description" : "Based on array of coordinates check relation between two objects.",
+      "icon" : "./graph/subgraph/icons/intersect-16.png"
+    } ]
+  }
+}

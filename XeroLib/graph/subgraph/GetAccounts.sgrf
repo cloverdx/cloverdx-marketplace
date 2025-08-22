@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="readers" created="Tue Nov 08 20:16:54 GMT 2022" description="Provides accounts with optional filter conditions." guiVersion="6.0.0.1547" id="1667941222456" largeIconPath="${PROJECT}/icons/xero_logo_64.png" licenseCode="CLCDSCLOVE72646208SP" mediumIconPath="${PROJECT}/icons/xero_logo_32.png" name="getAccounts" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/xero_logo_16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" keepEdge="true" name="0" required="false"/>
+<singlePort connected="false" keepEdge="true" name="1" required="false"/>
+<singlePort connected="false" keepEdge="true" name="2" required="false"/>
+</outputPorts>
+<Metadata fileURL="${META_DIR}/responseInfo.fmt" id="Metadata0"/>
+<Metadata id="Metadata2" previewAttachmentCharset="UTF-8">
+<Record fieldDelimiter="|" name="Account" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="AccountID" type="string"/>
+<Field name="Code" trim="true" type="string"/>
+<Field name="Name" type="string"/>
+<Field name="Status" type="string"/>
+<Field name="Type" type="string"/>
+<Field name="TaxType" type="string"/>
+<Field name="Description" type="string"/>
+<Field name="Class" type="string"/>
+<Field name="SystemAccount" type="string"/>
+<Field name="EnablePaymentsToAccount" trim="true" type="boolean"/>
+<Field name="ShowInExpenseClaims" trim="true" type="boolean"/>
+<Field name="BankAccountNumber" type="string"/>
+<Field name="BankAccountType" type="string"/>
+<Field name="CurrencyCode" type="string"/>
+<Field name="ReportingCode" type="string"/>
+<Field name="ReportingCodeName" type="string"/>
+<Field name="HasAttachments" trim="true" type="boolean"/>
+<Field format="${DATE_FORMAT}" name="UpdatedDateUTC" type="date"/>
+<Field name="AddToWatchlist" trim="true" type="boolean"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="AccountINPUT" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="AccountID" type="string"/>
+<Field name="Code" type="string"/>
+<Field name="Name" type="string"/>
+<Field name="Status" type="string"/>
+<Field name="Type" type="string"/>
+<Field name="TaxType" type="string"/>
+<Field name="Description" type="string"/>
+<Field name="Class" type="string"/>
+<Field name="SystemAccount" type="string"/>
+<Field name="EnablePaymentsToAccount" type="boolean"/>
+<Field name="ShowInExpenseClaims" type="boolean"/>
+<Field name="BankAccountNumber" type="string"/>
+<Field name="BankAccountType" type="string"/>
+<Field name="CurrencyCode" type="string"/>
+<Field name="ReportingCode" type="string"/>
+<Field name="ReportingCodeName" type="string"/>
+<Field name="HasAttachments" type="boolean"/>
+<Field name="UpdatedDateUTC" type="string"/>
+<Field name="AddToWatchlist" type="boolean"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter defaultHint="Optional filter by account name" label="Name" name="NAME" public="true"/>
+<GraphParameter defaultHint="Optional filter by account status" label="Status" name="STATUS" public="true">
+<SingleType allowCustomValues="false" name="simpleEnum" values="ACTIVE;ARCHIVED"/>
+</GraphParameter>
+<GraphParameter defaultHint="Optional filter by account type" label="Type" name="TYPE" public="true">
+<SingleType allowCustomValues="false" name="simpleEnum" values="BANK|Bank account;CURRENT|Current Asset account;CURRLIAB|Current Liability account;DEPRECIATN|Depreciation account;DIRECTCOSTS|Direct Costs account;EQUITY|Equity account;EXPENSE|Expense account;FIXED|Fixed Asset account;INVENTORY|Inventory Asset account;LIABILITY|Liability account;NONCURRENT|Non-current Asset account;OTHERINCOME|Other Income account;OVERHEADS|Overhead account;PREPAYMENT|Prepayment account;REVENUE|Revenue account;SALES|Sale account;TERMLIAB|Non-current Liability account;PAYGLIABILITY|PAYG Liability account;SUPERANNUATIONEXPENSE|Superannuation Expense account;SUPERANNUATIONLIABILITY|Superannuation Liability account;WAGESEXPENSE|Wages Expense account"/>
+</GraphParameter>
+<GraphParameter name="PARAMS">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	string [] paramList;
+	
+	if (getParamValue("NAME") != null and trim(getParamValue("NAME")) != ""){
+		append(paramList, escapeUrlFragment(concat('Name="', getParamValue("NAME"), '"')));
+	}
+	if (getParamValue("STATUS") != null and trim(getParamValue("STATUS")) != ""){
+		append(paramList, escapeUrlFragment(concat('Status="', getParamValue("STATUS"), '"')));
+	}
+	if (getParamValue("TYPE") != null and trim(getParamValue("TYPE")) != ""){
+		append(paramList, escapeUrlFragment(concat('Type="', getParamValue("TYPE"), '"')));
+	}
+	
+	if (length(paramList) > 0){
+		return concat("?where=", join("+AND+", paramList));	
+	}
+	
+	return "";
+}
+]]></attr>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+<GraphParameterFile fileURL="xeroApi.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="DEF4AB" folded="false" fontSize="medium" height="155" id="Note0" textColor="444444" width="429" x="214" y="302">
+<attr name="text"><![CDATA[h3. Accounts
+
+[https://developer.xero.com/documentation/api/accounting/accounts]]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="convert" guiX="743" guiY="134" id="CONVERT" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.* = $in.0.*;
+	// /Date(1666259038377+0000)/
+	
+	$out.0.UpdatedDateUTC = long2date(str2long(replace(replace($in.0.UpdatedDateUTC, '\+0000\)/', ""), '/Date\(', "")));
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node enabled="enableWhenOutputPort2IsDisconnected" guiName="Fail" guiX="917" guiY="354" id="FAIL" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = $in.0.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="GET Accounts" guiX="214" guiY="134" id="GET_ACCOUNTS" jobURL="${XERO_CORE_CONNECTOR_URL}" type="SUBGRAPH">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.OAUTH_URL = getParamValue("OAUTH_URL");
+	$out.0.TENANT_ID = getParamValue("TENANT_ID");
+	$out.0.DATE_FORMAT = getParamValue("DATE_FORMAT");
+	$out.0.CALL = concat("https://api.xero.com/api.xro/2.0/Accounts", getParamValue("PARAMS"));
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="parse accounts response" guiX="472" guiY="134" id="PARSE_ACCOUNTS_RESPONSE" schema="${META_DIR}/responseSchemas/Accounts" sourceUri="port:$0.content:discrete" type="JSON_EXTRACT">
+<attr name="mapping"><![CDATA[<Mappings>
+	<Mapping element="json_object" outPort="0">
+		<Mapping element="Accounts" outPort="1"
+				xmlFields="{}AccountID;{}AddToWatchlist;{}BankAccountNumber;{}BankAccountType;{}Class;{}Code;{}CurrencyCode;{}Description;{}EnablePaymentsToAccount;{}HasAttachments;{}Name;{}ReportingCode;{}ReportingCodeName;{}ShowInExpenseClaims;{}Status;{}SystemAccount;{}TaxType;{}Type;{}UpdatedDateUTC"
+				cloverFields="AccountID;AddToWatchlist;BankAccountNumber;BankAccountType;Class;Code;CurrencyCode;Description;EnablePaymentsToAccount;HasAttachments;Name;ReportingCode;ReportingCodeName;ShowInExpenseClaims;Status;SystemAccount;TaxType;Type;UpdatedDateUTC">
+		</Mapping>
+	</Mapping>
+</Mappings>
+]]></attr>
+</Node>
+<Node guiName="SimpleCopy" guiX="722" guiY="274" id="SIMPLE_COPY" type="SIMPLE_COPY"/>
+<Node guiName="SubgraphInput" guiX="50" guiY="10" id="SUBGRAPH_INPUT" type="SUBGRAPH_INPUT">
+<Port guiY="110" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1059" guiY="10" id="SUBGRAPH_OUTPUT" type="SUBGRAPH_OUTPUT">
+<Port guiY="151" name="0"/>
+<Port guiY="221" name="1"/>
+<Port guiY="291" name="2"/>
+<Port guiY="361" name="3"/>
+</Node>
+<Edge fromNode="CONVERT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:0"/>
+<Edge fromNode="GET_ACCOUNTS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 0 (input)" outPort="Port 0 (out)" toNode="PARSE_ACCOUNTS_RESPONSE:0"/>
+<Edge fromNode="GET_ACCOUNTS:1" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="SIMPLE_COPY:0"/>
+<Edge fromNode="PARSE_ACCOUNTS_RESPONSE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge13" inPort="Port 1 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:1"/>
+<Edge fromNode="PARSE_ACCOUNTS_RESPONSE:1" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 1 (out)" toNode="CONVERT:0"/>
+<Edge fromNode="SIMPLE_COPY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 2 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:2"/>
+<Edge fromNode="SIMPLE_COPY:1" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="FAIL:0"/>
+</Phase>
+</Graph>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GraphParameters>
+<GraphParameter category="security" label="OAuth Connection URL" name="OAUTH_CONN" public="true" required="false" value="${CONN_DIR}/Airtable.cfg">
+<attr name="description"><![CDATA[URL of the authorized OAuth Connection to Airtable]]></attr>
+</GraphParameter>
+</GraphParameters>

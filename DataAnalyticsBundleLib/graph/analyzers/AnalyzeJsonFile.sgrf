@@ -1,0 +1,682 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="readers" created="Wed May 25 11:07:17 EDT 2016" description="Implementation of a workflow that analyzes source JSON file and creates metadata structure based on it." guiVersion="5.15.0.15" id="1464189049288" largeIconPath="${DATA_ANALYTICS_DIR}/ico/anlzr-json-64.png" licenseCode="CLP1DJAVLI51655480BY" mediumIconPath="${DATA_ANALYTICS_DIR}/ico/anlzr-json-32.png" name="AnalyzeJsonFile" nature="subgraph" showComponentDetails="true" smallIconPath="${DATA_ANALYTICS_DIR}/ico/anlzr-json-16.png">
+<Global>
+<inputPorts>
+<singlePort connected="false" keepEdge="false" name="0" required="false"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="true" name="0"/>
+<singlePort connected="true" keepEdge="true" name="1" required="false"/>
+</outputPorts>
+<EndpointSettings/>
+<Metadata fileURL="${DATA_ANALYTICS_DIR}/meta/MetadataField.fmt" id="Metadata1"/>
+<Metadata id="Metadata5" previewAttachmentCharset="ISO-8859-1">
+<Record eofAsDelimiter="true" name="BinaryData" previewAttachmentCharset="ISO-8859-1" type="fixed">
+<Field locale="${LOCALE}" name="data" size="2048" type="byte"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="|" name="JsonFieldInformation" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\r\n" type="delimited">
+<Field name="name" type="string"/>
+<Field name="cname" type="string"/>
+<Field name="path" type="string"/>
+<Field name="type" type="string"/>
+<Field name="dataType" type="string"/>
+<Field name="container" type="string"/>
+<Field name="length" type="integer"/>
+<Field name="scale" type="integer"/>
+<Field name="format" type="string"/>
+<Field name="value" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="Mapping" recordDelimiter="\r\n" type="delimited">
+<Field name="xml" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata3" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="|" name="MappingConfig" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\r\n" type="delimited">
+<Field name="element" type="string"/>
+<Field name="depth" type="integer"/>
+<Field name="outPort" type="integer"/>
+<Field containerType="list" name="parentKey" type="string"/>
+<Field containerType="list" name="generatedKey" type="string"/>
+<Field containerType="list" name="xmlFields" type="string"/>
+<Field containerType="list" name="cloverFields" type="string"/>
+<Field name="id" type="long"/>
+<Field name="parent" type="long"/>
+<Field name="occurances" type="integer"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata4" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="|" name="NodeInfo" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\r\n" type="delimited">
+<Field name="name" type="string"/>
+<Field name="parent" type="string"/>
+<Field name="path" type="string"/>
+<Field name="fullName" type="string"/>
+<Field name="depth" type="integer"/>
+<Field name="type" type="string"/>
+<Field name="source" type="string"/>
+<Field name="target" type="string"/>
+<Field name="value" type="string"/>
+<Field name="occurances" type="integer"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter label="File URL" name="FILE_URL" public="true">
+<attr name="description"><![CDATA[URL to the file to analyse. Alternatively the contents of the file can be streamed from the first input port, if is connected (the file URL is set to port:$0.data:stream automatically).]]></attr>
+<SingleType multiple="false" name="file" selectionMode="file_only"/>
+</GraphParameter>
+<GraphParameter label="Data type sample %" name="DATATYPE_SAMPLE_PERCENTAGE" public="true" value="15">
+<attr name="description"><![CDATA[Sets the percentage of JSON objects that will be used for data type analysis. The whole file will still be read and used for other parts of the analysis.]]></attr>
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter name="READER_URL">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return isSubgraphInputPortConnected(0) ? "port:$0.data:stream" : getParamValue("FILE_URL");
+}
+]]></attr>
+</GraphParameter>
+<GraphParameterFile fileURL="${DATA_ANALYTICS_DIR}/conf/analysis.prm"/>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<Dictionary>
+<Entry input="false" name="doctype" output="false" type="string"/>
+<Entry dictval.value="0" input="false" name="counter" output="false" type="long"/>
+</Dictionary>
+</Global>
+<Phase number="0">
+<Node guiName="Add attribute information" guiX="2216" guiY="243" id="ADD_ATTRIBUTE_INFORMATION" joinKey="$fullName(a)#$path(a);" joinType="leftOuter" type="EXT_MERGE_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.source = $in.1.name;
+	$out.0.target = $in.1.cname;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Add occurance information" guiX="515" guiY="100" id="ADD_OCCURANCE_INFORMATION" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Stack of nodes being investigated
+string[] nodes;
+integer nodeSize = 0;
+// Width of each level (with maximum size equal to maximum depth)
+integer[] width;
+// For first record, we want always to append only
+integer prevDepth = -1;
+
+// Transforms input record into output record.
+function integer transform() {
+	integer lvlWidth;
+	integer occurances = 0;
+	
+	// When we emerge from lower level of a depth
+	// remove all artefacts
+	while (prevDepth > $in.0.depth) {
+		// Do this for every level we have emerged from
+		while (width[prevDepth] > 0) {
+			pop(nodes);
+			width[prevDepth] = width[prevDepth] - 1;
+			nodeSize--;
+		}
+		
+		prevDepth--;
+	}
+	
+	// Add incoming node to the stack
+	append(nodes,$in.0.name);
+	nodeSize++;
+	
+	// Get current level's width
+	lvlWidth = width[$in.0.depth] = !isnull(width[$in.0.depth]) ? width[$in.0.depth] + 1 : 1;
+	
+	// Go through the whole level and check for nodes with the same name
+	for (integer i=0;i<lvlWidth;i++) {
+		if (nodes[nodeSize-1-i] == $in.0.name) {
+			occurances++;
+		}
+	}
+
+	$out.0.* = $in.0.*;
+	$out.0.occurances = occurances;
+	prevDepth = $in.0.depth;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Assign data types" guiX="1811" guiY="100" id="ASSIGN_DATA_TYPES" key="path(a);name(a)" type="DENORMALIZER">
+<attr name="denormalize"><![CDATA[//#CTL2
+
+import '${DATA_ANALYTICS_DIR}/trans/constants.ctl';
+
+// This transformation defines the way in which multiple input records 
+// (with the same key) are denormalized into one output record. 
+
+JsonFieldInformation field;
+
+// This function is called for each input record from a group of records
+// with the same key.
+function integer append() {
+	if (isnull(field.name)) {
+		field.* = $in.0.*;
+		return OK;
+	}
+	
+	switch ($in.0.type) {
+		// integer takes lowest priority
+		case "integer":
+				
+		break;
+		// long takes above integer
+		case "long":
+			if (field.type.in(["integer"])) {
+				field.type = $in.0.type;
+			}
+		break;
+		// decimal takes above both integer and long
+		case "decimal":
+			if (field.type.in(["decimal","integer","long"])) {
+				integer len = !isnull(field.length) ? field.length : DEFAULT_SIZE;
+				integer scale = !isnull(field.scale) ? field.scale : DEFAULT_SCALE;
+				// Below calculations deal with situation where there are various precisions in a data
+				// i.e. record coming with precision 12,6 when 12,2 is currently set
+				field.type = $in.0.type;
+				// takes biggest number
+				field.length = len + max(0,$in.0.scale-scale);
+				// and highest precision
+				field.scale = max(scale,$in.0.scale);
+			}
+		break;
+		case "date":
+			if (field.format != $in.0.format) {
+				raiseError("Mixed date formats, unable to change format from: '"+ field.format +"' to '"+ $in.0.format +"'");
+			}
+		break;
+	}
+	
+	return OK;
+}
+
+// This function is called once after the append() function was called for all records
+// of a group of input records defined by the key.
+// It creates a single output record for the whole group.
+function integer transform() {
+	$out.0.* = field.*;
+
+	return OK;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if append() throws an exception.
+// function integer appendOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called only if transform() throws an exception.
+//function integer transformOnError(string errorMessage, string stackTrace) {
+//}
+
+// Called after transform() to return the resources that have been used to their initial state
+// so that next group of records with different key may be parsed.
+function void clean() {
+	resetRecord(field);
+}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Compile mapping" guiX="2956" guiY="243" id="COMPILE_MAPPING1" type="DENORMALIZER">
+<attr name="denormalize"><![CDATA[//#CTL2
+// This transformation defines the way in which multiple input records 
+// (with the same key) are denormalized into one output record. 
+
+map[long,integer] children;
+string[] queue;
+
+string root;
+boolean addWrapper;
+
+// This function is called for each input record from a group of records
+// with the same key.
+function integer append() {	
+	string mine;
+	
+	mine = " ".join([
+		(!isnull($in.0.outPort) ? 'outPort="'+ $in.0.outPort +'"' : ''),
+		//(!isnull($in.0.generatedKey) ? 'generatedKey="'+ $in.0.generatedKey +'"' : ''),
+		//(length($in.0.parentKey) > 0 ? 'parentKey="'+ ";".join($in.0.parentKey) +'"' : ''),
+		(length($in.0.xmlFields) > 0 ? 'xmlFields="'+ ";".join($in.0.xmlFields) +'"' : ''),
+		(length($in.0.cloverFields) > 0 ? 'cloverFields="'+ ";".join($in.0.cloverFields) +'"' : '')
+	]);
+	
+	// Load all relevant content for this particular element
+	if (children.containsKey($in.0.id)) {
+		string[] contents;
+		
+		while (children[$in.0.id] > 0) {
+			append(contents,poll(queue));
+			children[$in.0.id] = children[$in.0.id]-1;
+		}
+		
+		mine = mine.concat('>',''.join(contents),'</Mapping>');
+	
+	// Close current element without content
+	} else {
+		mine = mine.concat('/>');
+	}
+		
+
+	// Element has parent? Add it to its queue
+	if (!isnull($in.0.parent)) {	
+		children[$in.0.parent] = children.containsKey($in.0.parent) ? children[$in.0.parent]+1 : 1;
+		append(queue,'<Mapping element="'+ $in.0.element +'" '.concat(mine));
+	
+	// Root nodes are handled a bit differently
+	} else {
+		append(queue,'<Mapping element="json_'+ $in.0.element +'" '.concat(mine));
+		addWrapper = $in.0.occurances > 1;
+	}
+	
+	return OK;
+}
+
+// This function is called once after the append() function was called for all records
+// of a group of input records defined by the key.
+// It creates a single output record for the whole group.
+function integer transform() {
+	$out.0.xml = '<Mappings>'.concat(addWrapper ? '<Mapping element="json_array">' : '',''.join(queue),addWrapper ? '</Mapping>' : '','</Mappings>');
+
+	return OK;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if append() throws an exception.
+// function integer appendOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called only if transform() throws an exception.
+//function integer transformOnError(string errorMessage, string stackTrace) {
+//}
+
+// Called after transform() to return the resources that have been used to their initial state
+// so that next group of records with different key may be parsed.
+// function void clean() {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Configure mapping" guiX="2481" guiY="243" id="CONFIGURE_MAPPING" key="fullName(a)" type="DENORMALIZER">
+<attr name="denormalize"><![CDATA[//#CTL2
+// This transformation defines the way in which multiple input records 
+// (with the same key) are denormalized into one output record. 
+
+MappingConfig mc;
+
+integer id = 0;
+integer outPort = 0;
+
+long[] parents;
+integer lastDepth = null;
+
+// This function is called for each input record from a group of records
+// with the same key.
+function integer append() {
+
+	if (isnull(mc.element)) {
+		initObject();
+	}
+	
+	if (!isnull($in.0.source)) {
+		// When field is reference to another one
+		if ($in.0.type == "ref") {
+			append(mc.parentKey,$in.0.target);
+		
+		// When field is supposed to be autogenerated
+		} else if ($in.0.type == "id") {
+			append(mc.generatedKey,$in.0.target);
+	
+		// When field is a regular input
+		} else {
+			append(mc.xmlFields,'{}'.concat($in.0.source));
+			append(mc.cloverFields,$in.0.target);
+		}
+	}
+	
+	return OK;
+}
+
+function void initObject() {
+	if (!isnull(lastDepth)) {
+		while (lastDepth >= $in.0.depth) {
+			pop(parents);
+			lastDepth--;
+		}
+	}
+	
+	lastDepth = $in.0.depth;
+	
+	mc.element = $in.0.name;
+	mc.depth = $in.0.depth;
+	mc.id = id++;
+	mc.parent = length(parents) > 0 ? parents[length(parents)-1] : null;
+	mc.occurances = $in.0.occurances;
+
+	append(parents,mc.id);
+}
+
+// This function is called once after the append() function was called for all records
+// of a group of input records defined by the key.
+// It creates a single output record for the whole group.
+function integer transform() {
+	$out.0.* = mc.*;
+	
+	if (length($out.0.xmlFields) > 0) {
+		$out.0.outPort = outPort++;
+	}
+	
+	return OK;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+function void preExecute() {
+	clean();
+}
+
+// Called only if append() throws an exception.
+// function integer appendOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called only if transform() throws an exception.
+//function integer transformOnError(string errorMessage, string stackTrace) {
+//}
+
+// Called after transform() to return the resources that have been used to their initial state
+// so that next group of records with different key may be parsed.
+function void clean() {
+	resetRecord(mc);
+	mc.parentKey = [ '' ];
+	mc.generatedKey = [ '' ];
+	mc.xmlFields = [ '' ];
+	mc.cloverFields = [ '' ];
+	
+	clear(mc.parentKey);
+	clear(mc.generatedKey);
+	clear(mc.xmlFields);
+	clear(mc.cloverFields);
+}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Copy mapping &amp; meta" guiX="2001" guiY="100" id="COPY_MAPPING_META" type="SIMPLE_COPY"/>
+<Node guiName="Create metadata records" guiX="2216" guiY="100" id="CREATE_METADATA_RECORDS" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	string[] chunks = $in.0.path.split('/');
+	
+	for (integer i=1;i<length(chunks);i++) {
+		chunks[i] = upperCase(chunks[i].charAt(0))
+			.concat(chunks[i].substring(1));
+	}
+	
+	$out.0.__name = ''.join(chunks);
+	$out.0.label = $in.0.name;
+	$out.0.name = $in.0.cname;
+	$out.0.type = $in.0.dataType;
+	$out.0.containerType = $in.0.container;
+	$out.0.length = $in.0.length;
+	$out.0.scale = $in.0.scale;
+	$out.0.format = $in.0.format;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Discard root node" guiX="473" guiY="249" id="DISCARD_ROOT_NODE" type="TRASH"/>
+<Node __FILE_URL="${DATAOUT_DIR}" debugOutput="true" guiName="FmtFormatter" guiX="3338" guiY="100" id="FMT_FORMATTER" jobURL="${DATA_ANALYTICS_DIR}/graph/formatter/FmtFormatter.sgrf" type="SUBGRAPH"/>
+<Node guiName="Initialize clover structure" guiX="1559" guiY="100" id="INITIALIZE_CLOVER_STRUCTURE" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+import '${DATA_ANALYTICS_DIR}/trans/constants.ctl';
+import '${DATA_ANALYTICS_DIR}/trans/analytics.ctl';
+
+// Transforms input record into output record.
+function integer transform() {
+	format = null;
+	$out.0.* = $in.0.*;
+	$out.0.cname = replace(replace(removeDiacritic($in.0.name),"[^a-zA-Z0-9_]","_"),"^([^a-zA-Z_])","_$1");
+	$out.0.dataType = getDataType($in.0.value);
+
+	if (format != null) {
+		if ($out.0.dataType == "decimal") {
+			string[] fragments = format.split(",");
+			$out.0.length = str2integer(fragments[0]);
+			$out.0.scale = str2integer(fragments[1]);
+		} else {
+			$out.0.format = format;
+		}
+	}
+	
+	if ($in.0.occurances > 1) {
+		$out.0.container = "list";
+	}
+	
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node dedupKey="fullName(a)" guiName="Keep only unique object defs" guiX="1559" guiY="243" id="KEEP_ONLY_UNIQUE_OBJECT_DEFS" type="DEDUP"/>
+<Node guiName="Make full path" guiX="1055" guiY="243" id="MAKE_FULL_PATH" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.fullName = $in.0.path.concat('/',$in.0.name);
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node charset="${CHARSET}" fileURL="${READER_URL}" guiName="Read sample file" guiX="115" guiY="100" id="READ_SAMPLE_FILE" type="JSON_READER">
+<attr name="mapping"><![CDATA[<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<!-- =========================== Context ================================ -->
+<!-- Context element sets the "current node" in the JSON tree             --> 
+<!-- for subsequent Mapping (or Context) operations.                      -->
+<!--                                                                      -->
+<!-- Parameters:                                                          -->
+<!--   xpath: position in the JSON tree                                   -->
+<!--   outPort: (optional) routes mapped data to specified output port    -->
+<!--                                                                      -->
+<!-- Valid "xpath" for root context:                                      -->
+<!--   xpath="/root/object"  if root of JSON structure is an object       -->
+<!--   xpath="/root/array"   if root of JSON structure is an array        -->
+  
+<Context xpath="//*" outPort="0">
+	<Mapping cloverField="name" xpath="name()"/>
+	<Mapping cloverField="parent" xpath="parent::*/name()"/>
+	<Mapping cloverField="path" xpath="concat('/',string-join(ancestor::*/name(),'/'))"/>
+	<Mapping cloverField="depth" xpath="count(ancestor::*/name())"/>
+	<Mapping cloverField="type" xpath="concat(substring('object',1,number(not(count(child::*)=0))*string-length('object')),substring('value',1,number(count(child::*)=0)*string-length('value')))"/>
+	<Mapping cloverField="value" xpath="text()"/>
+</Context>
+]]></attr>
+</Node>
+<Node guiName="Remove root node" guiX="313" guiY="100" id="REMOVE_ROOT_NODE" noDupRecord="1" type="DEDUP"/>
+<Node guiName="Sample data" guiX="1328" guiY="100" id="SAMPLE_DATA" key="path(a);name(a);occurances(a)" sampleSize="0.${DATATYPE_SAMPLE_PERCENTAGE}" samplingMethod="Stratified" type="DATA_SAMPLER"/>
+<Node guiName="Separate objects and values" guiX="781" guiY="100" id="SEPARATE_OBJECTS_AND_VALUES" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.type!="object"]]></attr>
+</Node>
+<Node guiName="Sort by depth and order" guiX="2695" guiY="243" id="SORT_BY_DEPTH_AND_ORDER" sortKey="depth(d);id(a)" type="EXT_SORT"/>
+<Node guiName="Sort by unique id &amp; name" guiX="1306" guiY="243" id="SORT_BY_UNIQUE_ID_NAME" sortKey="fullName(a);occurances(d)" type="EXT_SORT"/>
+<Node guiName="Sort by unique id &amp; name" guiX="1055" guiY="100" id="SORT_BY_UNIQUE_ID_NAME1" sortKey="path(a);name(a);occurances(d)" type="FAST_SORT"/>
+<Node guiName="SubgraphInput" guiX="7" guiY="9" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="3186" guiY="9" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+<Port guiY="257" name="2"/>
+</Node>
+<Node debugOutput="true" fileURL="${DATAOUT_DIR}/mapping.xml" guiName="UniversalDataWriter" guiX="3335" guiY="236" id="UNIVERSAL_DATA_WRITER" type="DATA_WRITER"/>
+<Edge debugMode="true" fromNode="ADD_ATTRIBUTE_INFORMATION:0" guiBendpoints="" guiRouter="Manhattan" id="Edge19" inPort="Port 0 (in)" metadataRef="#//Edge51" outPort="Port 0 (out)" toNode="CONFIGURE_MAPPING:0"/>
+<Edge debugMode="true" fromNode="ADD_OCCURANCE_INFORMATION:0" guiBendpoints="" guiRouter="Manhattan" id="Edge44" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SEPARATE_OBJECTS_AND_VALUES:0"/>
+<Edge debugMode="true" fromNode="ASSIGN_DATA_TYPES:0" guiBendpoints="" guiRouter="Manhattan" id="Edge43" inPort="Port 0 (in)" metadataRef="#//Edge26" outPort="Port 0 (out)" toNode="COPY_MAPPING_META:0"/>
+<Edge debugMode="true" fromNode="COMPILE_MAPPING1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge31" inPort="Port 1 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:1"/>
+<Edge debugMode="true" fromNode="CONFIGURE_MAPPING:0" guiBendpoints="" guiRouter="Manhattan" id="Edge30" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="SORT_BY_DEPTH_AND_ORDER:0"/>
+<Edge debugMode="true" fromNode="COPY_MAPPING_META:0" guiBendpoints="" guiRouter="Manhattan" id="Edge28" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="CREATE_METADATA_RECORDS:0"/>
+<Edge fromNode="COPY_MAPPING_META:1" guiBendpoints="" guiRouter="Manhattan" id="Edge45" inPort="Port 1 (slave)" outPort="Port 1 (out)" toNode="ADD_ATTRIBUTE_INFORMATION:1"/>
+<Edge debugMode="true" fromNode="CREATE_METADATA_RECORDS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge debugMode="true" fromNode="INITIALIZE_CLOVER_STRUCTURE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge26" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="ASSIGN_DATA_TYPES:0"/>
+<Edge debugMode="true" fromNode="KEEP_ONLY_UNIQUE_OBJECT_DEFS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge51" inPort="Port 0 (driver)" outPort="Port 0 (unique)" toNode="ADD_ATTRIBUTE_INFORMATION:0"/>
+<Edge debugMode="true" fromNode="MAKE_FULL_PATH:0" guiBendpoints="" guiRouter="Manhattan" id="Edge48" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SORT_BY_UNIQUE_ID_NAME:0"/>
+<Edge debugMode="true" fromNode="READ_SAMPLE_FILE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" metadata="Metadata4" outPort="Port 0 (out)" toNode="REMOVE_ROOT_NODE:0"/>
+<Edge debugMode="true" fromNode="REMOVE_ROOT_NODE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 0 (in)" outPort="Port 0 (unique)" toNode="DISCARD_ROOT_NODE:0"/>
+<Edge debugMode="true" fromNode="REMOVE_ROOT_NODE:1" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" outPort="Port 1 (duplicate)" toNode="ADD_OCCURANCE_INFORMATION:0"/>
+<Edge fromNode="SAMPLE_DATA:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="INITIALIZE_CLOVER_STRUCTURE:0"/>
+<Edge debugMode="true" fromNode="SEPARATE_OBJECTS_AND_VALUES:0" guiBendpoints="" guiRouter="Manhattan" id="Edge37" inPort="Port 0 (in)" outPort="Port 0 (accepted)" toNode="SORT_BY_UNIQUE_ID_NAME1:0"/>
+<Edge debugMode="true" fromNode="SEPARATE_OBJECTS_AND_VALUES:1" guiBendpoints="" guiRouter="Manhattan" id="Edge38" inPort="Port 0 (in)" outPort="Port 1 (rejected)" toNode="MAKE_FULL_PATH:0"/>
+<Edge debugMode="true" fromNode="SORT_BY_DEPTH_AND_ORDER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge27" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="COMPILE_MAPPING1:0"/>
+<Edge debugMode="true" fromNode="SORT_BY_UNIQUE_ID_NAME:0" guiBendpoints="" guiRouter="Manhattan" id="Edge50" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="KEEP_ONLY_UNIQUE_OBJECT_DEFS:0"/>
+<Edge fromNode="SORT_BY_UNIQUE_ID_NAME1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge42" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SAMPLE_DATA:0"/>
+<Edge fromNode="SUBGRAPH_INPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" metadata="Metadata5" outPort="Port 0 (out)" toNode="READ_SAMPLE_FILE:0"/>
+<Edge debugMode="true" fromNode="SUBGRAPH_OUTPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="FMT_FORMATTER:0"/>
+<Edge fromNode="SUBGRAPH_OUTPUT0:1" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="UNIVERSAL_DATA_WRITER:0"/>
+</Phase>
+</Graph>

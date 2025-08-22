@@ -1,0 +1,41 @@
+{
+  "descriptor" : {
+    "name" : "SnowflakeTargetLib",
+    "version" : "1.1",
+    "author" : "CloverDX",
+    "productVersion" : "6.2.0.14",
+    "description" : "Seamlessly load data into Snowflake from CloverDX. Ideal for integrating and storing business data in your Snowflake warehouse with high performance.",
+    "lastModificationDate" : "2023-10-10T00:21:39Z",
+    "initializationJob" : ""
+  },
+  "connections" : {
+    "oauth2Connections" : [ ]
+  },
+  "healthCheck" : {
+    "description" : "",
+    "path" : "graph/HealthCheck.grf"
+  },
+  "publicInterface" : {
+    "metadata" : [ ],
+    "subgraphs" : [ {
+      "largeIcon" : "./icons/snowflake_64.png",
+      "icon" : "./icons/snowflake_16.png",
+      "mediumIcon" : "./icons/snowflake_32.png",
+      "description" : "The Data Target for writing to Snowflake database requires you to specify the connection to the existing Snowflake instance. This includes account details, warehouse, database, and schema. In the connector itself, you will need to specify the table name and behavior of how to proceed when the table exists or not (recreate, create if not exists). Additionally, users can specify how to work with errors (continue on error or stop the processing).",
+      "path" : "graph/SnowflakeTarget.sgrf"
+    } ],
+    "graphs" : [ ],
+    "jobflows" : [ ],
+    "restJobs" : [ ],
+    "dataConnectors" : {
+      "sources" : [ ],
+      "targets" : [ {
+        "largeIcon" : "./icons/snowflake_64.png",
+        "icon" : "./icons/snowflake_16.png",
+        "mediumIcon" : "./icons/snowflake_32.png",
+        "description" : "The Data Target for writing to Snowflake database requires you to specify the connection to the existing Snowflake instance. This includes account details, warehouse, database, and schema. In the connector itself, you will need to specify the table name and behavior of how to proceed when the table exists or not (recreate, create if not exists). Additionally, users can specify how to work with errors (continue on error or stop the processing).",
+        "path" : "graph/SnowflakeTarget.sgrf"
+      } ]
+    }
+  }
+}

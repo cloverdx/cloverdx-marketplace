@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" created="Mon Aug 15 10:45:27 CEST 2022" description="Downloads files from SharePoint Document library or Personal OneDrive." guiVersion="6.2.1.3" id="1660566208761" largeIconPath="${PROJECT}/icons/onedrive-64.png" licenseCode="CLP1DCLOVE28718064BY" mediumIconPath="${PROJECT}/icons/onedrive-32.png" name="Download" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/onedrive-16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" keepEdge="true" name="0" required="false"/>
+<singlePort connected="false" keepEdge="true" name="1" required="false"/>
+</outputPorts>
+<Metadata id="CopyFiles_Result">
+<Record fieldDelimiter="|" name="Download_Result" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="sourceURL" type="string"/>
+<Field name="targetURL" type="string"/>
+<Field name="resultURL" type="string"/>
+<Field name="result" trim="true" type="boolean"/>
+<Field name="errorMessage" type="string"/>
+<Field name="stackTrace" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="Error" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="errorMessage" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="FileList">
+<Record fieldDelimiter="|" name="SPDownload" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="name" type="string"/>
+<Field name="microsoft_graph_downloadUrl" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+<GraphParameter label="Item ID" name="ITEM_ID" public="true">
+<attr name="description"><![CDATA[Identificator of item in directory. File or folder. Can be set to "root" for listing the top level structure.]]></attr>
+</GraphParameter>
+<GraphParameter label="Local directory" name="LOCAL_DIR" public="true">
+<attr name="description"><![CDATA[Absolute path to the local directory where downloaded files will be saved.]]></attr>
+</GraphParameter>
+<GraphParameter label="List files" name="LIST_FILES" public="true">
+<attr name="description"><![CDATA[Comma separated list of files to be downloaded from the source. Empty value means all files.]]></attr>
+</GraphParameter>
+<GraphParameter category="advanced" label="List files delimiter" name="LIST_FILES_SEPARATOR" public="true" required="false" secure="false" value=",">
+<attr name="description"><![CDATA[Delimiter used for slitting the list of files to download. Regex. Defalt value is "," (comma). You can also input the list using dictionary, withouth worring about the delimiter.]]></attr>
+<SingleType allowCustomValues="true" name="simpleEnum" values=",|, (comma);&quot;;|, (semicolon)&quot;;:|: (colon);\\||\| (pipe);\n|\n (newline)"/>
+</GraphParameter>
+<GraphParameter label="Create parent directories" name="MAKE_PARENT_DIRS" public="true" required="false" value="false">
+<ComponentReference referencedComponent="COPY_FILES_FROM_DRIVE_TO_LOCAL" referencedProperty="makeParentDirs"/>
+</GraphParameter>
+</GraphParameters>
+<RichTextNote backgroundColor="FAF6D6" folded="false" fontSize="medium" height="230" id="Note1" textColor="444444" width="460" x="790" y="53">
+<attr name="text"><![CDATA[Using full outer join to capture the download all files use case. Using SKIP to apply the filter on the join output if needed. Not found items recognised by missing web url.]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="DAD8C9" folded="false" fontSize="medium" height="184" id="Note0" textColor="444444" width="598" x="177" y="-78">
+<attr name="text"><![CDATA[h3. Download files from OneDrive/Sharepoint
+
+Dowloads files from selected sharepoit location (DRIVE_ID and ITEM_ID) into local directory (LOCAL_DIR).
+
+If LIST_FILES is provided only files on the list are downloaded. The list is delimited by a configuramble delimiter (LIST_FILES_SEPARATOR - input as regex). If any of the listed files cannot be found an error is produced. The list of files can alo be specified via an dictionary entry (listFiles of type [string]).
+
+If  LIST_FILES is not provided all files in the location are retieved.]]></attr>
+</RichTextNote>
+<Dictionary>
+<Entry contentType="string" input="true" name="listFiles" output="false" type="list"/>
+</Dictionary>
+</Global>
+<Phase number="0">
+<Node guiName="copy files from Drive to local" guiX="1267" guiY="166" id="COPY_FILES_FROM_DRIVE_TO_LOCAL" makeParentDirs="${MAKE_PARENT_DIRS}" type="COPY_FILES">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.sourceURL = $in.0.microsoft_graph_downloadUrl;
+	$out.0.targetURL = "${LOCAL_DIR}/" + $in.0.name;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node enabled="enableWhenOutputPort1IsDisconnected" guiName="denormalize error output" guiX="1511" guiY="545" id="DENORMALIZE_ERROR_OUTPUT" type="DENORMALIZER">
+<attr name="denormalize"><![CDATA[//#CTL2
+// This transformation defines the way in which multiple input records 
+// (with the same key) are denormalized into one output record. 
+
+list[string] errorMessages = [];
+integer counter = 1;
+
+// This function is called for each input record from a group of records
+// with the same key.
+function integer append() {
+	append(errorMessages, "Error" + counter + ": " + $in.0.errorMessage);
+	
+	counter++;
+	return 0;
+}
+
+// This function is called once after the append() function was called for all records
+// of a group of input records defined by the key.
+// It creates a single output record for the whole group.
+function integer transform() {
+	$out.0.errorMessage = join(";\n", errorMessages);
+	
+	return OK;
+}
+
+]]></attr>
+</Node>
+<Node enabled="enableWhenOutputPort1IsDisconnected" guiName="Fail" guiX="1730" guiY="545" id="FAIL" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = $in.0.errorMessage;
+	
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="File list - to download" guiX="610" guiY="312" id="FILE_LIST_TO_DOWNLOAD" recordsNumber="-1" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Take the list of files to download from dictionary, 
+// fallback to using the parameter and configured delimiter
+list[string] listFiles;
+
+integer counter = 0;
+
+// Generates output record.
+function integer generate() {
+	
+	if(isEmpty(listFiles) or counter == length(listFiles)){
+		return STOP;	
+	}
+	$out.0.name = listFiles[counter];
+	counter++;
+	return ALL;
+}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+function void preExecute() {
+	if(isEmpty(dictionary.listFiles)){
+		if(isBlank(getParamValue("LIST_FILES"))){
+			listFiles = [];
+		}else{
+			listFiles = split(getParamValue("LIST_FILES"), getParamValue("LIST_FILES_SEPARATOR"));	
+		}
+	}else{
+		listFiles = dictionary.listFiles;
+	}
+}]]></attr>
+</Node>
+<Node guiName="filter files" guiX="412" guiY="166" id="FILTER_FILES" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.isFile]]></attr>
+</Node>
+<Node guiName="Filter not found" guiX="1064" guiY="166" id="FILTER_NOT_FOUND" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	if(isBlank($in.0.microsoft_graph_downloadUrl)){
+		$out.1.errorMessage = "File: " + $in.0.name + " not found.";
+		return 1;
+	}
+	$out.0.* = $in.0.*;
+	return 0;
+}
+]]></attr>
+</Node>
+<Node guiName="map columns" guiX="629" guiY="166" id="MAP_COLUMNS" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.name = $in.0.name;
+	$out.0.microsoft_graph_downloadUrl = $in.0.MSDonwloadUrl;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="mark files to download" guiX="832" guiY="166" id="MARK_FILES_TO_DOWNLOAD" joinKey="$name=$name" joinType="fullOuter" type="EXT_HASH_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Take the list of files to download from dictionary, 
+// fallback to using the parameter and configured delimiter
+// empty list means no filtering is applied and all files are downloaded
+boolean filtering_active = true;
+
+
+// Transforms input record into output record.
+function integer transform() {
+	//not on the list
+	if(filtering_active and $in.1.name == null){
+		return SKIP;
+	}
+	
+	$out.0.* = $in.0.*;
+	
+	//record is on the list but not in sharepoint
+	if(isBlank($out.0.name)){
+		$out.0.name = $in.1.name;
+	}
+	
+	return ALL;
+}
+
+function void preExecute() {
+	if(
+		isEmpty(dictionary.listFiles) 
+			and 
+		isBlank(getParamValue("LIST_FILES"))
+	){	
+		filtering_active = false;
+	}
+}]]></attr>
+</Node>
+<Node __CLIENT_ID="${CLIENT_ID}" __CLIENT_SECRET="${CLIENT_SECRET}" __DRIVE_ID="${DRIVE_ID}" __ITEM_ID="${ITEM_ID}" __O_AUTH2_CONNECTION="${O_AUTH2_CONNECTION}" __PASSWORD="${PASSWORD}" __SCOPE="${SCOPE}" __TENANT_ID="${TENANT_ID}" __TIMEOUT="${TIMEOUT}" __TIMEOUT_UPLOAD="${TIMEOUT_UPLOAD}" __USERNAME="${USERNAME}" guiName="OneDrive List Items" guiX="176" guiY="166" id="ONE_DRIVE_LIST_ITEMS" jobURL="${SUBGRAPH_DIR}/public/ListItems.sgrf" type="SUBGRAPH"/>
+<Node guiName="SimpleGather" guiX="1565" guiY="444" id="SIMPLE_GATHER" type="SIMPLE_GATHER"/>
+<Node guiName="SubgraphInput" guiX="89" guiY="-75" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1901" guiY="-75" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="187" name="0"/>
+<Port guiY="457" name="1"/>
+<Port guiY="527" name="2"/>
+</Node>
+<Edge fromNode="COPY_FILES_FROM_DRIVE_TO_LOCAL:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" metadata="CopyFiles_Result" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="COPY_FILES_FROM_DRIVE_TO_LOCAL:1" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 1 (error)" toNode="SIMPLE_GATHER:0"/>
+<Edge fromNode="DENORMALIZE_ERROR_OUTPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="FAIL:0"/>
+<Edge fromNode="FILE_LIST_TO_DOWNLOAD:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 1 (slave)" metadata="FileList" outPort="Port 0 (out)" toNode="MARK_FILES_TO_DOWNLOAD:1"/>
+<Edge fromNode="FILTER_FILES:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" outPort="Port 0 (accepted)" toNode="MAP_COLUMNS:0"/>
+<Edge fromNode="FILTER_NOT_FOUND:0" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 0 (in)" metadata="FileList" outPort="Port 0 (out)" toNode="COPY_FILES_FROM_DRIVE_TO_LOCAL:0"/>
+<Edge fromNode="FILTER_NOT_FOUND:1" guiBendpoints="" guiRouter="Manhattan" id="Edge14" inPort="Port 2 (in)" metadata="Metadata1" outPort="Port 1 (out)" toNode="SIMPLE_GATHER:2"/>
+<Edge fromNode="MAP_COLUMNS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (driver)" metadata="FileList" outPort="Port 0 (out)" toNode="MARK_FILES_TO_DOWNLOAD:0"/>
+<Edge fromNode="MARK_FILES_TO_DOWNLOAD:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="FileList" outPort="Port 0 (out)" toNode="FILTER_NOT_FOUND:0"/>
+<Edge fromNode="ONE_DRIVE_LIST_ITEMS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="FILTER_FILES:0"/>
+<Edge fromNode="ONE_DRIVE_LIST_ITEMS:1" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 1 (in)" outPort="Port 1 (out)" toNode="SIMPLE_GATHER:1"/>
+<Edge fromNode="SIMPLE_GATHER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:1"/>
+<Edge fromNode="SIMPLE_GATHER:1" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="DENORMALIZE_ERROR_OUTPUT:0"/>
+</Phase>
+</Graph>

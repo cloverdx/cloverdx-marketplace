@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" created="Tue Sep 26 15:02:22 CEST 2023" description="The BigQueryTarget is a target component in CloverDX Wrangler that allows writing data to BigQuery tables using Storage Write API. The configuration settings include the Project ID, Data set name, Table name and Path to JSON credentials." guiVersion="6.2.0.8" id="1696252688722" licenseCode="CLCDSCLOVE24765514SP" name="BigQueryTarget" nature="subgraph" showComponentDetails="true">
+<Global>
+<inputPorts>
+<singlePort connected="true" name="0"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="false" keepEdge="true" name="0" required="false"/>
+</outputPorts>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="debugInput1" recordDelimiter="\n" type="delimited">
+<Field name="field1" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="ConnectorTarget_Rejects">
+<Record fieldDelimiter="|" name="SubgraphOutput_ConnectorTarget_Rejects" recordDelimiter="\n" type="delimited">
+<Field name="wranglerId" type="long"/>
+<Field name="rejectReasonFieldName" type="string"/>
+<Field name="rejectReasonMessage" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter label="Table name" name="_TABLE__NAME" public="true" required="true">
+<attr name="description"><![CDATA[The name of the table to load data into. Required.]]></attr>
+</GraphParameter>
+<GraphParameter label="Batch size" name="_BATCH__SIZE" public="true" required="false" value="100">
+<attr name="description"><![CDATA[The number of records that can be sent to a database in one batch update.]]></attr>
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter label="Ignore unknown fields" name="_IGNORE_UNKWNOWN_FIELDS" public="true" required="false" value="true">
+<attr name="description"><![CDATA[If true, unknown Json fields to BigQuery will be ignored instead of error out. Please note, it can lead to unintentional data loss, because unknown fields are silently dropped.]]></attr>
+<SingleType name="bool"/>
+</GraphParameter>
+<GraphParameter label="Enable reject information" name="_ENABLE__REJECT__INFORMATION" public="true" required="false" value="true">
+<attr name="description"><![CDATA[If true, the component will return information about all the records that were not uploaded into the table. Records are written to the Error port (port 0). Metadata auto-propagation works for the error port.]]></attr>
+<SingleType name="bool"/>
+</GraphParameter>
+<GraphParameter defaultHint="Default stream" label="Processing type" name="_PROCESSING__TYPE" public="true" required="false" value="defaultStream">
+<attr name="description"><![CDATA[Type of processing]]></attr>
+<SingleType allowCustomValues="false" name="simpleEnum" values="defaultStream|Default stream;committed|Committed;pending|Pending"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="Max retry count" name="_MAX__RETRY__COUNT" public="true" required="false" value="3">
+<attr name="description"><![CDATA[The Max retry count property determines the number of times the component attempts to append a batch when the previous attempt fails. The component only retries if the failure is caused by an INTERNAL, CANCELLED, or ABORTED error code. If the component reaches the maximum number of retries without success, it will report a failure.
+
+]]></attr>
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="Max recreate count" name="_MAX__RECREATE__COUNT" public="true" required="false" value="3">
+<attr name="description"><![CDATA[The Max recreate count property specifies the number of times the component tries to reconnect to the server when the connection is closed. The component only reconnects if the connection is closed by the server or by a network error. If the component reaches the maximum number of recreations without success, it will report a failure.
+
+]]></attr>
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter label="Write mode" name="_WRITE__MODE" public="true" required="false" secure="false" value="APPEND">
+<SingleType allowCustomValues="false" name="simpleEnum" values="APPEND|Append;TRUNCATE|Truncate"/>
+</GraphParameter>
+<GraphParameter name="_PATH__TO__CREDENTIALS_ABSOLUTE">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return toAbsolutePath(getParamValue("_PATH__TO__CREDENTIALS"));
+}
+]]></attr>
+</GraphParameter>
+<GraphParameterFile fileURL="library.prm"/>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node ___BATCH__SIZE="${_BATCH__SIZE}" ___DATASET__NAME="${_DATASET__NAME}" ___ENABLE__REJECT__INFORMATION="${_ENABLE__REJECT__INFORMATION}" ___IGNORE_UNKWNOWN_FIELDS="${_IGNORE_UNKWNOWN_FIELDS}" ___MAX__RECREATE__COUNT="${_MAX__RECREATE__COUNT}" ___MAX__RETRY__COUNT="${_MAX__RETRY__COUNT}" ___PATH__TO__CREDENTIALS="${_PATH__TO__CREDENTIALS}" ___PROCESSING__TYPE="${_PROCESSING__TYPE}" ___PROJECT__ID="${_PROJECT__ID}" ___TABLE__NAME="${_TABLE__NAME}" ___WRITE__MODE="${_WRITE__MODE}" guiName="BigQueryWriter" guiX="343" guiY="100" id="BIG_QUERY_WRITER" jobURL="${GRAPH_DIR}/BigQueryWriter.sgrf" type="SUBGRAPH"/>
+<Node debugInput="true" guiName="DebugInput" guiX="30" guiY="100" id="DATA_GENERATOR0" recordsNumber="1" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the generate. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if generate() throws an exception.
+// function integer generateOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Map" guiX="533" guiY="100" id="MAP" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.wranglerId = $in.0.rowNum;
+	$out.0.rejectReasonMessage = $in.0.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="200" guiY="10" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="849" guiY="10" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Edge fromNode="BIG_QUERY_WRITER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="MAP:0"/>
+<Edge fromNode="DATA_GENERATOR0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SUBGRAPH_INPUT0:0"/>
+<Edge fromNode="MAP:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="ConnectorTarget_Rejects" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="SUBGRAPH_INPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="BIG_QUERY_WRITER:0"/>
+</Phase>
+</Graph>

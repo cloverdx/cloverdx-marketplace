@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GraphParameters>
+<GraphParameter label="Account Identifier" name="SNOWFLAKE_ACCOUNT_IDENTIFIER" public="true">
+<attr name="description"><![CDATA[Identifier of the Snowflake account]]></attr>
+</GraphParameter>
+<GraphParameter label="Warehouse" name="SNOWFLAKE_WAREHOUSE" public="true">
+<attr name="description"><![CDATA[The name target Snowflake warehouse.]]></attr>
+</GraphParameter>
+<GraphParameter label="Region" name="SNOWFLAKE_REGION" public="true">
+<attr name="description"><![CDATA[The region where the Snowflake compute resources are located, e.g. "west-europe.azure".]]></attr>
+</GraphParameter>
+<GraphParameter label="Database name" name="SNOWFLAKE_DATABASE" public="true">
+<attr name="description"><![CDATA[Name of the target database. ]]></attr>
+</GraphParameter>
+<GraphParameter label="Schema" name="SNOWFLAKE_SCHEMA" public="true">
+<attr name="description"><![CDATA[Name of the target schema.]]></attr>
+</GraphParameter>
+<GraphParameter label="Username" name="SNOWFLAKE_USERNAME" public="true">
+<attr name="description"><![CDATA[Username of the user used to connect to Snowflake.]]></attr>
+</GraphParameter>
+<GraphParameter label="Password" name="SNOWFLAKE_PASSWORD" public="true" secure="true">
+<attr name="description"><![CDATA[Password of the user used to connect to Snowflake.]]></attr>
+</GraphParameter>
+</GraphParameters>

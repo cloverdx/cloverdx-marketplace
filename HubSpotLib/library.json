@@ -1,0 +1,127 @@
+{
+  "descriptor" : {
+    "version" : "1.2",
+    "name" : "HubSpotLib",
+    "description" : "Provides developer-level access to HubSpot CRM, enabling advanced operations on standard and custom objects, including updates, associations, and schema discovery.",
+    "productVersion" : "6.6.0.4",
+    "maxProductVersion" : "",
+    "minProductVersion" : "6.0",
+    "lastModificationDate" : "2024-10-03T12:06:07Z",
+    "initializationJob" : "graph/HubSpotLibInit.grf",
+    "author" : "CloverDX"
+  },
+  "connections" : {
+    "oauth2Connections" : [ ]
+  },
+  "publicInterface" : {
+    "subgraphs" : [ {
+      "mediumIcon" : "./icons/HubSpot-32.png",
+      "largeIcon" : "./icons/HubSpot-64.png",
+      "icon" : "./icons/HubSpot-64.png",
+      "description" : "Reads data from HubSpot Companies object.",
+      "path" : "graph/subgraph/Connector/Companies.sgrf"
+    }, {
+      "mediumIcon" : "./icons/HubSpot-32.png",
+      "largeIcon" : "./icons/HubSpot-64.png",
+      "icon" : "./icons/HubSpot-64.png",
+      "description" : "Reads data from HubSpot Contacts object.",
+      "path" : "graph/subgraph/Connector/Contacts.sgrf"
+    }, {
+      "mediumIcon" : "./icons/HubSpot-32.png",
+      "largeIcon" : "./icons/HubSpot-64.png",
+      "icon" : "./icons/HubSpot-64.png",
+      "description" : "Reads data from HubSpot Deals object.",
+      "path" : "graph/subgraph/Connector/Deals.sgrf"
+    }, {
+      "mediumIcon" : "./icons/HubSpot-32.png",
+      "largeIcon" : "./icons/HubSpot-64.png",
+      "icon" : "./icons/HubSpot-64.png",
+      "description" : "Reads data from HubSpot Products object.",
+      "path" : "graph/subgraph/Connector/Products.sgrf"
+    }, {
+      "mediumIcon" : "./icons/HubSpot-32.png",
+      "largeIcon" : "./icons/HubSpot-64.png",
+      "icon" : "./icons/HubSpot-64.png",
+      "description" : "Reads data from HubSpot Tickets object.",
+      "path" : "graph/subgraph/Connector/Tickets.sgrf"
+    }, {
+      "mediumIcon" : "./icons/HubSpot-32.png",
+      "largeIcon" : "./icons/HubSpot-64.png",
+      "icon" : "./icons/HubSpot-16.png",
+      "description" : "Reads data from HubSpot Companies object.",
+      "path" : "graph/subgraph/GetAllCompanies.sgrf"
+    }, {
+      "mediumIcon" : "./icons/HubSpot-32.png",
+      "largeIcon" : "./icons/HubSpot-64.png",
+      "icon" : "./icons/HubSpot-16.png",
+      "description" : "Reads data from HubSpot Contacts object.",
+      "path" : "graph/subgraph/GetAllContacts.sgrf"
+    }, {
+      "mediumIcon" : "./icons/HubSpot-32.png",
+      "largeIcon" : "./icons/HubSpot-64.png",
+      "icon" : "./icons/HubSpot-16.png",
+      "description" : "Reads data from HubSpot Deals object.",
+      "path" : "graph/subgraph/GetAllDeals.sgrf"
+    }, {
+      "mediumIcon" : "./icons/HubSpot-32.png",
+      "largeIcon" : "./icons/HubSpot-64.png",
+      "icon" : "./icons/HubSpot-16.png",
+      "description" : "Reads data from HubSpot Line items object.",
+      "path" : "graph/subgraph/GetAllLineItems.sgrf"
+    }, {
+      "mediumIcon" : "./icons/HubSpot-32.png",
+      "largeIcon" : "./icons/HubSpot-64.png",
+      "icon" : "./icons/HubSpot-16.png",
+      "description" : "Reads data from HubSpot Products object.",
+      "path" : "graph/subgraph/GetAllProducts.sgrf"
+    }, {
+      "mediumIcon" : "./icons/HubSpot-32.png",
+      "largeIcon" : "./icons/HubSpot-64.png",
+      "icon" : "./icons/HubSpot-16.png",
+      "description" : "Reads data from HubSpot Tickets object.",
+      "path" : "graph/subgraph/GetAllTickets.sgrf"
+    } ],
+    "metadata" : [ ],
+    "restJobs" : [ ],
+    "dataConnectors" : {
+      "sources" : [ {
+        "mediumIcon" : "./icons/HubSpot-32.png",
+        "largeIcon" : "./icons/HubSpot-64.png",
+        "icon" : "./icons/HubSpot-64.png",
+        "description" : "Reads data from HubSpot Companies object.",
+        "path" : "graph/subgraph/Connector/Companies.sgrf"
+      }, {
+        "mediumIcon" : "./icons/HubSpot-32.png",
+        "largeIcon" : "./icons/HubSpot-64.png",
+        "icon" : "./icons/HubSpot-64.png",
+        "description" : "Reads data from HubSpot Contacts object.",
+        "path" : "graph/subgraph/Connector/Contacts.sgrf"
+      }, {
+        "mediumIcon" : "./icons/HubSpot-32.png",
+        "largeIcon" : "./icons/HubSpot-64.png",
+        "icon" : "./icons/HubSpot-64.png",
+        "description" : "Reads data from HubSpot Deals object.",
+        "path" : "graph/subgraph/Connector/Deals.sgrf"
+      }, {
+        "mediumIcon" : "./icons/HubSpot-32.png",
+        "largeIcon" : "./icons/HubSpot-64.png",
+        "icon" : "./icons/HubSpot-64.png",
+        "description" : "Reads data from HubSpot Products object.",
+        "path" : "graph/subgraph/Connector/Products.sgrf"
+      }, {
+        "mediumIcon" : "./icons/HubSpot-32.png",
+        "largeIcon" : "./icons/HubSpot-64.png",
+        "icon" : "./icons/HubSpot-64.png",
+        "description" : "Reads data from HubSpot Tickets object.",
+        "path" : "graph/subgraph/Connector/Tickets.sgrf"
+      } ],
+      "targets" : [ ]
+    },
+    "jobflows" : [ ],
+    "graphs" : [ ]
+  },
+  "healthCheck" : {
+    "description" : "",
+    "path" : "graph/Healthcheck.grf"
+  }
+}

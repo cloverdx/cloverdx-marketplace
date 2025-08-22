@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Martin" created="Thu Sep 22 10:59:50 CEST 2022" guiVersion="5.17.0.3" id="1664260115702" licenseCode="CLP1DCLOVE28718064BY" name="MappingWrapper" nature="subgraph" showComponentDetails="true">
+<Global>
+<inputPorts>
+<singlePort connected="false" keepEdge="false" name="0" required="false"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="false" name="0"/>
+<singlePort connected="false" keepEdge="false" name="1" required="false"/>
+</outputPorts>
+<GraphParameters>
+<GraphParameter label="HS properties to metadata mapping" name="FIELD_MAPPING" public="true" required="false"/>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameter label="HS object name" name="OBJECT" public="true" required="false" value="deals">
+<ComponentReference referencedComponent="CRM_OBJECT_PROPERIES_API_V3" referencedProperty="__OBJECT"/>
+</GraphParameter>
+<GraphParameter name="ABSOLUTE_META_PATH" public="true"/>
+<GraphParameter category="advanced" label="Associations" name="ASSOCIATIONS" public="true" required="false"/>
+<GraphParameter category="advanced" label="Associations output field name" name="ASSOCIATIONS_FIELD_NAME" public="true" required="false">
+<SingleType edge="Edge3" name="field"/>
+</GraphParameter>
+<GraphParameter label="Operation" name="OPERATION" public="true" required="false" value="List">
+<ComponentReference referencedComponent="CRM_OBJECT_API_V3" referencedProperty="__OPERATION"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="Object ID field name" name="OBJECT_ID_FIELD_NAME" public="true" required="false">
+<ComponentReference referencedComponent="CRM_OBJECT_API_V3" referencedProperty="__OBJECT_ID_FIELD_NAME"/>
+</GraphParameter>
+<GraphParameter name="NUM_OF_PREVIEW_RECORDS" public="false"/>
+<GraphParameterFile fileURL="libraries.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node __ASSOCIATIONS="${ASSOCIATIONS}" __ASSOCIATIONS_FIELD_NAME="${ASSOCIATIONS_FIELD_NAME}" __LIMIT="100" __MAX_NUMBER_OF_RECORDS="${NUM_OF_PREVIEW_RECORDS}" __OBJECT="${OBJECT}" __OBJECT_ID_FIELD_NAME="${OBJECT_ID_FIELD_NAME}" __OPERATION="${OPERATION}" __O_AUTH2_CONNECTION="${HUBSPOT_OAUTH2_CONNECTION}" __PRIVATE_APP_TOKEN="${HUBSPOT_PRIVATE_APP_TOKEN}" guiName="CrmObjectApiV3" guiX="214" guiY="125" id="CRM_OBJECT_API_V3" jobURL="${HUB_SPOT_CRM_API_LIB}/graph/CrmObjectApiV3.sgrf" type="SUBGRAPH">
+<attr name="__FIELD_MAPPING"><![CDATA[${FIELD_MAPPING}]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="50" guiY="10" id="SUBGRAPH_INPUT" type="SUBGRAPH_INPUT">
+<Port guiY="110" name="0"/>
+<Port guiY="180" name="1"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="461" guiY="10" id="SUBGRAPH_OUTPUT" type="SUBGRAPH_OUTPUT">
+<Port guiY="142" name="0"/>
+<Port guiY="212" name="1"/>
+<Port guiY="282" name="2"/>
+</Node>
+<Edge fromNode="CRM_OBJECT_API_V3:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:0"/>
+<Edge fromNode="CRM_OBJECT_API_V3:1" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 1 (in)" outPort="Port 1 (out)" toNode="SUBGRAPH_OUTPUT:1"/>
+<Edge fromNode="SUBGRAPH_INPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="CRM_OBJECT_API_V3:0"/>
+</Phase>
+</Graph>

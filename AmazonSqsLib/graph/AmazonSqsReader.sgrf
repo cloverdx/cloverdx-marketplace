@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Kevin" category="readers" created="Wed Apr 06 08:47:59 EDT 2016" description="Read messages from an SQS queue." guiVersion="5.15.0.15" id="1459976395651" largeIconPath="${PROJECT}/icons/amazon-sqs-logo64.png" licenseCode="CLP1DJAVLI51655480BY" licenseType="Commercial" mediumIconPath="${PROJECT}/icons/amazon-sqs-logo32.png" modified="Mon Apr 25 15:29:09 EDT 2016" modifiedBy="Pavel Svec" name="SQSReader" nature="subgraph" revision="1.18" showComponentDetails="true" smallIconPath="${PROJECT}/icons/amazon-sqs-logo16.png">
+<Global>
+<outputPorts>
+<singlePort connected="true" name="0"/>
+<singlePort connected="true" keepEdge="true" name="1" required="false"/>
+</outputPorts>
+<Metadata id="Metadata2" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="|" name="SqsAttribute" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\r\n" type="delimited">
+<Field name="messageId" type="string"/>
+<Field name="dataType" type="string"/>
+<Field name="name" type="string"/>
+<Field name="value" type="string"/>
+<Field name="byteValue" type="byte"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="|" name="SqsMessage" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\r\n" type="delimited">
+<Field name="id" type="string"/>
+<Field name="body" type="string"/>
+<Field name="receiptHandle" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter category="advanced" label="Remove read messages" name="SQS_REMOVE_READ" public="true" value="true">
+<attr name="description"><![CDATA[If enabled the messages read will be deleted from the queue.]]></attr>
+<SingleType name="bool"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="Only check queue status" name="SQS_CHECK_STATUS" public="true" value="false">
+<attr name="description"><![CDATA[If enabled the component will return the approximate number of pending messages on port 2, but will not actually read any messages. ]]></attr>
+<SingleType name="bool"/>
+</GraphParameter>
+<GraphParameter label="Limit number of retrieved messages" name="SQS_MAX_MESSAGES" public="true" required="false">
+<attr name="description"><![CDATA[Set maximum number of messages that should be retrieved from the queue. Leave empty or set 0/negative for unlimited.]]></attr>
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="Wait up to (sec)" name="SQS_WAIT_TIME" public="true" required="false">
+<attr name="description"><![CDATA[Amount of time (in seconds) to wait for a message to appear in the queue. Max 20. Also changes the polling strategy: short vs long polling. Default is short polling (0 sec).
+Read more - https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-short-and-long-polling.html]]></attr>
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="Visibility timeout (sec)" name="SQS_VISIBILITY_TIMEOUT" public="true" required="false" secure="true">
+<attr name="description"><![CDATA[The duration (in seconds) that the received messages are hidden from subsequent retrieve requests after being retrieved. Default 30s. Maximum 12 hours.]]></attr>
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="amazonsqs.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node AWSAccessKey="${AWS_ACCESS_KEY}" AWSSecretKey="${AWS_SECRET_KEY}" SQSGetQueueStatus="${SQS_CHECK_STATUS}" SQSMaxMessages="${SQS_MAX_MESSAGES}" SQSQueueName="${SQS_QUEUE_NAME}" SQSRegion="${SQS_REGION}" SQSRemoveReadMessages="${SQS_REMOVE_READ}" SQSVisibilityTimeout="${SQS_VISIBILITY_TIMEOUT}" SQSWaitTime="${SQS_WAIT_TIME}" genericTransformClass="com.cloverdx.libraries.sqs.Reader" guiName="AWS SQS Reader" guiX="214" guiY="142" id="AWS_SQS_READER" type="GENERIC_READER"/>
+<Node debugOutput="true" guiName="DebugOutput" guiX="574" guiY="142" id="DEBUG_OUTPUT" type="TRASH"/>
+<Node guiName="SubgraphInput" guiX="50" guiY="10" id="SUBGRAPH_INPUT" type="SUBGRAPH_INPUT">
+<Port guiY="110" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="460" guiY="11" id="SUBGRAPH_OUTPUT" type="SUBGRAPH_OUTPUT">
+<Port guiY="159" name="0"/>
+<Port guiY="229" name="1"/>
+<Port guiY="299" name="2"/>
+</Node>
+<Node debugOutput="true" guiName="Trash" guiX="568" guiY="235" id="TRASH" type="TRASH"/>
+<Edge debugMode="true" fromNode="AWS_SQS_READER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:0"/>
+<Edge fromNode="AWS_SQS_READER:1" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 1 (in)" metadata="Metadata2" outPort="Port 1 (out)" toNode="SUBGRAPH_OUTPUT:1"/>
+<Edge fromNode="SUBGRAPH_OUTPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="DEBUG_OUTPUT:0"/>
+<Edge fromNode="SUBGRAPH_OUTPUT:1" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="TRASH:0"/>
+</Phase>
+</Graph>

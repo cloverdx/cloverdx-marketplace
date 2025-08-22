@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Branislav Repcek" created="Wed Feb 22 17:52:11 CET 2023" guiVersion="6.0.0.1544" id="1677113688173" licenseCode="CLCDSCLOVE85208925SP" name="Get streets" showComponentDetails="true">
+<Global>
+<Metadata fileURL="${META_DIR}/Street.fmt" id="Metadata1"/>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="NameTagWithType" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="name" type="string"/>
+<Field name="type" type="string"/>
+<Field name="highway" type="string"/>
+<Field name="bridge" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter name="TEMP_FILE_URL" value="${DATATMP_DIR}/cz-streets.json"/>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="Fail" guiX="399" guiY="219" id="FAIL" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.errorMessage = "HTTP " + $in.0.statusCode + ": " + $in.0.errorMessage;
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="Filter" guiX="147" guiY="153" id="FILTER" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.statusCode == 200]]></attr>
+</Node>
+<Node guiName="Get OSM data" guiX="-79" guiY="153" id="GET_OSM_DATA" outFileUrl="${TEMP_FILE_URL}" requestMethod="POST" type="HTTP_CONNECTOR" url="https://overpass-api.de/api/interpreter">
+<attr name="headerProperties"><![CDATA['Accept-Encoding=gzip, deflate
+]]></attr>
+<attr name="requestContent"><![CDATA[[out:json];
+  area[name="Česko"];
+  way(area)[highway][name];
+out;
+]]></attr>
+</Node>
+<Node guiName="Success" guiX="399" guiY="67" id="SUCCESS" type="SUCCESS"/>
+<Edge fromNode="FILTER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" outPort="Port 0 (accepted)" toNode="SUCCESS:0"/>
+<Edge fromNode="FILTER:1" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" outPort="Port 1 (rejected)" toNode="FAIL:0"/>
+<Edge fromNode="GET_OSM_DATA:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="FILTER:0"/>
+</Phase>
+<Phase number="1">
+<Node dedupKey="name(a)" equalNULL="true" guiName="Dedup" guiX="798" guiY="412" id="DEDUP" keep="first" sorted="true" type="DEDUP"/>
+<Node guiName="ExtSort" guiX="566" guiY="412" id="EXT_SORT" sortKey="name(a)" type="EXT_SORT"/>
+<Node guiName="Filter" guiX="143" guiY="412" id="FILTER1" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.type == "way" &&
+$in.0.highway == "residential" &&
+($in.0.bridge == "no" || $in.0.bridge == null) &&
+!($in.0.name ~= "[0-9-]+") &&
+!startsWith($in.0.name, "(") &&
+!contains($in.0.name, "Ⅱ")]]></attr>
+</Node>
+<Node guiName="Map" guiX="1007" guiY="412" id="MAP" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.streetName = $in.0.name;
+	$out.0.minHouseNum = 1;
+	$out.0.maxHouseNum = 100;
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="Map" guiX="337" guiY="412" id="MAP2" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+import "${TRANS_DIR}/Common.ctl";
+
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.name = fixPeriods($in.0.name);
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="Read streets" guiX="-79" guiY="412" id="READ_STREETS" schema="${META_DIR}/OpenStreetMaps-StreetsResponse.xsd" sourceUri="${TEMP_FILE_URL}" type="JSON_EXTRACT">
+<attr name="mapping"><![CDATA[<Mappings>
+	<Mapping element="json_object">
+		<Mapping element="elements">
+			<Mapping element="tags" outPort="0"
+					xmlFields="../{}type;{}bridge;{}highway;{}name"
+					cloverFields="type;bridge;highway;name">
+			</Mapping>
+		</Mapping>
+	</Mapping>
+</Mappings>
+]]></attr>
+</Node>
+<Node charset="UTF-8" fileURL="${DATAIN_DIR}/addresses/cz/streets.csv" guiName="streets.csv" guiX="1207" guiY="412" id="STREETS_CSV" makeDirs="true" outputFieldNames="true" type="FLAT_FILE_WRITER"/>
+<Edge fromNode="DEDUP:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" outPort="Port 0 (unique)" toNode="MAP:0"/>
+<Edge fromNode="EXT_SORT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="DEDUP:0"/>
+<Edge fromNode="FILTER1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 0 (accepted)" toNode="MAP2:0"/>
+<Edge fromNode="MAP:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="STREETS_CSV:0"/>
+<Edge fromNode="MAP2:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="EXT_SORT:0"/>
+<Edge fromNode="READ_STREETS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="FILTER1:0"/>
+</Phase>
+<Phase number="5">
+<Node enabled="trash" fileURL="${TEMP_FILE_URL}" guiName="DeleteFiles" guiX="-79" guiY="629" id="DELETE_FILES" type="DELETE_FILES"/>
+</Phase>
+</Graph>

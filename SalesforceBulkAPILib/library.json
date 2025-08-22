@@ -1,0 +1,58 @@
+{
+  "descriptor" : {
+    "version" : "1.1",
+    "description" : "Integrate CloverDX with Salesforce using Bulk API. Easily read CRM objects like Accounts, Leads, and Opportunities with fast, metadata-driven connectors.",
+    "name" : "SalesforceBulkAPILib",
+    "productVersion" : "7.0.0.15",
+    "author" : "CloverDX",
+    "initializationJob" : "",
+    "lastModificationDate" : "2025-04-30T08:14:12Z",
+    "maxProductVersion" : "",
+    "minProductVersion" : ""
+  },
+  "connections" : {
+    "oauth2Connections" : [ {
+      "jobPath" : "graph/subgraph/SalesforceBulkAPIFileWriter.sgrf",
+      "path" : "conn/SalesforceOAuth.cfg"
+    } ]
+  },
+  "healthCheck" : {
+    "description" : "",
+    "path" : "graph/userHealthCheck.grf"
+  },
+  "publicInterface" : {
+    "dataConnectors" : {
+      "sources" : [ ],
+      "targets" : [ ]
+    },
+    "restJobs" : [ ],
+    "jobflows" : [ ],
+    "subgraphs" : [ {
+      "icon" : "./icons/sf16.png",
+      "largeIcon" : "./icons/sf64.png",
+      "mediumIcon" : "./icons/sf32.png",
+      "description" : "Subgraph for processing file using Salesforce bulk API 2 for operation insert or upsert. ",
+      "path" : "graph/subgraph/SalesforceBulkAPIFileWriter.sgrf"
+    }, {
+      "icon" : "./icons/sf16.png",
+      "largeIcon" : "./icons/sf64.png",
+      "mediumIcon" : "./icons/sf32.png",
+      "description" : "Subgraph using Salesforce bulk API with oauth2 connection to read data from Salesforce",
+      "path" : "graph/subgraph/SalesforceBulkAPIReader.sgrf"
+    }, {
+      "icon" : "./icons/sf16.png",
+      "largeIcon" : "./icons/sf64.png",
+      "mediumIcon" : "./icons/sf32.png",
+      "description" : "The SalesforceBulkAPIStreamWriter processes data from an input edge and performs operations such as insert, update, upsert, delete, and hard delete. The input metadata must match the field names in Salesforce. The output reflects the results of the requested operation.  ",
+      "path" : "graph/subgraph/SalesforceBulkAPIStreamWriter.sgrf"
+    } ],
+    "graphs" : [ ],
+    "metadata" : [ {
+      "path" : "meta/errorOutput.fmt"
+    }, {
+      "path" : "meta/idStateErrMsg.fmt"
+    }, {
+      "path" : "meta/json.fmt"
+    } ]
+  }
+}

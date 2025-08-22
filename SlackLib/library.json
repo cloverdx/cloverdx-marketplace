@@ -1,0 +1,45 @@
+{
+  "descriptor" : {
+    "version" : "1.0.1",
+    "description" : "Send real-time updates from your CloverDX jobs directly to Slack channels. Keep your team informed with automatic alerts, status updates, or notifications.",
+    "name" : "SlackLib",
+    "author" : "CloverDX",
+    "productVersion" : "6.5.0.9",
+    "initializationJob" : "graph/ChannelListInit.grf",
+    "minProductVersion" : "6.0",
+    "maxProductVersion" : "",
+    "lastModificationDate" : "2024-10-01T07:48:46Z"
+  },
+  "connections" : {
+    "oauth2Connections" : [ ]
+  },
+  "publicInterface" : {
+    "metadata" : [ {
+      "path" : "meta/slackMessagePrefixed.fmt"
+    } ],
+    "dataConnectors" : {
+      "sources" : [ ],
+      "targets" : [ ]
+    },
+    "graphs" : [ ],
+    "jobflows" : [ ],
+    "restJobs" : [ ],
+    "subgraphs" : [ {
+      "largeIcon" : "./icons/SlackIcon64.png",
+      "icon" : "./icons/SlackIcon16.png",
+      "mediumIcon" : "./icons/SlackIcon32.png",
+      "description" : "Posts messages in a Slack channel.",
+      "path" : "graph/subgraph/Chat-PostMessage.sgrf"
+    }, {
+      "largeIcon" : "./icons/SlackIcon64.png",
+      "icon" : "./icons/SlackIcon16.png",
+      "mediumIcon" : "./icons/SlackIcon32.png",
+      "description" : "Lists all channels in a Slack team/available visible using this auth token.",
+      "path" : "graph/subgraph/Coversations-List.sgrf"
+    } ]
+  },
+  "healthCheck" : {
+    "description" : "",
+    "path" : ""
+  }
+}

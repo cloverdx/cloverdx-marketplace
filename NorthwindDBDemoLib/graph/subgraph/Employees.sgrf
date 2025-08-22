@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" created="Tue Feb 28 16:10:51 CET 2023" description="Employees list" guiVersion="6.0.0.21" id="1677597151805" largeIconPath="${PROJECT}/icons/icon_64.png" licenseCode="CLCDSCLOVE85208925SP" mediumIconPath="${PROJECT}/icons/icon_32.png" name="Employees" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/icon_16.png">
+<Global>
+<outputPorts>
+<singlePort connected="true" name="0"/>
+</outputPorts>
+<Metadata id="Metadata0">
+<Record fieldDelimiter=";" name="employees" recordDelimiter="\n" type="delimited">
+<Field name="employee_id" size="5" type="integer"/>
+<Field name="last_name" size="20" type="string"/>
+<Field name="first_name" size="10" type="string"/>
+<Field name="title" size="30" type="string"/>
+<Field name="title_of_courtesy" size="25" type="string"/>
+<Field format="yyyy-MM-dd" name="birth_date" size="13" type="date"/>
+<Field format="yyyy-MM-dd" name="hire_date" size="13" type="date"/>
+<Field name="address" size="60" type="string"/>
+<Field name="city" size="15" type="string"/>
+<Field name="region" size="15" type="string"/>
+<Field name="postal_code" size="10" type="string"/>
+<Field name="country" size="15" type="string"/>
+<Field name="home_phone" size="24" type="string"/>
+<Field name="extension" size="4" type="string"/>
+<Field name="notes" type="string"/>
+<Field name="reports_to" size="5" type="integer"/>
+</Record>
+</Metadata>
+<Connection dbConfig="${CONN_DIR}/NorthwindDB.cfg" id="JDBC0" type="JDBC"/>
+<GraphParameters>
+<GraphParameter name="NUM_OF_PREVIEW_RECORDS">
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter name="LIMIT_CLAUSE">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+
+	string preview= getParamValue("NUM_OF_PREVIEW_RECORDS");
+	
+	if (!isBlank(preview)) {
+		return "LIMIT "+preview;
+	} else {
+		return "";
+	}
+}
+]]></attr>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node dbConnection="JDBC0" guiName="ReadEmployees" guiX="182" guiY="134" id="READ_EMPLOYEES" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[select employees.employee_id,employees.last_name,employees.first_name,employees.title,employees.title_of_courtesy,employees.birth_date,employees.hire_date,employees.address,employees.city,employees.region,employees.postal_code,employees.country,employees.home_phone,employees.extension,employees.notes,employees.reports_to
+from employees
+${LIMIT_CLAUSE}
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="50" guiY="10" id="SUBGRAPH_INPUT" type="SUBGRAPH_INPUT">
+<Port guiY="110" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="442" guiY="10" id="SUBGRAPH_OUTPUT" type="SUBGRAPH_OUTPUT">
+<Port guiY="151" name="0"/>
+<Port guiY="221" name="1"/>
+</Node>
+<Node debugOutput="true" guiName="Trash" guiX="569" guiY="134" id="TRASH" type="TRASH"/>
+<Edge fromNode="READ_EMPLOYEES:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:0"/>
+<Edge fromNode="SUBGRAPH_OUTPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="TRASH:0"/>
+</Phase>
+</Graph>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="david" created="Sun Apr 16 18:02:05 CEST 2023" description="Populates target (configured) DB with demo data" guiVersion="6.0.0.18" id="1681667542822" licenseCode="CLCDSCLOVE24765514SP" name="init-db" showComponentDetails="true">
+<Global>
+<Connection dbConfig="${CONN_DIR}/NorthwindDB.cfg" id="JDBC0" type="JDBC"/>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node dbConnection="JDBC0" guiName="Initialize DB" guiX="124" guiY="142" id="INITIALIZE_DB" type="DB_EXECUTE" url="${DATAIN_DIR}/northwind.sql"/>
+</Phase>
+</Graph>

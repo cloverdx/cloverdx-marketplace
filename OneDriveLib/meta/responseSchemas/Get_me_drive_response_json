@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="json_object" type="json_objectType"/>
+  <xs:complexType name="userType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="email" minOccurs="0"/>
+      <xs:element type="xs:string" name="id" minOccurs="0"/>
+      <xs:element type="xs:string" name="displayName"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="createdByType">
+    <xs:sequence>
+      <xs:element type="userType" name="user"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="lastModifiedByType">
+    <xs:sequence>
+      <xs:element type="userType" name="user"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ownerType">
+    <xs:sequence>
+      <xs:element type="userType" name="user"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="quotaType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="deleted"/>
+      <xs:element type="xs:string" name="remaining"/>
+      <xs:element type="xs:string" name="state"/>
+      <xs:element type="xs:string" name="total"/>
+      <xs:element type="xs:string" name="used"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="json_objectType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="_x0040odata.context"/>
+      <xs:element type="xs:string" name="createdDateTime"/>
+      <xs:element type="xs:string" name="description"/>
+      <xs:element type="xs:string" name="id"/>
+      <xs:element type="xs:string" name="lastModifiedDateTime"/>
+      <xs:element type="xs:string" name="name"/>
+      <xs:element type="xs:string" name="webUrl"/>
+      <xs:element type="xs:string" name="driveType"/>
+      <xs:element type="createdByType" name="createdBy"/>
+      <xs:element type="lastModifiedByType" name="lastModifiedBy"/>
+      <xs:element type="ownerType" name="owner"/>
+      <xs:element type="quotaType" name="quota"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

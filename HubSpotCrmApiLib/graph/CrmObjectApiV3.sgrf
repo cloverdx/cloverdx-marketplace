@@ -1,0 +1,1178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Martin" category="others" created="Sat Jan 09 19:55:05 CET 2021" description="This subgraph provides several basic operations for manipulating HubSpot CRM objects.&#13;&#10;&#13;&#10;Supported operations&#13;&#10;&#13;&#10;List - get all objects&#13;&#10;Read - gets data for object by it's ID&#13;&#10;Update - updates the HubSpot object &#13;&#10;Archive - moves the object to trash" guiVersion="6.7.1.5" id="1610452798055" largeIconPath="${PROJECT}/icons/HubSpot-64.png" licenseCode="CLP1DCLOVE28718064BY" mediumIconPath="${PROJECT}/icons/HubSpot-32.png" name="getAssociatedObjectIds(APIv3)" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/HubSpot-16.png">
+<Global>
+<inputPorts>
+<singlePort connected="true" keepEdge="false" name="0" required="false"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="true" keepEdge="true" name="0" required="false"/>
+<singlePort connected="true" keepEdge="true" name="1" required="false"/>
+</outputPorts>
+<Metadata id="Metadata4">
+<Record fieldDelimiter="|" name="Dummy" recordDelimiter="\r\n" type="delimited">
+<Field name="Debug" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata5">
+<Record fieldDelimiter="|" name="Error" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="status_code" trim="true" type="integer"/>
+<Field name="response_body" type="string"/>
+<Field name="error_message" type="string"/>
+<Field name="object_id" type="string"/>
+<Field name="request_id" trim="true" type="long"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata3">
+<Record fieldDelimiter="|" name="Object_ID_And_HTTPConnector_Request" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="Object_ID" type="string"/>
+<Field name="URL" type="string"/>
+<Field name="requestContent" type="string"/>
+<Field name="errorMessage" type="string"/>
+<Field containerType="map" name="AdditinalHTTPHeaders" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="HTTPConnector_Response">
+<Record fieldDelimiter="|" name="Object_ID_And_HTTPConnector_Response" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="Object_ID" type="string"/>
+<Field name="content" type="string"/>
+<Field name="statusCode" trim="true" type="integer"/>
+<Field name="errorMessage" type="string"/>
+<Field name="reqestContent" type="string"/>
+<Field name="URL" type="string"/>
+<Field containerType="map" name="AdditinalHTTPHeaders" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="ParsedResponseResult" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="object_id" type="string"/>
+<Field name="request_id" type="long"/>
+<Field name="parsed_result" type="variant"/>
+<Field name="result_type" type="string"/>
+<Field name="batch_request_id" type="long"/>
+<Field name="batch_map" type="variant"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="RequestId" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="_request_id" type="long"/>
+<Field name="_batch_request_id" type="long"/>
+<Field name="_processing_error" type="string"/>
+<Field name="_batch_map" type="variant"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="test" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="Deal_ID" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter label="HS object name" name="OBJECT" public="true" required="true" value="products">
+<attr name="description"><![CDATA[Use one of the provided values or provide your own for a custom object.]]></attr>
+<SingleType allowCustomValues="true" name="simpleEnum" values="companies;contacts;deals;line_items;products;tickets;quotes"/>
+</GraphParameter>
+<GraphParameter label="HS properties to metadata mapping" name="FIELD_MAPPING" public="true" required="false">
+<attr name="description"><![CDATA[Provide mapping between HubSpot property names and Clover metadata field names, in the .properties file format. Left side represents HubSpot names, right side represents Clover names. Clover names are optional, if blank the HubSpot name will be used.]]></attr>
+<SingleType name="properties"/>
+</GraphParameter>
+<GraphParameter label="REQUEST_METHOD" name="REQUEST_METHOD" public="false" required="false">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	switch("${OPERATION}"){
+		case "Read":
+			return "GET";
+		case "Batch read":
+		case "Create":
+			return "POST";
+		case "Update":
+			return "PATCH";
+		case "Archive":
+			return "DELETE";
+		case "List":
+			return "GET";
+		default: 
+			raiseError("Unknown operation parameter value when derriving request method");
+	}
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter label="Operation" name="OPERATION" public="true" required="true" value="Batch read">
+<attr name="description"><![CDATA[Select one of the operations List, Read, Batch read, Create, Update, Archive(move to trash).]]></attr>
+<SingleType allowCustomValues="false" name="simpleEnum" values="Read;Create;Update;Archive;List;Batch read"/>
+</GraphParameter>
+<GraphParameter label="DESIRED_RESPONSE_STATUS" name="DESIRED_RESPONSE_STATUS" public="false" required="false">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	switch("${OPERATION}"){
+		case "Read":
+			return "200";
+		case "Create":
+			return "201";
+		case "Update":
+			return "200";
+		case "Archive":
+			return "204";
+		case "List":
+			return "200";
+		case "Batch read":
+			return "200;207";
+		default: 
+			raiseError("Unknown operation parameter value when derriving sucess response status");
+	}
+}
+
+]]></attr>
+</GraphParameter>
+<GraphParameter category="advanced" defaultHint="Optional - object name plus id suffix will be used automatically" label="Object ID field name" name="OBJECT_ID_FIELD_NAME" public="true" secure="false">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+function string getValue() {
+	return lowerCase(singular(getParamValue("OBJECT")))+"_id";
+}
+
+function string singular(string noun){
+	if(endsWith(noun,'ies')){
+		return left(noun, length(noun)-3) + "y";
+	}else if(endsWith(noun,'s')){
+		return left(noun, length(noun)-1);
+	}else{
+		return noun;
+	}
+}
+]]></attr>
+<attr name="description"><![CDATA[Clover field name mapped to the HubSpot ID. Optional, if no value provided, field name will be generated as lowercase singular object name + _id suffix.]]></attr>
+<SingleType edge="Edge6" fieldType="string" name="field"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="Look in archived records?" name="ARCHIVED" public="true" value="false">
+<attr name="description"><![CDATA[Switches between working on regular or archived records (in trash).]]></attr>
+<SingleType name="bool"/>
+</GraphParameter>
+<GraphParameter category="advanced" defaultHint="Optional. Comma separated list of object names." label="Associations" name="ASSOCIATIONS" public="true">
+<attr name="description"><![CDATA[Get IDs of associated objects. Provide a comma separated list of HubSpot object names to get associations for. Not available in batch read mode.]]></attr>
+</GraphParameter>
+<GraphParameter name="IS_LIST_OPERATION">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return getParamValue("OPERATION") == "List"? "true" : "false";
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter name="NOT_IS_LIST_OPERATION">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return getParamValue("IS_LIST_OPERATION")=="true"?"false":"true";
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter name="TRASHIFY_WHEN_ARCHIVE_OPERATION">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return "${OPERATION}" == "Archive"? "trash":"true";
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter name="IS_ARCHIVE_OPERATION">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return getParamValue("OPERATION") == "Archive"? "true" : "false";;
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter name="NOT_IS_ARCHIVE_OPERATION">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return getParamValue("OPERATION") == "Archive"? "false" : "true";
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter name="API_CALL_SUBGRAPH">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	string api_call_subgraph;
+	
+	if (not isBlank(getParamValue("PRIVATE_APP_TOKEN"))){
+		api_call_subgraph = "${SUBGRAPH_DIR}/ApiCall-PrivateApp.sgrf";
+	} else {
+		api_call_subgraph = "${SUBGRAPH_DIR}/ApiCall-Oauth2.sgrf";
+	}
+	return api_call_subgraph;
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter category="advanced" defaultHint="Mandatory for associations" label="Associations output field name" name="ASSOCIATIONS_FIELD_NAME" public="true">
+<SingleType edge="Edge6" name="field"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="Max number of records" name="MAX_NUMBER_OF_RECORDS" public="true" value="-1">
+<attr name="description"><![CDATA[The number of records to be read, all records are read by default (set as -1). Only makes sense for the List operation.]]></attr>
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter name="IS_BATCH_OPERATION">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+function string getValue() {
+	return toString(getParamValue("OPERATION") == "Batch read");
+}]]></attr>
+</GraphParameter>
+<GraphParameter name="NOT_IS_BATCH_OPERATION">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return toString( not str2bool("${IS_BATCH_OPERATION}"));
+}]]></attr>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="DAD8C9" folded="false" fontSize="medium" height="566" id="Note0" textColor="444444" width="689" x="-371" y="-516">
+<attr name="text"><![CDATA[h1. HubSpot CRM Object API V3
+
+This subgraph provides several basic operations for manipulating HubSpot CRM objects. This is realised via the V3 API. 
+
+This section of HubSpot API documentation can be accessed here:
+https://developers.hubspot.com/docs/api/crm/companies
+https://developers.hubspot.com/docs/api/crm/crm-custom-objects
+...
+See the basic/batch endpoints
+
+The subgraph supports two authorization methods accepted by HubSpot:
+* Private apps
+* OAuth2 - pass in URL of the .cfg file for CloverDX OAuth2 HubSpot connection
+
+If Private App token is not provided OAuth2 method is used.
+
+*Metadata*
+Input:
+* _request_id and _processing_error are reserved field names.
+* must contain a field (string) with the id of the object. The name of the field can be set by a parameter. Defaults to the object type name plus _id suffix, e.g. deal_id. Attempts a conversion of the name to singular.
+Output:
+* a copy by name operation is applied from the input, before merging with the result of the request so you can pass additional fields through.
+
+*Rate limit*
+The connector should be able to adapt to the API rate limit, however this is not properly tested yet.]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="FAF6D6" folded="false" fontSize="medium" height="566" id="Note1" textColor="444444" width="807" x="334" y="-516">
+<attr name="text"><![CDATA[h3. Operations
+
+* *List* - gets all HubSpot objects of the type
+* *Read* - gets data of a HubSpot object by its ID
+* *Batch read* - gets data of a batch of HubSpot objects by their IDs, associations are not supported by this mode
+* *Create* - creates a new HubSpot record
+* *Update* - updates the HubSpot record
+* *Archive* - moves the HubSpot record to trash
+
+h3. Other options
+
+* *Associations* - if this parameter value is provided (comma separated list), a list of associations for each given object type is retrieved.
+* *Archived* - whether to read archived objects (moved to trash). Defaults to false.
+* *Properties history* - will not be implemented
+
+h3. HubSpot properties and metadata field mapping
+
+The properties that are retrieved/set are selected using the _FIELD_MAPPING_ . Expected format is .properties (key:value pairs). The key represents the HubSpot property name, value is the name of the metadata field it should be mapped to. Only the keys are required, if value is omitted the names are assumed to be identical.
+
+A proper conversion is attempted based on the type of field in metadata, but it may fail, especially for integers as HubSpot only has a decimal type.
+
+h3. Errors
+
+The component has an error port, in case it is connected record level errors will be passed there instead of throwing an exception.
+
+h3. Batch
+
+Batch mode for creating/updating/deleting objects is not implemented. Batch read is implemented, but only object's ID can be used for selecting the records (the API supports selection also by other unique properties).]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="FAF6D6" folded="false" fontSize="medium" height="256" id="Note2" textColor="444444" width="530" x="126" y="273">
+<attr name="text"><![CDATA[h3. Main loop (Paging)]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="F9EB81" folded="false" fontSize="medium" height="197" id="Note3" textColor="444444" width="329" x="-772" y="-267">
+<attr name="text"><![CDATA[h3. TODO
+
+* check config
+** correct ports connected based on operation?
+** exactly one auth method provided
+* option to use metadata as implicit mapping]]></attr>
+</RichTextNote>
+<Dictionary>
+<Entry input="false" name="JSON_MAPPING" output="false" type="string"/>
+</Dictionary>
+</Global>
+<Phase number="0">
+<Node guiName="Batch?" guiX="-463" guiY="326" id="BATCH" type="PARTITION">
+<attr name="partitionSource"><![CDATA[//#CTL2
+// This transformation partitions input records into multiple output ports.
+
+// Returns the number of the output port where the input record will be sent.
+function integer getOutputPort() {
+	if(str2bool("${IS_BATCH_OPERATION}")){
+  		return 1;
+  	}
+  	return 0;
+}
+]]></attr>
+</Node>
+<Node __HTTP_CALL_RETRY_COUNT="${HTTP_CALL_RETRY_COUNT}" __HTTP_CALL_RETRY_DELAY="${HTTP_CALL_RETRY_DELAY}" __HTTP_CALL_SUCCESS_STATUS_CODE="${DESIRED_RESPONSE_STATUS}" __HTTP_CALL_TIMEOUT="${HTTP_CALL_TIMEOUT}" __O_AUTH2_CONNECTION="${O_AUTH2_CONNECTION}" __PRIVATE_APP_TOKEN="${PRIVATE_APP_TOKEN}" guiName="Call HubSpot API" guiX="317" guiY="417" id="CALL_HUB_SPOT_API" jobURL="${API_CALL_SUBGRAPH}" skipCheckConfig="false" type="SUBGRAPH"/>
+<Node debugInput="true" guiName="DataGenerator" guiX="-1001" guiY="80" id="DATA_GENERATOR" type="DATA_GENERATOR"/>
+<Node debugOutput="true" guiName="Data port" guiX="2226" guiY="66" id="DATA_PORT" type="TRASH"/>
+<Node enabled="${NOT_IS_LIST_OPERATION}" guiName="Dummy metadata provider" guiX="-490" guiY="195" id="DUMMY_METADATA_PROVIDER" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+	return ALL;
+}]]></attr>
+</Node>
+<Node enabled="${NOT_IS_ARCHIVE_OPERATION}" guiName="Dummy metadata provider" guiX="1493" guiY="195" id="DUMMY_METADATA_PROVIDER1" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+	return ALL;
+}]]></attr>
+</Node>
+<Node enabled="${NOT_IS_LIST_OPERATION}" guiName="Enrich meta" guiX="-463" guiY="80" id="ENRICH_META" type="CROSS_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+long request_id = 0;
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0._request_id = request_id++;
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node enabled="${NOT_IS_ARCHIVE_OPERATION}" guiName="Enrich meta" guiX="1744" guiY="195" id="ENRICH_META1" type="CROSS_JOIN"/>
+<Node debugOutput="true" guiName="Error port" guiX="2226" guiY="326" id="ERROR_PORT" type="TRASH"/>
+<Node guiName="Extract paging" guiX="509" guiY="417" id="EXTRACT_PAGING" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+list[integer] success_status_codes;
+foreach(string success_status_code : split(getParamValue("DESIRED_RESPONSE_STATUS"),";")){
+	success_status_codes.append(str2integer(success_status_code));
+}
+const string OPERATION = getParamValue("OPERATION");
+const long MAX_NUMBER_OF_RECORDS = str2long(getParamValue("MAX_NUMBER_OF_RECORDS"));
+const long UNLIMITED = -1;
+list[string] associationsLst;
+if(isEmpty(getParamValue("ASSOCIATIONS"))){
+	associationsLst = [];
+} else {
+	associationsLst = split(getParamValue("ASSOCIATIONS"), ",");
+}
+
+long maxPages = MAX_NUMBER_OF_RECORDS / str2long(getParamValue("LIMIT"));
+
+boolean isObjectResponse = true; // false means call for the association
+variant objectBody; // store object json from first response; association calls are appended to this object
+long pageNumber = 1;
+
+// containers for associations paging calls
+map[string, list[map[string, string]]] associationsInfo;
+map[string, list[integer]] associationsNext;
+map[string, integer] currentAssociationCall;
+
+// Transforms input record into output record.
+function integer transform() {
+	
+	$out.0.* = $in.0.*;
+
+	if( not isBlank($in.0.httpResponseErrorMessage)
+			or
+		not $in.0.httpResponseStatusCode.in(success_status_codes)
+	){
+		$out.0.* = $in.0.*;
+		$out.0.is_error = true;
+		return 0;
+	}
+	
+	variant parsedResponseBody;
+	
+	try{
+		parsedResponseBody = parseJson($in.0.httpResponseBody);
+	}catch (CTLException ex){
+		$out.0.is_error = true;
+		$out.0.httpResponseErrorMessage = "Parsing response failed with following error:" + ex.message;
+	}
+		
+	//this should not happen unless there is an error on HubSpot side	
+	if( (isnull(parsedResponseBody) or isEmpty(parsedResponseBody))
+			and 
+		$in.0.httpResponseStatusCode != 204) //204 = no content
+	{ 
+		$out.0.is_error = true;
+		$out.0.httpResponseErrorMessage = "Parsing response failed - no content";
+	}
+	
+	// action based on the object type
+	if(isObjectResponse) {
+		objectBody = parsedResponseBody;
+		if(OPERATION == "Read"){
+			objectBody = {"results" -> []};
+			append(objectBody["results"], parsedResponseBody);
+		}
+	} else {
+		appendAssociation(objectBody, parsedResponseBody, currentAssociationCall, associationsInfo);
+	}
+
+	//=======PAGING==========
+	
+	// Associations paging
+	if(not isEmpty(associationsLst) and isObjectResponse) {
+		getAssociationsPaging(objectBody, associationsLst, associationsNext, associationsInfo);
+	}
+	if(not isObjectResponse) { //is association
+		if(objectHasPaging(parsedResponseBody)){
+			// leave currentAssociationCall same and update link in associationsInfo container
+			updateLinkAssociationsInfo(parsedResponseBody, currentAssociationCall, associationsInfo);
+		} else {
+			// remove from associationsNext container
+			removeFromAssociationsNext(currentAssociationCall, associationsNext);
+		}
+	}
+	
+	if(not isEmptyAssociationsNext(associationsNext)) {
+		$out.0.has_next = true;
+		currentAssociationCall = getNextCall(associationsNext);
+		$out.0.httpRequestUrl = getLink(currentAssociationCall, associationsInfo);
+		isObjectResponse = false;
+	}
+	else {
+		// Object paging	
+		if(OPERATION == "List"){
+		
+			/* Is there a next page? Parse the section of document that could look like this
+			 * "paging": {
+			 *    "next": {
+			 *       "after": "...",
+			 *       "link": "..." <- this contains the whole url with all the parameters necessary to get next page
+			 */
+			if(objectHasPaging(objectBody) and (MAX_NUMBER_OF_RECORDS == UNLIMITED or pageNumber < maxPages)) {
+				pageNumber++;
+				$out.0.has_next = true;
+				//set url for next request to next page
+				$out.0.httpRequestUrl = cast(objectBody["paging"]["next"]["link"],string);
+				isObjectResponse = true;
+			} else{
+				$out.0.has_next = false;
+			}
+		} else{
+			$out.0.has_next = false;
+		}
+	}
+	
+	//pass out result
+	if(isEmptyAssociationsNext(associationsNext)) {		
+		$out.1.object_id = $in.0.object_id;
+		$out.1.request_id = $in.0.request_id;
+		$out.1.batch_request_id = $in.0.batch_request_id;
+		$out.1.batch_map = $in.0.batch_map;
+		
+		if(OPERATION == "Read"){
+			$out.1.parsed_result = objectBody["results"][0];
+		} else {
+			$out.1.parsed_result = objectBody;
+		}
+		
+		return ALL;
+	}
+	
+	return OK;
+}
+
+//====== Associations; auxiliary functions ====== 
+
+// get info about associations from all results objects from object API call
+function void getAssociationsPaging(variant json, list[string] assosciationsLst, map[string, list[integer]] nextContainer, map[string, list[map[string, string]]] infoContainer) {
+	integer resultsId = 0;
+	integer associationId;
+	
+	foreach(variant value : json["results"]){
+		infoContainer[num2str(resultsId)] = [];
+		nextContainer[num2str(resultsId)] = [];
+		associationId = 0;
+		foreach(string association : associationsLst){
+			if(containsKey(value, "associations")
+				and
+				containsKey(value["associations"], association)
+				and
+				objectHasPaging(value["associations"][association])
+			){
+				// fill in infoContainer
+				append(infoContainer[num2str(resultsId)], {"type" -> association, "link" -> cast(value["associations"][association]["paging"]["next"]["link"], string)});
+				
+				// fill in nexContainer
+				append(nextContainer[num2str(resultsId)], associationId);
+				
+				// remove "paging" for each association from main json object (it is not necessary for output)
+				remove(json["results"][resultsId]["associations"][association], "paging");
+				
+				associationId++;
+			}
+		}
+		resultsId++;
+	}
+}
+
+// get information about next call
+function map[string, integer] getNextCall(map[string, list[integer]] associationsNext) {
+	map[string, integer] output;
+	list[string] resultsIdLst = getKeys(associationsNext);
+	foreach(string resultsId : resultsIdLst){
+		if(not isEmpty(associationsNext[resultsId])) {
+			output[resultsId] = associationsNext[resultsId][0];
+		}
+	}
+	return output;
+}
+
+// remove from associationsNext container after the successful append to main object
+function void removeFromAssociationsNext(map[string, integer] currentAssociationCall, map[string, list[integer]] nextContainer) {
+	
+	string currentKey = getKeys(currentAssociationCall)[0];
+	
+	poll(nextContainer[currentKey]);
+}
+
+// get link for next Association call
+function string getLink(map[string, integer] nextCall, map[string, list[map[string, string]]] infoContainer) {
+	string link;
+	
+	string nextCallId = getKeys(nextCall)[0];
+	
+	link = infoContainer[nextCallId][nextCall[nextCallId]]["link"];
+	
+	return link;
+}
+
+
+// update the associationsInfo container link if the associations response has alos paging key
+function void updateLinkAssociationsInfo(variant json, map[string, integer] currentAssociationCall, map[string, list[map[string, string]]] infoContainer) {
+	string currentKey = getKeys(currentAssociationCall)[0];
+	infoContainer[currentKey][currentAssociationCall[currentKey]]["link"] = cast(json["paging"]["next"]["link"], string);
+}
+
+// check if all lists for all objects are empty
+function boolean isEmptyAssociationsNext(map[string, list[integer]] nextContainer) {
+	foreach(list[integer] value : nextContainer) {
+		if(not isEmpty(value)) {
+			return false;
+		}
+	}
+	return true;
+}
+
+// check if object has "paging" key
+function boolean objectHasPaging(variant json) {
+	if(	containsKey(json,"paging") and containsKey(json["paging"],"next") ) {
+		return true;
+	}
+	return false;
+}
+
+function void appendAssociation(variant json, variant association, map[string, integer] currentAssociationCall, map[string, list[map[string, string]]] associationsInfo) {
+	string currentKey = getKeys(currentAssociationCall)[0];
+	string type = associationsInfo[currentKey][currentAssociationCall[currentKey]]["type"];
+
+	// iterate over association response and append values to main json object
+	foreach(variant value : association["results"]) {
+		append(json["results"][str2integer(currentKey)]["associations"][type]["results"], value);
+	}	
+}
+]]></attr>
+</Node>
+<Node enabled="${IS_LIST_OPERATION}" guiName="Generate List operation token" guiX="-760" guiY="195" id="GENERATE_LIST_OPERATION_TOKEN" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+	$out.0._request_id = 0;
+	return ALL;
+}]]></attr>
+</Node>
+<Node enabled="${TRASHIFY_WHEN_ARCHIVE_OPERATION}" guiName="Join with orig record" guiX="1240" guiY="66" id="JOIN_WITH_ORIG_RECORD1" joinKey="$_request_id=$_request_id" slaveDuplicates="false" type="EXT_MERGE_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+
+//==============>INIT<======================
+map[string,string] mapping = parseProperties(getParamValue("FIELD_MAPPING"));
+string[] hubspot_property_names = getKeys(mapping);
+string[] clover_field_names;
+string ASSOCIATIONS_FIELD_NAME = getParamValue("ASSOCIATIONS_FIELD_NAME");
+	
+foreach(string hubspot_property_name: hubspot_property_names){
+	string clover_field_name = mapping[hubspot_property_name];
+	if(not isBlank(clover_field_name)){
+		append(clover_field_names, clover_field_name);
+	}else{
+		//apply default clover field name = hubspot property name
+		append(clover_field_names, hubspot_property_name);
+	}
+}
+
+//===========>TRANSFORMATION<================
+
+// Transforms input record into output record.
+function integer transform() {
+	//copy pass throught values
+	$out.0.* = $in.1.*;
+	//overwrite new values
+	if("${OPERATION}".in(["Read","List","Batch read"])){
+		foreach(string field_name : clover_field_names){
+			setValue($out.0,field_name,getValue($in.0,field_name));
+		}
+		// set associations value
+		if(not isEmpty(ASSOCIATIONS_FIELD_NAME)) {
+			setValue($out.0,ASSOCIATIONS_FIELD_NAME,getValue($in.0,ASSOCIATIONS_FIELD_NAME));
+		}
+	//Get the ID of newly created object / listed objects	
+	}
+	if("${OPERATION}".in(["Create", "List"]) ){
+		setStringValue($out.0,"${OBJECT_ID_FIELD_NAME}",getStringValue($in.0,"${OBJECT_ID_FIELD_NAME}"));
+	}
+	
+	return ALL;
+}]]></attr>
+</Node>
+<Node guiName="Loop" guiX="166" guiY="326" id="LOOP" loggingLevel="off" type="LOOP">
+<attr name="whileCondition"><![CDATA[//#CTL2
+$in.0.has_next and not $in.0.is_error]]></attr>
+</Node>
+<Node enabled="${NOT_IS_ARCHIVE_OPERATION}" guiName="Parse to records" guiX="741" guiY="431" id="PARSE_TO_RECORDS" type="NORMALIZER">
+<attr name="normalize"><![CDATA[//#CTL2
+
+import "${TRANS_DIR}/Utils.ctl";
+
+//INIT
+boolean runtime_init_complete = false;
+
+map[string,string] MAPPING = parseProperties(getParamValue("FIELD_MAPPING"));
+string OPERATION = getParamValue("OPERATION");
+string OBJECT_ID_FIELD_NAME = getParamValue("OBJECT_ID_FIELD_NAME");
+string ASSOCIATIONS_FIELD_NAME = getParamValue("ASSOCIATIONS_FIELD_NAME");
+
+boolean associationsOutput = isEmpty(getParamValue("ASSOCIATIONS")) ? false : true;
+
+variant results_list;
+variant batch_errors_list;
+
+function void runtimeInit() {
+	if(getFieldIndex($out.0,OBJECT_ID_FIELD_NAME) == -1){
+		raiseError("[Configuration error] Output metadata does not contain field named: " + OBJECT_ID_FIELD_NAME);
+	}
+	runtime_init_complete = true;
+}
+
+// This function is called for all input records.
+// It parses each single input record and returns the number of records
+// that should be created from such input record.
+function integer count() {
+
+	if(OPERATION.in(["List"])){
+		results_list = $in.0.parsed_result["results"];
+		return length(results_list);	
+	}else if(OPERATION.in(["Batch read"])){
+		results_list = $in.0.parsed_result["results"];
+		return length(results_list) + parse_batch_errors();		
+	}
+	return 1;
+}
+
+// This function creates new records for the output, based on single input record
+// that has been parsed by the count() function.
+// It is called count() times for each input record.
+// The idx argument specifies which output record is being created,
+// its values range is from 0 to count() - 1.
+function integer transform(integer idx) {
+	
+	if(not runtime_init_complete){
+		runtimeInit();	
+	}
+	
+	$out.0._request_id = $in.0.request_id;
+	$out.0._batch_request_id = $in.0.batch_request_id;
+	$out.0._batch_map = $in.0.batch_map;
+	try{
+		if(OPERATION.in(["List"])){
+			parse_object(results_list[idx]);
+		}else if(OPERATION.in(["Batch read"])){
+			if(idx < length(results_list)){
+				parse_object(results_list[idx]);
+			}else{
+				output_batch_error(idx - length(results_list));
+			}
+		}else{
+			parse_object($in.0.parsed_result);	
+		}
+	}catch (CTLException ex){
+		if(contains(ex.message,"[Parsing error]")){
+			$out.0._processing_error = ex.message;
+		}else{
+			raiseError(ex.message);
+		}
+	}
+	return OK;
+}
+
+function void parse_object(variant json){
+	
+	string id = null;
+	
+	if(OPERATION.in(["List","Create","Batch read"])){
+		id = cast(json["id"],string);
+	}else{
+		id = $in.0.object_id;
+	}
+	
+	setStringValue(
+			$out.0,
+			OBJECT_ID_FIELD_NAME,
+			id
+		);
+		
+	// associations field control
+	if(associationsOutput) {
+		integer associations_index = getFieldIndex($out.0,ASSOCIATIONS_FIELD_NAME);
+		if(associations_index == -1) {
+			if(isEmpty(ASSOCIATIONS_FIELD_NAME)){
+				raiseError("[Configuration error] Associations output field name is empty");
+			} else {
+				raiseError("[Configuration error] Associations, output metadata does not contain field named: " + ASSOCIATIONS_FIELD_NAME);
+			}
+		}
+		// associations field map
+		variant associationsOut = null;
+		variant associations = json["associations"];
+		// fill new associationsOut variant object, parentObjectId needs to be at first position (for JSONExtract SAX parsing)
+		if(associations != null and not isEmpty(associations)){
+			associationsOut = {};
+			variant associationsKeys = getKeys(associations);
+			associationsOut["parentObjectId"] = cast(json["id"],string);
+			foreach(variant key : associationsKeys) {
+				associationsOut[key] = associations[key];
+			}
+		}
+		setValue(
+			$out.0,
+			ASSOCIATIONS_FIELD_NAME,
+			associationsOut
+		);
+	}
+	
+	foreach( string hubspot_property_name : MAPPING.getKeys()){
+		
+		variant field_variant_value;
+		
+		try{
+			field_variant_value = json["properties"][hubspot_property_name];
+		}catch(CTLException ex){
+			printLog(error, ex);
+			raiseError("[Configuration error] Property " + hubspot_property_name + " not found in the response - it probably doesn't exist, and has been ignored by HubSpot API");
+		}
+		set_output_field_from_hubspot_value(
+			field_variant_value,
+			hubspot_property_name,
+			MAPPING.lookup_mapping_to_clover(hubspot_property_name),
+			id
+		);
+	}
+}
+
+function integer parse_batch_errors(){
+	integer result = 0;
+	batch_errors_list = [];
+	if(containsKey($in.0.parsed_result,"errors")){
+		foreach(variant batch_error : $in.0.parsed_result["errors"]){
+			result += length(batch_error["context"]["ids"]);
+			foreach(variant id: batch_error["context"]["ids"]){
+				batch_errors_list.append({
+					"id" -> id,
+					"message" -> concat(
+						cast(batch_error["category"],string),
+						" ",
+						cast(batch_error["message"],string)
+					)
+				});
+			}
+		}
+	}
+	return result;
+}
+	
+function void output_batch_error(integer idx){
+	setValue($out.0, OBJECT_ID_FIELD_NAME, batch_errors_list[idx]["id"]);
+	$out.0._processing_error = cast(batch_errors_list[idx]["message"], string);
+}
+]]></attr>
+</Node>
+<Node guiName="Prepare payload and URL" guiX="-242" guiY="326" id="PREPARE_PAYLOAD_AND_URL" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+
+//==============>INIT<======================
+map[string,string] mapping = parseProperties(getParamValue("FIELD_MAPPING"));
+string[] hubspot_property_names = getKeys(mapping);
+string[] clover_field_names;
+string properties = join(",",hubspot_property_names);
+	
+foreach(string hubspot_property_name: hubspot_property_names){
+	string clover_field_name = mapping[hubspot_property_name];
+	if(not isBlank(clover_field_name)){
+		append(clover_field_names, clover_field_name);
+	}else{
+		//apply default clover field name = hubspot property name
+		append(clover_field_names, hubspot_property_name);
+	}
+}
+
+string OBJECT_ID_FIELD_NAME = getParamValue("OBJECT_ID_FIELD_NAME");
+string OPERATION = getParamValue("OPERATION");
+string OBJECT = getParamValue("OBJECT");
+string REQUEST_METHOD = getParamValue("REQUEST_METHOD");
+string LIMIT = getParamValue("LIMIT"); 
+string ASSOCIATIONS = getParamValue("ASSOCIATIONS");
+string ARCHIVED = getParamValue("ARCHIVED");
+string base_api_url = "https://api.hubapi.com/crm/v3/objects/";
+
+//=============>TRANSFORMATION<=============
+
+function integer transform() {
+	
+	$out.0.request_id = $in.0._request_id;
+	$out.0.httpRequestCharset = "UTF-8";
+	$out.0.has_next = true;
+	$out.0.is_error = false;
+	$out.0.httpRequestMethod = REQUEST_METHOD;
+	
+	string id;
+	
+	switch (OPERATION){
+		case "List":
+			$out.0.httpRequestUrl = concat(
+				base_api_url,
+				OBJECT,
+				"?properties=", properties,
+				(not isBlank(ASSOCIATIONS)?"&associations=" + ASSOCIATIONS : ""),
+				(ARCHIVED == "true" ? "&archived=true": ""), //false is API default
+				"&limit=", LIMIT 
+			);
+			break;
+			
+		case "Read":
+			id = getStringValue($in.0,OBJECT_ID_FIELD_NAME);
+			$out.0.object_id = id;
+			if(isBlank(id)){
+				$out.0.is_error = true;
+				$out.0.httpResponseErrorMessage = "Object id cannot be blank.";
+				return ALL;
+			}
+			
+			$out.0.httpRequestUrl = concat(
+				base_api_url,
+				OBJECT,"/",
+				id,
+				"?properties=", properties,
+				(isBlank(ASSOCIATIONS)?"":"&associations=" + ASSOCIATIONS),
+				(ARCHIVED == "true" ? "&archived=true": "") //false is API defaul
+			);
+			break;
+		
+		case "Create":	
+			$out.0.httpRequestBody =  buildRequestBody();
+			$out.0.httpRequestUrl = concat(
+				base_api_url,
+				OBJECT
+			);
+			$out.0.httpRequestHeaders = {"content-type" -> "application/json"};
+			break;
+		
+		case "Update":
+			id = getStringValue($in.0,OBJECT_ID_FIELD_NAME);
+			$out.0.object_id = id;
+			if(isBlank(id)){
+				$out.0.is_error = true;
+				$out.0.httpResponseErrorMessage = "Object id cannot be blank.";
+				return ALL;
+			}
+			
+			$out.0.httpRequestBody =  buildRequestBody();
+			$out.0.httpRequestUrl = concat(
+				base_api_url,
+				OBJECT,"/",
+				id
+			);
+			$out.0.httpRequestHeaders = {"content-type" -> "application/json"};
+			break;
+		
+		case "Archive":
+			id = getStringValue($in.0,OBJECT_ID_FIELD_NAME);
+			$out.0.object_id = id;
+			if(isBlank(id)){
+				$out.0.is_error = true;
+				$out.0.httpResponseErrorMessage = "Object id cannot be blank.";
+				return ALL;
+			}
+			
+			$out.0.httpRequestUrl = concat(
+				base_api_url,
+				OBJECT,"/",
+				id
+			);
+			break;
+	}
+	return ALL;
+}
+
+function string buildRequestBody(){
+	variant properties = {};
+	
+	for(integer index = 0; index < length(hubspot_property_names); index++){
+		properties[hubspot_property_names[index]] = getValue($in.0,clover_field_names[index]);
+	}
+	return writeJson({"properties" -> properties});
+}]]></attr>
+</Node>
+<Node groupSize="100" guiName="Prepare payload and URL [BATCH]" guiX="-267" guiY="431" id="PREPARE_PAYLOAD_AND_URL_BATCH" incompleteGroupAllowed="true" type="DENORMALIZER">
+<attr name="denormalize"><![CDATA[//#CTL2
+// This transformation defines the way in which multiple input records 
+// (with the same key) are denormalized into one output record. 
+
+//==============>INIT<======================
+map[string,string] mapping = parseProperties(getParamValue("FIELD_MAPPING"));
+string[] hubspot_property_names = getKeys(mapping);
+//string[] clover_field_names;
+string properties = join(",",hubspot_property_names);
+	
+//foreach(string hubspot_property_name: hubspot_property_names){
+//	string clover_field_name = mapping[hubspot_property_name];
+//	if(not isBlank(clover_field_name)){
+//		append(clover_field_names, clover_field_name);
+//	}else{
+//		//apply default clover field name = hubspot property name
+//		append(clover_field_names, hubspot_property_name);
+//	}
+//}
+
+string OBJECT_ID_FIELD_NAME = getParamValue("OBJECT_ID_FIELD_NAME");
+string OPERATION = getParamValue("OPERATION");
+string OBJECT = getParamValue("OBJECT");
+string REQUEST_METHOD = getParamValue("REQUEST_METHOD");
+string ARCHIVED = getParamValue("ARCHIVED");
+string base_api_url = "https://api.hubapi.com/crm/v3/objects/";
+
+long batch_request_id = 0;
+
+
+map[string,list[long]] batch_map = {};
+
+
+// This function is called for each input record from a group of records
+// with the same key.
+function integer append() {
+	switch (OPERATION){
+		case "Batch read":
+			string id = getStringValue($in.0,OBJECT_ID_FIELD_NAME);
+			if( batch_map.containsKey(id)){
+				batch_map[getStringValue($in.0,OBJECT_ID_FIELD_NAME)].append($in.0._request_id);
+			}else{
+				batch_map[getStringValue($in.0,OBJECT_ID_FIELD_NAME)] = [$in.0._request_id];
+			}
+			$out.0.httpRequestHeaders = {"content-type" -> "application/json"};
+	}
+	return OK;
+}
+
+// This function is called once after the append() function was called for all records
+// of a group of input records defined by the key.
+// It creates a single output record for the whole group.
+function integer transform() {
+	$out.0.request_id = $in.0._request_id;
+	$out.0.httpRequestCharset = "UTF-8";
+	$out.0.has_next = true;
+	$out.0.is_error = false;
+	$out.0.httpRequestMethod = REQUEST_METHOD;
+	$out.0.batch_map = batch_map;
+	
+	switch (OPERATION){
+		case "Batch read":
+			$out.0.httpRequestUrl = concat(
+				base_api_url,
+				OBJECT,
+				"/batch/read",
+				(ARCHIVED == "true" ? "?archived=true": "") //false is API default
+			);
+			$out.0.httpRequestBody = buildBulkReadRequestBody(batch_map.getKeys());
+			$out.0.batch_request_id = batch_request_id++;
+			break;
+	}
+	return OK;
+}
+
+function string buildBulkReadRequestBody(list[string] ids){
+	variant request_body = {
+		"properties" -> hubspot_property_names,
+		"inputs" -> inputs(ids)
+	};
+	return writeJson(request_body);
+}
+
+function variant inputs(list[string] ids){
+	variant inputs = [];
+	foreach( string id : ids){
+		inputs.append({"id" -> id});
+	}
+	return inputs;
+}
+
+
+// Called after transform() to return the resources that have been used to their initial state
+// so that next group of records with different key may be parsed.
+function void clean() {
+	batch_map.clear();
+}
+
+]]></attr>
+</Node>
+<Node enabled="${NOT_IS_ARCHIVE_OPERATION}" guiName="Raise error" guiX="1240" guiY="429" id="RAISE_ERROR" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+string OBJECT_ID_FIELD_NAME = getParamValue("OBJECT_ID_FIELD_NAME");
+// Transforms input record into output record.
+function integer transform() {
+	
+	if(isBlank($in.0._processing_error)){
+		$out.0.* = $in.0.*;
+		return 0;
+	}else{
+		if(isSubgraphOutputPortConnected(1)){
+			$out.1.error_message = $in.0._processing_error;
+			$out.1.object_id = getStringValue($in.0, OBJECT_ID_FIELD_NAME);
+			$out.1.request_id = $in.0._request_id;
+			return 1;
+		}
+		raiseError( "Processing response failed on object: " 
+			+ getStringValue($in.0, OBJECT_ID_FIELD_NAME) 
+			+ " with message: " 
+			+ $in.0._processing_error
+		);
+	}
+}
+]]></attr>
+</Node>
+<Node guiName="Raise error or send to port" guiX="1695" guiY="326" id="RAISE_ERROR_OR_SEND_TO_PORT" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	if(not $in.0.is_error){
+		return SKIP;
+	}
+	
+	if(isSubgraphOutputPortConnected(1)){
+		$out.0.status_code = $in.0.httpResponseStatusCode;
+		$out.0.response_body = $in.0.httpResponseBody;
+		$out.0.error_message = $in.0.httpResponseErrorMessage;
+		$out.0.object_id = $in.0.object_id;
+		$out.0.request_id = $in.0.request_id;
+		return 0;
+	}	
+	raiseError( "HubSpot API call failed. \n Status: " + num2str($in.0.httpResponseStatusCode)
+		+ "\n Error message: " +$in.0.httpResponseErrorMessage
+		+ "\n Response body: " +$in.0.httpResponseBody
+	);
+}
+
+]]></attr>
+</Node>
+<Node enabled="${IS_BATCH_OPERATION}" guiName="Recreate records deduped batch records" guiX="932" guiY="431" id="RECREATE_RECORDS_DEDUPED_BATCH_RECORDS" type="NORMALIZER">
+<attr name="normalize"><![CDATA[//#CTL2
+// This transformation defines the way in which a single input record is normalized
+// into multiple output records.
+map[string,list[long]] batch_map;
+string OBJECT_ID_FIELD_NAME = getParamValue("OBJECT_ID_FIELD_NAME");
+// This function is called for all input records.
+// It parses each single input record and returns the number of records
+// that should be created from such input record.
+function integer count() {
+	batch_map = cast($in.0._batch_map, map, string, list, long);
+	return length(batch_map[getStringValue($in.0,OBJECT_ID_FIELD_NAME)]);
+}
+
+// This function creates new records for the output, based on single input record
+// that has been parsed by the count() function.
+// It is called count() times for each input record.
+// The idx argument specifies which output record is being created,
+// its values range is from 0 to count() - 1.
+function integer transform(integer idx) {
+	$out.0.* = $in.0.*;
+	$out.0._request_id = batch_map[getStringValue($in.0,OBJECT_ID_FIELD_NAME)][idx];
+	return OK;
+}
+
+// Called after transform(count-1) to return the resources that have been used to their initial state
+// so that next input record may be parsed.
+// function void clean() {}
+
+]]></attr>
+</Node>
+<Node guiName="Remove request id from meta" guiX="1673" guiY="66" id="REMOVE_REQUEST_ID_FROM_META" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="SimpleCopy" guiX="-222" guiY="80" id="SIMPLE_COPY" type="SIMPLE_COPY"/>
+<Node guiName="SimpleGather" guiX="-16" guiY="326" id="SIMPLE_GATHER" type="SIMPLE_GATHER"/>
+<Node guiName="SimpleGather" guiX="1938" guiY="326" id="SIMPLE_GATHER1" type="SIMPLE_GATHER"/>
+<Node guiName="SimpleGather" guiX="-717" guiY="80" id="SIMPLE_GATHER2" type="SIMPLE_GATHER"/>
+<Node enabled="${IS_BATCH_OPERATION}" groupKey="_batch_request_id" guiName="Sort within batch" guiX="1240" guiY="195" id="SORT_WITHIN_BATCH" sortKey="_request_id(a)" type="SORT_WITHIN_GROUPS"/>
+<Node guiName="SubgraphInput" guiX="-825" guiY="-502" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="97" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="2119" guiY="-502" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="83" name="0"/>
+<Port guiY="343" name="1"/>
+<Port guiY="496" name="2"/>
+</Node>
+<Node enabled="${NOT_IS_ARCHIVE_OPERATION}" guiName="Trash" guiX="1938" guiY="195" id="TRASH" type="TRASH"/>
+<Edge fromNode="BATCH:0" guiBendpoints="" guiRouter="Manhattan" id="Edge20" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="PREPARE_PAYLOAD_AND_URL:0"/>
+<Edge fromNode="BATCH:1" guiBendpoints="" guiRouter="Manhattan" id="Edge19" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="PREPARE_PAYLOAD_AND_URL_BATCH:0"/>
+<Edge fromNode="CALL_HUB_SPOT_API:0" guiBendpoints="" guiRouter="Manhattan" id="Edge13" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="EXTRACT_PAGING:0"/>
+<Edge fromNode="DATA_GENERATOR:0" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SUBGRAPH_INPUT0:0"/>
+<Edge fromNode="DUMMY_METADATA_PROVIDER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge25" inPort="Port 1 (slave)" metadata="Metadata1" outPort="Port 0 (out)" toNode="ENRICH_META:1"/>
+<Edge fromNode="DUMMY_METADATA_PROVIDER1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge31" inPort="Port 0 (master)" metadataRef="#//Edge30" outPort="Port 0 (out)" toNode="ENRICH_META1:0"/>
+<Edge fromNode="DUMMY_METADATA_PROVIDER1:1" guiBendpoints="" guiRouter="Manhattan" id="Edge29" inPort="Port 1 (slave)" metadata="Metadata1" outPort="Port 1 (out)" toNode="ENRICH_META1:1"/>
+<Edge fromNode="ENRICH_META:0" guiBendpoints="" guiRouter="Manhattan" id="Edge15" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SIMPLE_COPY:0"/>
+<Edge fromNode="ENRICH_META1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge32" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="TRASH:0"/>
+<Edge fromNode="EXTRACT_PAGING:0" guiBendpoints="" guiRouter="Manhattan" id="Edge33" inPort="Port 1 (back from loop)" outPort="Port 0 (out)" toNode="LOOP:1"/>
+<Edge fromNode="EXTRACT_PAGING:1" guiBendpoints="" guiRouter="Manhattan" id="Edge34" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 1 (out)" toNode="PARSE_TO_RECORDS:0"/>
+<Edge fromNode="GENERATE_LIST_OPERATION_TOKEN:0" guiBendpoints="" guiRouter="Manhattan" id="Edge27" inPort="Port 1 (in)" metadataRef="#//Edge7" outPort="Port 0 (out)" toNode="SIMPLE_GATHER2:1"/>
+<Edge fromNode="JOIN_WITH_ORIG_RECORD1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" metadataRef="#//Edge32" outPort="Port 0 (out)" toNode="REMOVE_REQUEST_ID_FROM_META:0"/>
+<Edge fromNode="LOOP:0" guiBendpoints="" guiRouter="Manhattan" id="Edge17" inPort="Port 0 (in)" outPort="Port 0 (end of loop)" toNode="RAISE_ERROR_OR_SEND_TO_PORT:0"/>
+<Edge fromNode="LOOP:1" guiBendpoints="" guiRouter="Manhattan" id="Edge16" inPort="Port 0 (in)" outPort="Port 1 (continue loop)" toNode="CALL_HUB_SPOT_API:0"/>
+<Edge fromNode="PARSE_TO_RECORDS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge35" inPort="Port 0 (in)" metadataRef="#//Edge7" outPort="Port 0 (out)" toNode="RECREATE_RECORDS_DEDUPED_BATCH_RECORDS:0"/>
+<Edge fromNode="PREPARE_PAYLOAD_AND_URL:0" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SIMPLE_GATHER:0"/>
+<Edge fromNode="PREPARE_PAYLOAD_AND_URL_BATCH:0" guiBendpoints="" guiRouter="Manhattan" id="Edge18" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="SIMPLE_GATHER:1"/>
+<Edge fromNode="RAISE_ERROR:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SORT_WITHIN_BATCH:0"/>
+<Edge fromNode="RAISE_ERROR:1" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 1 (in)" outPort="Port 1 (out)" toNode="SIMPLE_GATHER1:1"/>
+<Edge fromNode="RAISE_ERROR_OR_SEND_TO_PORT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge36" inPort="Port 0 (in)" metadata="Metadata5" outPort="Port 0 (out)" toNode="SIMPLE_GATHER1:0"/>
+<Edge fromNode="RECREATE_RECORDS_DEDUPED_BATCH_RECORDS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" metadataRef="#//Edge35" outPort="Port 0 (out)" toNode="RAISE_ERROR:0"/>
+<Edge fromNode="REMOVE_REQUEST_ID_FROM_META:0" guiBendpoints="" guiRouter="Manhattan" id="Edge30" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="SIMPLE_COPY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 1 (slave)" outPort="Port 0 (out)" toNode="JOIN_WITH_ORIG_RECORD1:1"/>
+<Edge fromNode="SIMPLE_COPY:1" guiBendpoints="" guiRouter="Manhattan" id="Edge14" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="BATCH:0"/>
+<Edge fromNode="SIMPLE_GATHER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (input token)" outPort="Port 0 (out)" toNode="LOOP:0"/>
+<Edge fromNode="SIMPLE_GATHER1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:1"/>
+<Edge fromNode="SIMPLE_GATHER2:0" guiBendpoints="" guiRouter="Manhattan" id="Edge26" inPort="Port 0 (master)" outPort="Port 0 (out)" toNode="ENRICH_META:0"/>
+<Edge fromNode="SORT_WITHIN_BATCH:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (driver)" outPort="Port 0 (out)" toNode="JOIN_WITH_ORIG_RECORD1:0"/>
+<Edge fromNode="SUBGRAPH_INPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SIMPLE_GATHER2:0"/>
+<Edge fromNode="SUBGRAPH_OUTPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="DATA_PORT:0"/>
+<Edge fromNode="SUBGRAPH_OUTPUT0:1" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="ERROR_PORT:0"/>
+</Phase>
+</Graph>

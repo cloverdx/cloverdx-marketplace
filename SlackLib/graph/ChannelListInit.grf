@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Martin" created="Fri May 12 11:12:07 CEST 2023" guiVersion="5.17.0.3" id="1684848192939" licenseCode="CLCDSCLOVE24765514SP" name="ChannelListInit" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata1">
+<Record eofAsDelimiter="true" name="RawFileContents" previewAttachmentCharset="UTF-8" type="delimited">
+<Field name="data" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="String" recordDelimiter="\r\n" type="delimited">
+<Field name="data" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter name="TEMPLATE" secure="false">
+<attr name="value"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<GraphParameters>
+<GraphParameter label="Channel" name="CHANNEL" public="true" required="true">
+<attr name="description"><![CDATA[Id of a channel where the message will be posted. Using the channel name might work too.]]]]><![CDATA[></attr>
+<SingleType allowCustomValues="true" name="simpleEnum" values="REPLACE_ME"/>
+</GraphParameter>
+</GraphParameters>
+]]></attr>
+<SingleType name="multiline"/>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="DAD8C9" folded="false" fontSize="medium" height="82" id="Note0" textColor="444444" width="660" x="68" y="9">
+<attr name="text"><![CDATA[h3. Lib init graphs
+
+Populates available channels enum, with channel id as value and channel name as the label for easier lib use.]]></attr>
+</RichTextNote>
+<Dictionary>
+<Entry input="false" name="xslt" output="true" type="string"/>
+</Dictionary>
+</Global>
+<Phase number="0">
+<Node guiName="Coversations-List" guiX="68" guiY="114" id="COVERSATIONS_LIST" jobURL="${SUBGRAPH_DIR}/Coversations-List.sgrf" type="SUBGRAPH"/>
+<Node guiName="Fill in template" guiX="265" guiY="114" id="FILL_IN_TEMPLATE" type="DENORMALIZER">
+<attr name="denormalize"><![CDATA[//#CTL2
+// This transformation defines the way in which multiple input records 
+// (with the same key) are denormalized into one output record. 
+list[string] channels;
+// This function is called for each input record from a group of records
+// with the same key.
+function integer append() {
+	channels.append($in.0.id + "|" + translate($in.0.name,";|","") + " (" + $in.0.id + ")");
+	return OK;
+}
+
+// This function is called once after the append() function was called for all records
+// of a group of input records defined by the key.
+// It creates a single output record for the whole group.
+function integer transform() {
+	$out.0.data = replace(getParamValue("TEMPLATE"),"REPLACE_ME",join(";", channels));
+	return OK;
+}
+]]></attr>
+</Node>
+<Edge fromNode="COVERSATIONS_LIST:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="FILL_IN_TEMPLATE:0"/>
+<Edge fromNode="FILL_IN_TEMPLATE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="UPDATE_PRM_FILE:0"/>
+</Phase>
+<Phase number="1">
+<Node createEmptyFiles="false" fileURL="${PROJECT}/channels.prm" guiName="Update prm file" guiX="505" guiY="114" id="UPDATE_PRM_FILE" type="FLAT_FILE_WRITER"/>
+</Phase>
+</Graph>

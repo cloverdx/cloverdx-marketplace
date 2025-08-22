@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="readers" created="Wed Aug 30 10:14:20 CEST 2023" description="Using this component you can get a schema for a specific Big Query table. The output is in a JSON format." guiVersion="6.2.0.14" id="1693996746571" largeIconPath="${PROJECT}/icons/google_bigquery_logo_64.png" licenseCode="CloverDX-Internal-License" mediumIconPath="${PROJECT}/icons/google_bigquery_logo_32.png" name="BigQueryGetTableSchema" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/google_bigquery_logo_16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" name="0"/>
+</outputPorts>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="debugInput1" recordDelimiter="\n" type="delimited">
+<Field name="field1" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="TableSchema" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="schema" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="library.prm"/>
+<GraphParameter label="Table name" name="_TABLE__NAME" public="true">
+<attr name="description"><![CDATA[The name of the table you wanto get schema from. Required.]]></attr>
+</GraphParameter>
+<GraphParameter label="Fail on non exists" name="_FAIL__ON__NON__EXISTS" public="true" required="false" value="false">
+<attr name="description"><![CDATA[If the table does not exist, the compoment returns zero records (when set to false), or fails (when set to true).]]></attr>
+<SingleType name="bool"/>
+</GraphParameter>
+<GraphParameter name="_PATH__TO__CREDENTIALS_ABSOLUTE">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return toAbsolutePath(getParamValue("_PATH__TO__CREDENTIALS"));
+}
+]]></attr>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<Dictionary/>
+<ExecutionConfig>
+<Property name="classloader_caching" value="true"/>
+</ExecutionConfig>
+</Global>
+<Phase number="0">
+<Node DATASET_NAME="${_DATASET__NAME}" FAIL_ON_NON_EXISTS="${_FAIL__ON__NON__EXISTS}" PATH_TO_CREDENTIALS="${_PATH__TO__CREDENTIALS_ABSOLUTE}" PROJECT_ID="${_PROJECT__ID}" TABLE_NAME="${_TABLE__NAME}" genericTransformClass="com.cloverdx.libraries.gcloud.BigQueryGetTableSchema" guiName="CustomJavaReader" guiX="436" guiY="100" id="CUSTOM_JAVA_READER" type="GENERIC_READER"/>
+<Node guiName="SubgraphInput" guiX="200" guiY="10" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="800" guiY="10" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Edge fromNode="CUSTOM_JAVA_READER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+</Phase>
+</Graph>

@@ -1,0 +1,16 @@
+{
+  "descriptor" : {
+    "author" : "CloverDX",
+    "name" : "GoogleSheetsLib",
+    "version" : "1.0",
+    "productVersion" : "5.15.0.15",
+    "description" : "Read and parse data from Google Sheets. Connects to Google Sheets, downloads content, and parses it using defined metadata."
+  },
+  "publicInterface" : {
+    "subgraphs" : [ {
+      "path" : "graph/subgraph/GoogleSheetsReader.sgrf",
+      "description" : "Implementation of Google Sheets reader.",
+      "icon" : "./graph/subgraph/icons/google-sheets-16.png"
+    } ]
+  }
+}

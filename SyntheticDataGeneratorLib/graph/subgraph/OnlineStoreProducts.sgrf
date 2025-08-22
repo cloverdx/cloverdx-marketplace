@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Branislav Repcek" category="readers" created="Sun Mar 12 23:33:12 CET 2023" description="Get list of all products sold by the OnlineStore." guiVersion="6.5.0.24" id="1678671258788" largeIconPath="${SUBGRAPH_DIR}/icons/OnlineStoreProducts64.png" licenseCode="Unlicensed" mediumIconPath="${SUBGRAPH_DIR}/icons/OnlineStoreProducts32.png" name="Online store product catalog" nature="subgraph" showComponentDetails="true" smallIconPath="${SUBGRAPH_DIR}/icons/OnlineStoreProducts16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" name="0"/>
+</outputPorts>
+<Metadata fileURL="${META_DIR}/Product.fmt" id="Metadata0"/>
+<GraphParameters>
+<GraphParameter name="NUM_OF_PREVIEW_RECORDS"/>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node fileURL="${DATAIN_DIR}/store/Products.csv" guiName="Products" guiX="289" guiY="100" id="PRODUCTS" numRecords="${NUM_OF_PREVIEW_RECORDS}" type="FLAT_FILE_READER"/>
+<Node guiName="SubgraphInput" guiX="200" guiY="10" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="800" guiY="10" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Edge fromNode="PRODUCTS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (output)" toNode="SUBGRAPH_OUTPUT0:0"/>
+</Phase>
+</Graph>

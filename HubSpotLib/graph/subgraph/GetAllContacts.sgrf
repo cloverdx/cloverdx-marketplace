@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="readers" created="Thu Sep 22 10:59:50 CEST 2022" description="Reads data from HubSpot Contacts object." guiVersion="6.2.1.3" id="1663927921938" largeIconPath="${PROJECT}/icons/HubSpot-64.png" licenseCode="CLP1DCLOVE28718064BY" mediumIconPath="${PROJECT}/icons/HubSpot-32.png" name="GetAllDeals" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/HubSpot-16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" name="0"/>
+<singlePort connected="true" keepEdge="false" name="1" required="false"/>
+</outputPorts>
+<Metadata fileURL="${ABSOLUTE_META_PATH}.fmt" id="Metadata1"/>
+<Metadata id="Metadata2">
+<Record eofAsDelimiter="true" fieldDelimiter="thiswillnewereverapperainafileneither" name="MappingFIle" previewAttachmentCharset="UTF-8" recordDelimiter="thiswillnewereverapperainafile" type="delimited">
+<Field name="data" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameter label="HS object name" name="OBJECT" public="false" required="false" value="contacts">
+<ComponentReference referencedComponent="CRM_OBJECT_PROPERIES_API_V3" referencedProperty="__OBJECT"/>
+</GraphParameter>
+<GraphParameter name="METADATA_NAME"/>
+<GraphParameter name="ABSOLUTE_META_PATH">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return toAbsolutePath("${META_DIR}/generated/"+ (isBlank("${METADATA_NAME}")?"${OBJECT}":"${METADATA_NAME}"));
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter name="NUM_OF_PREVIEW_RECORDS" public="false"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<Dictionary>
+<Entry input="false" name="mapping" output="true" type="string"/>
+</Dictionary>
+</Global>
+<Phase number="0">
+<Node fileURL="${ABSOLUTE_META_PATH}.map" guiName="Read mapping" guiX="141" guiY="100" id="READ_MAPPING" type="FLAT_FILE_READER"/>
+<Node guiName="Set dict" guiX="340" guiY="100" id="SET_DICT" type="SET_JOB_OUTPUT">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.mapping = $in.0.data;
+	return ALL;
+}]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="-140" guiY="10" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+</Node>
+<Edge fromNode="READ_MAPPING:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (output)" toNode="SET_DICT:0"/>
+</Phase>
+<Phase number="1">
+<Node __ABSOLUTE_META_PATH="${ABSOLUTE_META_PATH}" __HUBSPOT_OAUTH2_CONNECTION="${HUBSPOT_OAUTH2_CONNECTION}" __HUBSPOT_PRIVATE_APP_TOKEN="${HUBSPOT_PRIVATE_APP_TOKEN}" __OBJECT="${OBJECT}" guiName="Mapping Wrapper" guiX="522" guiY="100" id="MAPPING_WRAPPER1" jobURL="${SUBGRAPH_DIR}/MappingWrapper.sgrf" skipCheckConfig="true" type="SUBGRAPH">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.FIELD_MAPPING = dictionary.mapping;
+	$out.0.NUM_OF_PREVIEW_RECORDS = getParamValue("NUM_OF_PREVIEW_RECORDS");
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="SubgraphOutput" guiX="800" guiY="10" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+<Port guiY="257" name="2"/>
+</Node>
+<Node debugOutput="true" guiName="Trash" guiX="957" guiY="176" id="TRASH" type="TRASH"/>
+<Edge fromNode="MAPPING_WRAPPER1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="MAPPING_WRAPPER1:1" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 1 (in)" outPort="Port 1 (out)" toNode="SUBGRAPH_OUTPUT0:1"/>
+<Edge fromNode="SUBGRAPH_OUTPUT0:1" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="TRASH:0"/>
+</Phase>
+</Graph>

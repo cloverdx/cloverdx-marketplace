@@ -1,0 +1,2 @@
+- Last names come from https://en.wikipedia.org/wiki/List_of_common_Japanese_surnames
+- First names come from https://www.nippon.com/en/japan-data/h00872/ and https://www.nippon.com/en/japan-data/h01515/

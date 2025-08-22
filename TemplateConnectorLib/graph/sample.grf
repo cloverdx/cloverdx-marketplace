@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="droben" created="Tue Feb 28 10:40:12 CET 2023" guiVersion="5.17.0.1496" id="1677577343184" licenseCode="CLCDSCLOVE85208925SP" name="sample" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata1">
+<Record fieldDelimiter=";" name="Payments" previewAttachment="${DATAIN_DIR}/Payments.csv" previewAttachmentCharset="UTF-8" quoteChar="both" quotedStrings="false" recordDelimiter="\r\n" skipSourceRows="1" type="delimited">
+<Field name="paymentId" type="integer"/>
+<Field name="customerId" type="integer"/>
+<Field name="paymentType" type="string"/>
+<Field name="paidAmount" scale="2" type="decimal"/>
+<Field eofAsDelimiter="true" name="paymentDate" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter=";" name="SimplePayments" previewAttachment="${DATAIN_DIR}/SimplePayments.csv" previewAttachmentCharset="UTF-8" quoteChar="both" quotedStrings="false" recordDelimiter="\r\n" skipSourceRows="1" type="delimited">
+<Field name="paymentId" type="integer"/>
+<Field name="orderId" type="string"/>
+<Field name="customerId" type="integer"/>
+<Field name="paymentType" type="string"/>
+<Field name="paidAmount" scale="2" type="decimal"/>
+<Field eofAsDelimiter="true" name="paymentDate" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="CustomerSample" guiX="213" guiY="181" id="CUSTOMER_SAMPLE" jobURL="${SUBGRAPH_DIR}/DataSource.sgrf" type="SUBGRAPH"/>
+<Node guiName="Trash" guiX="561" guiY="181" id="TRASH" type="TRASH"/>
+<Edge fromNode="CUSTOMER_SAMPLE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="TRASH:0"/>
+</Phase>
+</Graph>

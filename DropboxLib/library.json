@@ -1,0 +1,61 @@
+{
+  "descriptor" : {
+    "version" : "1.0.1",
+    "description" : "Automate file operations in Dropbox. Upload, list, purge files and generate download links using prebuilt subgraphs. Requires OAuth2 connection.",
+    "name" : "DropboxLib",
+    "author" : "CloverDX",
+    "productVersion" : "6.5.0.9",
+    "initializationJob" : "",
+    "minProductVersion" : "6.0",
+    "maxProductVersion" : "",
+    "lastModificationDate" : "2024-10-01T07:35:00Z"
+  },
+  "connections" : {
+    "oauth2Connections" : [ ]
+  },
+  "publicInterface" : {
+    "metadata" : [ ],
+    "dataConnectors" : {
+      "sources" : [ ],
+      "targets" : [ ]
+    },
+    "graphs" : [ ],
+    "jobflows" : [ ],
+    "restJobs" : [ ],
+    "subgraphs" : [ {
+      "largeIcon" : "./icons/dropbox-64.png",
+      "icon" : "./icons/dropbox-16.png",
+      "mediumIcon" : "./icons/dropbox-32.png",
+      "description" : "Dowloads file from Dropbox.",
+      "path" : "graph/subgraph/Dropbox/DownloadFileFromDropbox.sgrf"
+    }, {
+      "largeIcon" : "./icons/dropbox-64.png",
+      "icon" : "./icons/dropbox-16.png",
+      "mediumIcon" : "./icons/dropbox-32.png",
+      "description" : "Returns a list of all available download links for files.",
+      "path" : "graph/subgraph/Dropbox/GetDropboxDownloadLink.sgrf"
+    }, {
+      "largeIcon" : "./icons/dropbox-64.png",
+      "icon" : "./icons/dropbox-16.png",
+      "mediumIcon" : "./icons/dropbox-32.png",
+      "description" : "Prints a content list of the specified directory.",
+      "path" : "graph/subgraph/Dropbox/ListDropboxFolder.sgrf"
+    }, {
+      "largeIcon" : "./icons/dropbox-64.png",
+      "icon" : "./icons/dropbox-16.png",
+      "mediumIcon" : "./icons/dropbox-32.png",
+      "description" : "Deletes content of the specified directory.",
+      "path" : "graph/subgraph/Dropbox/PurgeDropboxFolder.sgrf"
+    }, {
+      "largeIcon" : "./icons/dropbox-64.png",
+      "icon" : "./icons/dropbox-16.png",
+      "mediumIcon" : "./icons/dropbox-32.png",
+      "description" : "Uploads file to a specified Dropbox folder.",
+      "path" : "graph/subgraph/Dropbox/UploadFileToDropbox.sgrf"
+    } ]
+  },
+  "healthCheck" : {
+    "description" : "",
+    "path" : ""
+  }
+}

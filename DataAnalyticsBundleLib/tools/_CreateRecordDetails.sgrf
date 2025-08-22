@@ -1,0 +1,612 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" created="Wed Dec 13 09:27:13 EST 2017" guiVersion="5.15.0.15" id="1513176470564" licenseCode="CLP1DJAVLI51341258BY" name="_CreateRecordDetails" nature="subgraph" showComponentDetails="true">
+<Global>
+<inputPorts>
+<singlePort connected="true" name="0"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="true" keepEdge="false" name="0" required="false"/>
+<singlePort connected="true" keepEdge="false" name="1" required="false"/>
+<singlePort connected="true" keepEdge="true" name="2" required="false"/>
+</outputPorts>
+<Metadata fileURL="${DATA_ANALYTICS_DIR}/meta/MetadataField.fmt" id="Metadata1"/>
+<Metadata id="MetaPivot_Output">
+<Record fieldDelimiter="|" name="AttributePivot" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="metaRecord" type="string"/>
+<Field name="recordNo" trim="true" type="integer"/>
+<Field name="fieldNo" trim="true" type="integer"/>
+<Field name="fieldName" type="string"/>
+<Field name="fieldType" type="string"/>
+<Field name="valueBoolean" trim="true" type="boolean"/>
+<Field name="valueByte" type="byte"/>
+<Field name="valueDate" trim="true" type="date"/>
+<Field length="12" name="valueDecimal" scale="2" trim="true" type="decimal"/>
+<Field name="valueInteger" trim="true" type="integer"/>
+<Field name="valueLong" trim="true" type="long"/>
+<Field name="valueNumber" trim="true" type="number"/>
+<Field name="valueString" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0" previewAttachmentCharset="UTF-8">
+<Record fieldDelimiter="|" name="Defaults" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="__name" type="string"/>
+<Field name="__label" type="string"/>
+<Field name="__fieldDelimiter" type="string"/>
+<Field name="__recordDelimiter" type="string"/>
+<Field name="__type" type="string"/>
+<Field name="delimiter" type="string"/>
+<Field name="type" type="string"/>
+<Field name="label" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameter label="Default metadata name" name="METADATA_NAME" public="true" required="false" secure="false"/>
+<GraphParameter label="Default record delimiter" name="DEFAULT_RECORD_DELIMITER" public="true"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="Add name to data" guiX="1239" guiY="55" id="ADD_NAME_TO_DATA" joinKey="$recordNo(a)#$recordNo(a);" type="EXT_MERGE_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.metaRecord = $in.1.valueString;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Choose best candidate" guiX="1747" guiY="55" id="CHOOSE_BEST_CANDIDATE" key="metaRecord(a);fieldName(a)" type="DENORMALIZER">
+<attr name="denormalize"><![CDATA[//#CTL2
+// This transformation defines the way in which multiple input records 
+// (with the same key) are denormalized into one output record. 
+
+map[integer,integer] int;
+map[string,integer] str;
+
+// This function is called for each input record from a group of records
+// with the same key.
+function integer append() {
+	string fld = concat("value",ucFirst($in.0.fieldType));
+	
+	//
+	if (!isNull($in.0,fld)) {
+		//
+		switch ($in.0.fieldType) {
+			case "string":
+				append($in.0.valueString);
+				break;
+			case "integer":
+				append($in.0.valueInteger);
+				break;
+		}
+	}
+	
+	return OK;
+}
+
+function void append(integer arg) {
+	//
+	if (int.containsKey(arg)) {
+		int[arg] += 1;
+	//
+	} else {
+		int[arg] = 1;
+	}
+}
+
+function integer findBest(map[integer,integer] m) {
+	integer mx = -1;
+	integer rs;
+	
+	foreach (integer k: m.getKeys()) {
+		if (mx < m[k]) {
+			rs = k;
+			mx = m[k];
+		}
+	}
+	
+	return rs;
+}
+
+function string findBest(map[string,integer] m) {
+	integer mx = -1;
+	string rs;
+	
+	foreach (string k: m.getKeys()) {
+		if (mx < m[k]) {
+			rs = k;
+			mx = m[k];
+		}
+	}
+	
+	return rs;
+}
+
+function void append(string arg) {
+	//
+	if (str.containsKey(arg)) {
+		str[arg] += 1;
+	//
+	} else {
+		str[arg] = 1;
+	}
+}
+
+// This function is called once after the append() function was called for all records
+// of a group of input records defined by the key.
+// It creates a single output record for the whole group.
+function integer transform() {
+	string fld = concat("value",ucFirst($in.0.fieldType));
+	$out.0.* = $in.0.*;
+	
+	switch ($in.0.fieldType) {
+		case "string":
+			$out.0.valueString = findBest(str);
+			break;
+		case "integer":
+			$out.0.valueInteger = findBest(int);
+			break;
+	}
+
+	return OK;
+}
+
+function string ucFirst(string arg) {
+	return arg.left(1).upperCase().concat(arg.substring(1));
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if append() throws an exception.
+// function integer appendOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called only if transform() throws an exception.
+//function integer transformOnError(string errorMessage, string stackTrace) {
+//}
+
+// Called after transform() to return the resources that have been used to their initial state
+// so that next group of records with different key may be parsed.
+function void clean() {
+	clear(int);
+	clear(str);
+}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Condition copy" guiX="1413" guiY="55" id="CONDITION_COPY" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+import '${DATA_ANALYTICS_DIR}/trans/constants.ctl';
+
+// Transforms input record into output record.
+function integer transform() {
+	
+	if ($in.0.fieldName.in(METADATA_SHARED_FIELDS)) {
+		$out.0.* = $out.1.* = $in.0.*;
+		return ALL;
+	}
+	
+	if ($in.0.fieldName.startsWith("__")) {
+		$out.0.* = $in.0.*;
+		return 0;
+	}
+
+	$out.1.* = $in.0.*;
+	return 1;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="CrossJoin" guiX="387" guiY="55" id="CROSS_JOIN" type="CROSS_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	
+	// Set defaults if not provided
+	for (integer i=0;i<$in.1.length();i++) {
+		string field = $in.1.getFieldName(i);
+		if (isNull($out.0,field)) {
+			$out.0.setStringValue(field,$in.1.getStringValue(i));
+		}
+	}
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node debugInput="true" guiName="DebugInput" guiX="-38" guiY="55" id="DEBUG_INPUT" recordsNumber="0" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the generate. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if generate() throws an exception.
+// function integer generateOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node debugOutput="true" guiName="DebugOutput" guiX="2804" guiY="55" id="DEBUG_OUTPUT" type="TRASH"/>
+<Node debugOutput="true" guiName="DebugOutput" guiX="2804" guiY="125" id="DEBUG_OUTPUT1" type="TRASH"/>
+<Node debugOutput="true" guiName="DebugOutput" guiX="2804" guiY="209" id="DEBUG_OUTPUT2" type="TRASH"/>
+<Node dedupKey="__name(a)" guiName="Dedup" guiX="1760" guiY="209" id="DEDUP1" keep="last" type="DEDUP"/>
+<Node guiName="Defaults vector" guiX="209" guiY="172" id="DEFAULTS_VECTOR" type="GET_JOB_INPUT">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.__name = "${METADATA_NAME}";
+	$out.0.delimiter = "|";
+	$out.0.type = "string";
+	$out.0.__type = "delimited";
+	$out.0.__recordDelimiter = '${DEFAULT_RECORD_DELIMITER}';
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Fix record info" guiX="552" guiY="55" id="FIX_RECORD_INFO" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+import '${DATA_ANALYTICS_DIR}/trans/common.ctl';
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.__name = (!isBlank($in.0.__name) ? $in.0.__name : nvl($in.0.__label,"${METADATA_NAME}")).toStandardName();
+	$out.0.name = nvl($in.0.name,$in.0.label).toStandardName();
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="!isnull" guiX="889" guiY="55" id="ISNULL" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+!isNull($in.0,concat("value",$in.0.fieldType.left(1).upperCase(),$in.0.fieldType.substring(1)))]]></attr>
+</Node>
+<Node guiName="Merge" guiX="2117" guiY="209" id="MERGE" mergeKey="__name" type="MERGE"/>
+<Node guiName="Metadata name" guiX="1059" guiY="55" id="METADATA_NAME" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.fieldName != "__name"]]></attr>
+</Node>
+<Node guiName="MetaPivot" guiX="722" guiY="55" id="META_PIVOT" type="META_PIVOT"/>
+<Node guiName="Pivot" guiX="1573" guiY="209" id="PIVOT" key="recordNo(a)" type="DENORMALIZER">
+<attr name="denormalize"><![CDATA[//#CTL2
+// This transformation defines the way in which multiple input records 
+// (with the same key) are denormalized into one output record. 
+
+// This function is called for each input record from a group of records
+// with the same key.
+function integer append() {
+	switch ($in.0.fieldType) {
+		case "string": $out.0.setStringValue($in.0.fieldNo,$in.0.valueString); break;
+		case "boolean": $out.0.setBoolValue($in.0.fieldNo,$in.0.valueBoolean); break;
+		case "integer": $out.0.setIntValue($in.0.fieldNo,$in.0.valueInteger); break;
+	}
+	
+	return OK;
+}
+
+// This function is called once after the append() function was called for all records
+// of a group of input records defined by the key.
+// It creates a single output record for the whole group.
+function integer transform() {
+	$out.0.__name = $in.0.metaRecord;
+
+	return OK;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if append() throws an exception.
+// function integer appendOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called only if transform() throws an exception.
+//function integer transformOnError(string errorMessage, string stackTrace) {
+//}
+
+// Called after transform() to return the resources that have been used to their initial state
+// so that next group of records with different key may be parsed.
+// function void clean() {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Pivot" guiX="2117" guiY="55" id="PIVOT1" key="recordNo(a)" type="DENORMALIZER">
+<attr name="denormalize"><![CDATA[//#CTL2
+// This transformation defines the way in which multiple input records 
+// (with the same key) are denormalized into one output record. 
+
+// This function is called for each input record from a group of records
+// with the same key.
+function integer append() {
+	switch ($in.0.fieldType) {
+		case "string": $out.0.setStringValue($in.0.fieldNo,$in.0.valueString); break;
+		case "boolean": $out.0.setBoolValue($in.0.fieldNo,$in.0.valueBoolean); break;
+		case "integer": $out.0.setIntValue($in.0.fieldNo,$in.0.valueInteger); break;
+	}
+	
+	return OK;
+}
+
+// This function is called once after the append() function was called for all records
+// of a group of input records defined by the key.
+// It creates a single output record for the whole group.
+function integer transform() {
+	$out.0.__name = $in.0.metaRecord;
+	
+	$out.0.__fieldDelimiter = nvl($out.0.__fieldDelimiter,$out.0.delimiter);
+	$out.0.delimiter = null;
+
+	return OK;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if append() throws an exception.
+// function integer appendOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called only if transform() throws an exception.
+//function integer transformOnError(string errorMessage, string stackTrace) {
+//}
+
+// Called after transform() to return the resources that have been used to their initial state
+// so that next group of records with different key may be parsed.
+// function void clean() {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Remove delimiter" guiX="2476" guiY="209" id="REMOVE_DELIMITER" joinKey="$__name(a)#$__name(a);" type="EXT_MERGE_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.delimiter = $in.0.delimiter == $in.1.__fieldDelimiter ? null : $in.0.delimiter;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Remove last delimiter" guiX="1928" guiY="286" id="REMOVE_LAST_DELIMITER" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.delimiter = null;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="SimpleCopy" guiX="1941" guiY="55" id="SIMPLE_COPY" type="SIMPLE_COPY"/>
+<Node guiName="SimpleCopy" guiX="2288" guiY="55" id="SIMPLE_COPY4" type="SIMPLE_COPY"/>
+<Node guiName="Sort by Field" guiX="1573" guiY="55" id="SORT_BY_FIELD" sortKey="metaRecord(a);fieldName(a)" type="EXT_SORT"/>
+<Node guiName="Sort by record name" guiX="193" guiY="55" id="SORT_BY_RECORD_NAME" sortKey="__name(a)" type="EXT_SORT"/>
+<Node guiName="SubgraphInput" guiX="140" guiY="-28" id="SUBGRAPH_INPUT" type="SUBGRAPH_INPUT">
+<Port guiY="72" name="0"/>
+<Port guiY="142" name="1"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="2690" guiY="-28" id="SUBGRAPH_OUTPUT" type="SUBGRAPH_OUTPUT">
+<Port guiY="72" name="0"/>
+<Port guiY="142" name="1"/>
+<Port guiY="226" name="2"/>
+<Port guiY="296" name="3"/>
+</Node>
+<Edge debugMode="false" fromNode="ADD_NAME_TO_DATA:0" guiBendpoints="" guiRouter="Manhattan" id="Edge39" inPort="Port 0 (in)" metadataRef="#//Edge30" outPort="Port 0 (out)" toNode="CONDITION_COPY:0"/>
+<Edge fromNode="CHOOSE_BEST_CANDIDATE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge42" inPort="Port 0 (in)" metadataRef="#//Edge37" outPort="Port 0 (out)" toNode="SIMPLE_COPY:0"/>
+<Edge debugMode="false" fromNode="CONDITION_COPY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge32" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SORT_BY_FIELD:0"/>
+<Edge fromNode="CONDITION_COPY:1" guiBendpoints="" guiRouter="Manhattan" id="Edge33" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="PIVOT:0"/>
+<Edge debugMode="false" fromNode="CROSS_JOIN:0" guiBendpoints="" guiRouter="Manhattan" id="Edge44" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="FIX_RECORD_INFO:0"/>
+<Edge fromNode="DEBUG_INPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="SUBGRAPH_INPUT:0"/>
+<Edge fromNode="DEDUP1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 0 (in)" outPort="Port 0 (unique)" toNode="REMOVE_LAST_DELIMITER:0"/>
+<Edge fromNode="DEDUP1:1" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 0 (in)" outPort="Port 1 (duplicate)" toNode="MERGE:0"/>
+<Edge fromNode="DEFAULTS_VECTOR:0" guiBendpoints="" guiRouter="Manhattan" id="Edge45" inPort="Port 1 (slave)" metadata="Metadata0" outPort="Port 0 (out)" toNode="CROSS_JOIN:1"/>
+<Edge fromNode="FIX_RECORD_INFO:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="META_PIVOT:0"/>
+<Edge debugMode="false" fromNode="ISNULL:0" guiBendpoints="" guiRouter="Manhattan" id="Edge36" inPort="Port 0 (in)" outPort="Port 0 (accepted)" toNode="METADATA_NAME:0"/>
+<Edge fromNode="MERGE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 0 (driver)" outPort="Port 0 (out)" toNode="REMOVE_DELIMITER:0"/>
+<Edge debugMode="false" fromNode="METADATA_NAME:0" guiBendpoints="" guiRouter="Manhattan" id="Edge38" inPort="Port 0 (driver)" outPort="Port 0 (accepted)" toNode="ADD_NAME_TO_DATA:0"/>
+<Edge fromNode="METADATA_NAME:1" guiBendpoints="" guiRouter="Manhattan" id="Edge40" inPort="Port 1 (slave)" outPort="Port 1 (rejected)" toNode="ADD_NAME_TO_DATA:1"/>
+<Edge debugMode="false" fromNode="META_PIVOT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge30" inPort="Port 0 (in)" metadata="MetaPivot_Output" outPort="Port 0 (out)" toNode="ISNULL:0"/>
+<Edge fromNode="PIVOT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge35" inPort="Port 0 (in)" metadataRef="#//Edge7" outPort="Port 0 (out)" toNode="DEDUP1:0"/>
+<Edge fromNode="PIVOT1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge43" inPort="Port 0 (in)" metadataRef="#//Edge44" outPort="Port 0 (out)" toNode="SIMPLE_COPY4:0"/>
+<Edge fromNode="REMOVE_DELIMITER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 2 (in)" metadataRef="#//Edge35" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:2"/>
+<Edge fromNode="REMOVE_LAST_DELIMITER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge13" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="MERGE:1"/>
+<Edge fromNode="SIMPLE_COPY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="PIVOT1:0"/>
+<Edge fromNode="SIMPLE_COPY:1" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 1 (in)" outPort="Port 1 (out)" toNode="SUBGRAPH_OUTPUT:1"/>
+<Edge fromNode="SIMPLE_COPY4:0" guiBendpoints="" guiRouter="Manhattan" id="Edge29" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:0"/>
+<Edge fromNode="SIMPLE_COPY4:1" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 1 (slave)" outPort="Port 1 (out)" toNode="REMOVE_DELIMITER:1"/>
+<Edge debugMode="false" fromNode="SORT_BY_FIELD:0" guiBendpoints="" guiRouter="Manhattan" id="Edge37" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="CHOOSE_BEST_CANDIDATE:0"/>
+<Edge debugMode="false" fromNode="SORT_BY_RECORD_NAME:0" guiBendpoints="" guiRouter="Manhattan" id="Edge14" inPort="Port 0 (master)" outPort="Port 0 (out)" toNode="CROSS_JOIN:0"/>
+<Edge debugMode="false" fromNode="SUBGRAPH_INPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SORT_BY_RECORD_NAME:0"/>
+<Edge fromNode="SUBGRAPH_OUTPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="DEBUG_OUTPUT:0"/>
+<Edge fromNode="SUBGRAPH_OUTPUT:1" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="DEBUG_OUTPUT1:0"/>
+<Edge fromNode="SUBGRAPH_OUTPUT:2" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" outPort="Port 2 (out)" toNode="DEBUG_OUTPUT2:0"/>
+</Phase>
+</Graph>

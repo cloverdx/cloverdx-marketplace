@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Vitalij" created="Tue Apr 11 10:10:34 CEST 2023" guiVersion="6.0.0.21" id="1681204310256" licenseCode="CLCDSCLOVE72646208SP" name="AirtableGenerateMetadataWriter" showComponentDetails="true">
+<Global>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameter label="METADATA_FILE_URL" name="METADATA_FILE_URL" public="true" required="false">
+<ComponentReference referencedComponent="XMLWRITER" referencedProperty="fileURL"/>
+</GraphParameter>
+<GraphParameter label="TABLE_STRUCTURE_FILE_URL" name="TABLE_STRUCTURE_FILE_URL" public="true" required="false">
+<ComponentReference referencedComponent="CLOVER_DATA_READER" referencedProperty="fileURL"/>
+</GraphParameter>
+<GraphParameter name="TABLE_ID" public="true"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node fileURL="${TABLE_STRUCTURE_FILE_URL}" guiName="CloverDataReader" guiX="599" guiY="549" id="CLOVER_DATA_READER" type="CLOVER_READER"/>
+<Node guiName="Filter" guiX="888" guiY="549" id="FILTER1" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.tableId == getParamValue('TABLE_ID')]]></attr>
+</Node>
+<Node createEmptyFiles="false" fileURL="${METADATA_FILE_URL}" guiName="XMLWriter" guiX="1162" guiY="549" id="XMLWRITER" makeDirs="true" type="EXT_XML_WRITER" xmlSchemaURL="${META_DIR}/metadataWriterSchema/Record.xsd">
+<attr name="mapping"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<Record xmlns:clover="http://www.cloveretl.com/ns/xmlmapping" fieldDelimiter="|" name="${TABLE_ID}" previewAttachmentCharset="UTF-8" recordDelimiter="\\r\\n" type="delimited">
+  <Field length="$0.length" name="$0.fieldName" scale="$0.precision" type="$0.fieldCloverType" clover:inPort="0"/>
+</Record>]]></attr>
+</Node>
+<Edge fromNode="CLOVER_DATA_READER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="FILTER1:0"/>
+<Edge fromNode="FILTER1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 0 (accepted)" toNode="XMLWRITER:0"/>
+</Phase>
+</Graph>

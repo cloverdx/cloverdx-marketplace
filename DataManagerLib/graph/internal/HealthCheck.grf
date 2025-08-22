@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Branislav Repcek" created="Thu Jun 06 11:02:54 CEST 2024" description="Check connectivity to Data Manager backend." guiVersion="7.1.0.8" id="1717710760197" licenseCode="Unlicensed" name="HealthCheck" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="Dummy" recordDelimiter="\r\n" type="delimited">
+<Field name="dummy" type="integer"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+<GraphParameterFile fileURL="data-manager-api.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="Fail" guiX="770" guiY="450" id="FAIL1" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+import "${TRANS_DIR}/ApiFailReporter.ctl";
+// Transforms input record into output record.
+function integer transform() {
+	mapErrorMessage();
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="Filter" guiX="520" guiY="350" id="FILTER1" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.statusCode == 200]]></attr>
+</Node>
+<Node guiName="Success" guiX="770" guiY="275" id="SUCCESS" type="SUCCESS"/>
+<Node guiName="Test API Call" guiX="295" guiY="350" id="TEST_API_CALL" password="${CLOVERDX_PASS}" type="HTTP_CONNECTOR" url="${API_URL}/data-sets-overview" username="${CLOVERDX_USER}"/>
+<Edge fromNode="FILTER1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 0 (accepted)" toNode="SUCCESS:0"/>
+<Edge fromNode="FILTER1:1" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" outPort="Port 1 (rejected)" toNode="FAIL1:0"/>
+<Edge fromNode="TEST_API_CALL:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="FILTER1:0"/>
+</Phase>
+</Graph>

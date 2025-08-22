@@ -1,0 +1,115 @@
+{
+  "descriptor" : {
+    "version" : "3.2.0",
+    "name" : "DataManagerLib",
+    "productVersion" : "7.0.1.7",
+    "description" : "Enhance your CloverDX Data Manager experience. Create, edit, and approve data sets to support data quality and reference data governance.",
+    "author" : "CloverDX",
+    "maxProductVersion" : "",
+    "minProductVersion" : "7.0",
+    "lastModificationDate" : "2025-06-27T09:59:48Z",
+    "initializationJob" : ""
+  },
+  "connections" : {
+    "oauth2Connections" : [ ]
+  },
+  "publicInterface" : {
+    "metadata" : [ ],
+    "dataConnectors" : {
+      "targets" : [ ],
+      "sources" : [ ]
+    },
+    "jobflows" : [ ],
+    "restJobs" : [ {
+      "methods" : [ "GET" ],
+      "urlPath" : "/DeleteAllDataSets",
+      "endpointName" : "DeleteAllDataSets",
+      "description" : "Delete all data sets and their data.",
+      "path" : "data-service/DeleteAllDataSets.rjob"
+    }, {
+      "methods" : [ "GET" ],
+      "urlPath" : "/GetDataSetList",
+      "endpointName" : "GetDataSetList",
+      "description" : "List data sets in the Data Manager and their basic properties.",
+      "path" : "data-service/GetDataSetList.rjob"
+    }, {
+      "methods" : [ "GET" ],
+      "urlPath" : "/ListDataSets",
+      "endpointName" : "ListDataSets",
+      "description" : "List data sets in the Data Manager and their basic properties.",
+      "path" : "data-service/ListDataSets.rjob"
+    } ],
+    "graphs" : [ ],
+    "subgraphs" : [ {
+      "icon" : "./icons/CreateDataSetFromMetadata16.png",
+      "largeIcon" : "./icons/CreateDataSetFromMetadata64.png",
+      "mediumIcon" : "./icons/CreateDataSetFromMetadata48.png",
+      "description" : "Create a new data set based on provided metadata file.",
+      "path" : "graph/subgraph/CreateDataSetFromMetadata.sgrf"
+    }, {
+      "icon" : "./icons/DataSetRowColumnUpdate16.png",
+      "largeIcon" : "./icons/DataSetRowColumnUpdate64.png",
+      "mediumIcon" : "./icons/DataSetRowColumnUpdate48.png",
+      "description" : "Update value of a column in a dataset.",
+      "path" : "graph/subgraph/DataSetRowColumnUpdate.sgrf"
+    }, {
+      "icon" : "./icons/DataSetRowUpdate16.png",
+      "largeIcon" : "./icons/DataSetRowUpdate64.png",
+      "mediumIcon" : "./icons/DataSetRowUpdate48.png",
+      "description" : "Update values of matching columns in a data set row based on star mapping from the input.",
+      "path" : "graph/subgraph/DataSetRowUpdate.sgrf"
+    }, {
+      "icon" : "./icons/DeleteAllDataSets16.png",
+      "largeIcon" : "./icons/DeleteAllDataSets64.png",
+      "mediumIcon" : "./icons/DeleteAllDataSets48.png",
+      "description" : "Delete all data sets in the Data Manager.",
+      "path" : "graph/subgraph/DeleteAllDataSets.sgrf"
+    }, {
+      "icon" : "./icons/DeleteDataSet16.png",
+      "largeIcon" : "./icons/DeleteDataSet64.png",
+      "mediumIcon" : "./icons/DeleteDataSet48.png",
+      "description" : "Delete data set based on its code.",
+      "path" : "graph/subgraph/DeleteDataSet.sgrf"
+    }, {
+      "icon" : "./icons/GetDataSetAudit16.png",
+      "largeIcon" : "./icons/GetDataSetAudit64.png",
+      "mediumIcon" : "./icons/GetDataSetAudit48.png",
+      "description" : "Return audit records for given data set.",
+      "path" : "graph/subgraph/GetDataSetAudit.sgrf"
+    }, {
+      "icon" : "./icons/GetDataSetsOverview16.png",
+      "largeIcon" : "./icons/GetDataSetsOverview64.png",
+      "mediumIcon" : "./icons/GetDataSetsOverview48.png",
+      "description" : "Get basic information about all data sets in the Data Manager.",
+      "path" : "graph/subgraph/GetDataSetsOverview.sgrf"
+    }, {
+      "icon" : "./icons/ReferenceDataSetApproveAll16.png",
+      "largeIcon" : "./icons/ReferenceDataSetApproveAll64.png",
+      "mediumIcon" : "./icons/ReferenceDataSetApproveAll48.png",
+      "description" : "Approve all rows in the selected reference data set.",
+      "path" : "graph/subgraph/ReferenceDataSetApproveAll.sgrf"
+    }, {
+      "icon" : "./icons/ReferenceDataSetApproveRow16.png",
+      "largeIcon" : "./icons/ReferenceDataSetApproveRow64.png",
+      "mediumIcon" : "./icons/ReferenceDataSetApproveRow48.png",
+      "description" : "Approve rows in the reference data set.",
+      "path" : "graph/subgraph/ReferenceDataSetApproveRow.sgrf"
+    }, {
+      "path" : "graph/subgraph/ResetCaches.sgrf",
+      "description" : "Clear content of sandbox-based lookups' cache used for Data Manager. If you use lookups backed by Reference Data Sets you do not need to use this API.\r\n\r\n\r\n",
+      "icon" : "./icons/ResetCaches16.png",
+      "mediumIcon" : "./icons/ResetCaches32.png",
+      "largeIcon" : "./icons/ResetCaches64.png"
+    }, {
+      "icon" : "./icons/TransactionalDataSetSetRowStatus16.png",
+      "largeIcon" : "./icons/TransactionalDataSetSetRowStatus64.png",
+      "mediumIcon" : "./icons/TransactionalDataSetSetRowStatus48.png",
+      "description" : "Set status of a row in a transactional data set.",
+      "path" : "graph/subgraph/TransactionalDataSetSetRowStatus.sgrf"
+    } ]
+  },
+  "healthCheck" : {
+    "description" : "Check connectivity to Data Manager backend.",
+    "path" : "graph/internal/HealthCheck.grf"
+  }
+}

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Branislav Repcek" category="readers" created="Sun Mar 12 23:33:12 CET 2023" description="Return line items belonging to orders from the OnlineStore." guiVersion="6.0.0.1544" id="1678699944403" largeIconPath="${SUBGRAPH_DIR}/icons/OnlineStoreOrdersLineItems64.png" licenseCode="Unlicensed" mediumIconPath="${SUBGRAPH_DIR}/icons/OnlineStoreOrdersLineItems32.png" name="Online store orders line items" nature="subgraph" showComponentDetails="true" smallIconPath="${SUBGRAPH_DIR}/icons/OnlineStoreOrdersLineItems16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" name="0"/>
+</outputPorts>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="debugInput1" recordDelimiter="\r\n" type="delimited">
+<Field name="field1" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter label="Number of orders to generate" name="ORDER_COUNT" public="true" value="10000">
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter label="Percentage of accounts who have made an order" name="ACCOUNTS_WITH_ORDERS_PERCENT" public="true" required="false" value="95">
+<ComponentReference referencedComponent="GENERATE_ORDERS" referencedProperty="__ACCOUNTS_WITH_ORDERS_PERCENT"/>
+</GraphParameter>
+<GraphParameter label="Minimum number of orders per customer" name="MIN_ORDERS_PER_CUSTOMER" public="true" required="false" value="1">
+<ComponentReference referencedComponent="GENERATE_ORDERS" referencedProperty="__MIN_ORDERS_PER_CUSTOMER"/>
+</GraphParameter>
+<GraphParameter label="Maximum number of orders per customer" name="MAX_ORDERS_PER_CUSTOMER" public="true" required="false" value="8">
+<ComponentReference referencedComponent="GENERATE_ORDERS" referencedProperty="__MAX_ORDERS_PER_CUSTOMER"/>
+</GraphParameter>
+<GraphParameter label="Minimum number of items per order" name="MIN_ITEMS_PER_ORDER" public="true" required="false" value="1">
+<ComponentReference referencedComponent="GENERATE_ORDERS" referencedProperty="__MIN_ITEMS_PER_ORDER"/>
+</GraphParameter>
+<GraphParameter label="Maximum number of items per order" name="MAX_ITEMS_PER_ORDER" public="true" required="false" value="5">
+<ComponentReference referencedComponent="GENERATE_ORDERS" referencedProperty="__MAX_ITEMS_PER_ORDER"/>
+</GraphParameter>
+<GraphParameter label="Minimum order date" name="ORDER_MIN_DATE" public="true" required="false" value="2018-01-01">
+<ComponentReference referencedComponent="GENERATE_ORDERS" referencedProperty="__ORDER_MIN_DATE"/>
+</GraphParameter>
+<GraphParameter label="Maximum order date" name="ORDER_MAX_DATE" public="true" required="false" value="2023-03-28">
+<ComponentReference referencedComponent="GENERATE_ORDERS" referencedProperty="__ORDER_MAX_DATE"/>
+</GraphParameter>
+<GraphParameter name="NUM_OF_PREVIEW_RECORDS"/>
+<GraphParameter name="GENERATE_RECORD_COUNT">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+import "${TRANS_DIR}/Common.ctl";
+
+function string getValue() {
+	return num2str(getRecordCount(${ORDER_COUNT}));
+}
+]]></attr>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node __ACCOUNTS_WITH_ORDERS_PERCENT="${ACCOUNTS_WITH_ORDERS_PERCENT}" __MAX_ITEMS_PER_ORDER="${MAX_ITEMS_PER_ORDER}" __MAX_ORDERS_PER_CUSTOMER="${MAX_ORDERS_PER_CUSTOMER}" __MIN_ITEMS_PER_ORDER="${MIN_ITEMS_PER_ORDER}" __MIN_ORDERS_PER_CUSTOMER="${MIN_ORDERS_PER_CUSTOMER}" __ORDER_MAX_DATE="${ORDER_MAX_DATE}" __ORDER_MIN_DATE="${ORDER_MIN_DATE}" __RECORD_COUNT="${GENERATE_RECORD_COUNT}" guiName="GenerateOrders" guiX="280" guiY="100" id="GENERATE_ORDERS" jobURL="${SUBGRAPH_DIR}/GenerateOrders.sgrf" type="SUBGRAPH"/>
+<Node guiName="SubgraphInput" guiX="200" guiY="10" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="800" guiY="10" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Edge fromNode="GENERATE_ORDERS:1" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+</Phase>
+</Graph>

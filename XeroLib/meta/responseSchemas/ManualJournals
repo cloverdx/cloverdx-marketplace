@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="json_object" type="json_objectType"/>
+  <xs:complexType name="ManualJournalsType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="Date"/>
+      <xs:element type="xs:string" name="Status"/>
+      <xs:element type="xs:string" name="LineAmountTypes"/>
+      <xs:element type="xs:string" name="UpdatedDateUTC"/>
+      <xs:element type="xs:string" name="ManualJournalID"/>
+      <xs:element type="xs:string" name="Narration"/>
+      <xs:element type="xs:string" name="HasAttachments"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="arrayElem" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="json_objectType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="Id"/>
+      <xs:element type="xs:string" name="Status"/>
+      <xs:element type="xs:string" name="ProviderName"/>
+      <xs:element type="xs:string" name="DateTimeUTC"/>
+      <xs:element type="ManualJournalsType" name="ManualJournals" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

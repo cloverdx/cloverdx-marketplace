@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Branislav Repcek" category="readers" created="Thu Mar 09 16:00:09 CET 2023" description="Generate full address with realistic properties." guiVersion="6.5.0.24" id="1678375467470" largeIconPath="${SUBGRAPH_DIR}/icons/GenerateAddresses64.png" licenseCode="CLCDSCLOVE85208925SP" mediumIconPath="${SUBGRAPH_DIR}/icons/GenerateAddresses32.png" name="Generate addresses" nature="subgraph" showComponentDetails="true" smallIconPath="${SUBGRAPH_DIR}/icons/GenerateAddresses16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" name="0"/>
+</outputPorts>
+<Metadata id="Metadata5" previewAttachmentCharset="UTF-8">
+<Record fieldDelimiter="|" name="Address" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field label="Address id" name="addressId" type="long"/>
+<Field label="Street address" name="streetAddress" type="string">
+<attr name="description"><![CDATA[Full street address including street name and house number.]]></attr>
+</Field>
+<Field label="Postal code" name="postalCode" type="string"/>
+<Field label="City" name="city" type="string"/>
+<Field label="State/territory" name="state" type="string">
+<attr name="description"><![CDATA[State or territory depending on country. Can be empty if no states/territories in given country.]]></attr>
+</Field>
+<Field label="Country" name="country" type="string">
+<attr name="description"><![CDATA[Country name or code.]]></attr>
+</Field>
+</Record>
+</Metadata>
+<Metadata id="Metadata3">
+<Record fieldDelimiter="|" name="AddressEntities" recordDelimiter="\r\n" type="delimited">
+<Field name="streets" type="variant"/>
+<Field name="cities" type="variant"/>
+<Field name="countries" type="variant"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="," name="CityRegionPostalCode" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" skipSourceRows="1" type="delimited">
+<Field name="name" type="string"/>
+<Field name="regionName" type="string"/>
+<Field name="postalCode" type="string"/>
+<Field auto_filling="source_name" name="sourceFileURL" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata4">
+<Record fieldDelimiter="," name="Country" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" skipSourceRows="1" type="delimited">
+<Field name="countryCode" type="string"/>
+<Field name="countryNameENG" type="string"/>
+<Field name="countryNameLocal" type="string"/>
+<Field auto_filling="source_name" name="sourceFileURL" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="," name="Street" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" skipSourceRows="1" type="delimited">
+<Field name="streetName" type="string"/>
+<Field name="streetType" type="string"/>
+<Field name="minHouseNum" type="integer"/>
+<Field name="maxHouseNum" type="integer"/>
+<Field auto_filling="source_name" name="sourceFileURL" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter label="Language" name="LANGUAGE" public="true" required="false" value="EN-US">
+<SingleType allowCustomValues="false" name="simpleEnum" values="EN-US|English (US);CS-CZ|Czech;JA-JP|Japanese (Kana);XX|All (mixed)"/>
+</GraphParameter>
+<GraphParameter label="Number of records to generate" name="RECORD_COUNT" public="true" value="10000">
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter name="NUM_OF_PREVIEW_RECORDS"/>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node fileURL="port:$0.URL:source" guiName="Cities, Regions, Postal codes" guiX="260" guiY="100" id="CITIES_REGIONS_POSTAL_CODES" type="FLAT_FILE_READER"/>
+<Node guiName="Collect cities" guiX="555" guiY="100" id="COLLECT_CITIES" jobURL="${GRAPH_DIR}/helpers/CollectEntities.sgrf" type="SUBGRAPH"/>
+<Node guiName="Collect countries" guiX="555" guiY="409" id="COLLECT_COUNTRIES" jobURL="${GRAPH_DIR}/helpers/CollectEntities.sgrf" type="SUBGRAPH"/>
+<Node guiName="Collect streets" guiX="555" guiY="259" id="COLLECT_STREETS" jobURL="${GRAPH_DIR}/helpers/CollectEntities.sgrf" type="SUBGRAPH"/>
+<Node guiName="Combine" guiX="798" guiY="100" id="COMBINE" type="COMBINE">
+<attr name="transform"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.cities = $in.0.entities;
+	$out.0.streets = $in.1.entities;
+	$out.0.countries = $in.2.entities;
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node fileURL="port:$0.URL:source" guiName="Countries" guiX="260" guiY="409" id="COUNTRIES" type="FLAT_FILE_READER"/>
+<Node guiName="Generate" guiX="1039" guiY="100" id="GENERATE" type="NORMALIZER">
+<attr name="normalize"><![CDATA[//#CTL2
+import "${TRANS_DIR}/Common.ctl";
+
+string[] AVAILABLE_LANGUAGES = [];
+
+function integer count() {
+	AVAILABLE_LANGUAGES = cast(getKeys($in.0.cities), list, string);
+	
+	return getRecordCount(${RECORD_COUNT});
+}
+
+function integer transform(integer idx) {
+	string lang = getRandomListItem(AVAILABLE_LANGUAGES);
+	
+	$out.0.addressId = idx;
+	$out.0.streetAddress = getRandomStreetAddress(lang);
+	$out.0.country = getRandomCountry(lang);
+	
+	variant city = getRandomCityEntity(lang);
+	$out.0.postalCode = cast(city["postalCode"], string);
+	$out.0.city = cast(city["name"], string);
+	if (lang == "EN-US") {
+		$out.0.state = cast(city["regionName"], string);
+	}
+
+	return OK;
+}
+
+function void preExecute() {
+	setRandomSeed(${GLOBAL_RANDOM_SEED});
+}
+
+function string getRandomStreetAddress(string lang) {
+	integer numEntities = length($in.0.streets[lang]);
+	integer entityIdx = randomInteger(0, numEntities - 1);
+	variant streetEntity = $in.0.streets[lang][entityIdx];
+	
+	switch (lang) {
+		case "CS-CZ":
+			return streetEntity["streetName"] + " " + randomInteger(cast(streetEntity["minHouseNum"], integer), cast(streetEntity["maxHouseNum"], integer));
+			
+		case "EN-US":
+		default:
+			return randomInteger(cast(streetEntity["minHouseNum"], integer), cast(streetEntity["maxHouseNum"], integer)) + " " + getStreetNameUS(streetEntity);
+	}
+}
+
+function string getStreetNameUS(variant streetEntity) {
+	string name = cast(streetEntity["streetName"], string);
+	string type = trimToNull(cast(streetEntity["streetType"], string));
+	
+	if (type != null) {
+		return name + " " + type;
+	} else {
+		return name;
+	}
+}
+
+function string getRandomCountry(string lang) {
+	integer numEntities = length($in.0.countries[lang]);
+	integer entityIdx = randomInteger(0, numEntities - 1);
+	
+	return cast($in.0.countries[lang][entityIdx]["countryCode"], string);
+}
+
+function variant getRandomCityEntity(string lang) {
+	integer numEntities = length($in.0.cities[lang]);
+	integer entityIdx = randomInteger(0, numEntities - 1);
+	return $in.0.cities[lang][entityIdx];
+}
+]]></attr>
+</Node>
+<Node __LANGUAGE="${LANGUAGE}" __TYPE="addresses" guiName="GetSourceFilesForLanguage" guiX="-221" guiY="100" id="GET_SOURCE_FILES_FOR_LANGUAGE" jobURL="${GRAPH_DIR}/helpers/GetSourceFilesForLanguage.sgrf" type="SUBGRAPH"/>
+<Node guiName="Partition" guiX="33" guiY="100" id="PARTITION" type="PARTITION">
+<attr name="partitionSource"><![CDATA[//#CTL2
+
+const map[string, integer] FILE_TO_PORT = {
+	"cities.csv" -> 0,
+	"streets.csv" -> 1,
+	"countries.csv" -> 2
+};
+
+function integer getOutputPort() {
+	integer result = FILE_TO_PORT[$in.0.name];
+	
+	if (result == null) {
+		return 3;
+	}
+	
+	return result;
+}
+]]></attr>
+</Node>
+<Node fileURL="port:$0.URL:source" guiName="Streets" guiX="260" guiY="259" id="STREETS" type="FLAT_FILE_READER"/>
+<Node guiName="SubgraphInput" guiX="-279" guiY="10" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1297" guiY="10" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Node guiName="Trash" guiX="260" guiY="534" id="TRASH" type="TRASH"/>
+<Edge fromNode="CITIES_REGIONS_POSTAL_CODES:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (output)" toNode="COLLECT_CITIES:0"/>
+<Edge fromNode="COLLECT_CITIES:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="COMBINE:0"/>
+<Edge fromNode="COLLECT_COUNTRIES:0" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 2 (in)" outPort="Port 0 (out)" toNode="COMBINE:2"/>
+<Edge fromNode="COLLECT_STREETS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="COMBINE:1"/>
+<Edge fromNode="COMBINE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="GENERATE:0"/>
+<Edge fromNode="COUNTRIES:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 0 (in)" metadata="Metadata4" outPort="Port 0 (output)" toNode="COLLECT_COUNTRIES:0"/>
+<Edge fromNode="GENERATE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" metadata="Metadata5" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="GET_SOURCE_FILES_FOR_LANGUAGE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="PARTITION:0"/>
+<Edge fromNode="PARTITION:0" guiBendpoints="" guiRouter="Manhattan" id="Edge13" inPort="Port 0 (input)" outPort="Port 0 (out)" toNode="CITIES_REGIONS_POSTAL_CODES:0"/>
+<Edge fromNode="PARTITION:1" guiBendpoints="" guiRouter="Manhattan" id="Edge14" inPort="Port 0 (input)" outPort="Port 1 (out)" toNode="STREETS:0"/>
+<Edge fromNode="PARTITION:2" guiBendpoints="" guiRouter="Manhattan" id="Edge15" inPort="Port 0 (input)" outPort="Port 2 (out)" toNode="COUNTRIES:0"/>
+<Edge fromNode="PARTITION:3" guiBendpoints="" guiRouter="Manhattan" id="Edge16" inPort="Port 0 (in)" outPort="Port 3 (out)" toNode="TRASH:0"/>
+<Edge fromNode="STREETS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (output)" toNode="COLLECT_STREETS:0"/>
+</Phase>
+</Graph>

@@ -1,0 +1,37 @@
+{
+  "descriptor" : {
+    "version" : "1.0.1",
+    "description" : "Dynamically modify, extend, or filter CloverDX metadata using rules and regex. Ideal for flexible, runtime-driven data transformations.",
+    "name" : "MetadataFactoryLib",
+    "minProductVersion" : "6.0",
+    "maxProductVersion" : "",
+    "lastModificationDate" : "2024-09-30T14:32:20Z",
+    "author" : "CloverDX",
+    "initializationJob" : "",
+    "productVersion" : "6.6.0.8"
+  },
+  "connections" : {
+    "oauth2Connections" : [ ]
+  },
+  "healthCheck" : {
+    "description" : "",
+    "path" : ""
+  },
+  "publicInterface" : {
+    "metadata" : [ ],
+    "subgraphs" : [ {
+      "icon" : "./graph/subgraph/icons/metadata-factory-16.png",
+      "largeIcon" : "./graph/subgraph/icons/metadata-factory-64.png",
+      "mediumIcon" : "./graph/subgraph/icons/metadata-factory-32.png",
+      "description" : "Component capable changing / extending metadata connected to its input port. It can extend, remove fields based on filter based on specific fields or based on regular expression matching field names.",
+      "path" : "graph/subgraph/MetadataFactory.sgrf"
+    } ],
+    "dataConnectors" : {
+      "sources" : [ ],
+      "targets" : [ ]
+    },
+    "restJobs" : [ ],
+    "jobflows" : [ ],
+    "graphs" : [ ]
+  }
+}

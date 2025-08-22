@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="others" created="Thu Dec 02 16:19:49 CET 2021" description="List all available encryption algorithms for all providers installed on the system." guiVersion="5.15.0.15" id="1638482632416" largeIconPath="${SUBGRAPH_DIR}/GetAlgorithms64.png" licenseCode="CLP1DCLOVE94730539BY" mediumIconPath="${SUBGRAPH_DIR}/GetAlgorithms32.png" name="GetAlgorithms" nature="subgraph" showComponentDetails="true" smallIconPath="${SUBGRAPH_DIR}/GetAlgorithms16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" keepEdge="true" name="0" required="false"/>
+<singlePort connected="false" keepEdge="true" name="1" required="false"/>
+</outputPorts>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="\t" name="Algorithm" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="providerName" type="string"/>
+<Field name="providerVersion" type="string"/>
+<Field name="algorithmName" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="debugInput1" recordDelimiter="\r\n" type="delimited">
+<Field name="field1" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="\t" name="Provider" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="name" type="string"/>
+<Field name="version" type="string"/>
+<Field name="algorithmCount" type="integer"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node dedupKey="providerName(a);providerVersion(a);algorithmName(a)" equalNULL="true" guiName="Dedup" guiX="557" guiY="99" id="DEDUP" sorted="false" type="DEDUP"/>
+<Node genericTransformClass="com.cloverdx.libraries.encryption.GetAlgorithms" guiName="Get encryption algorithms" guiX="280" guiY="99" id="GET_ENCRYPTION_ALGORITHMS" type="GENERIC_READER"/>
+<Node guiName="SubgraphInput" guiX="200" guiY="10" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="855" guiY="10" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+<Port guiY="257" name="2"/>
+</Node>
+<Edge fromNode="DEDUP:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" outPort="Port 0 (unique)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="GET_ENCRYPTION_ALGORITHMS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="DEDUP:0"/>
+<Edge fromNode="GET_ENCRYPTION_ALGORITHMS:1" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 1 (in)" metadata="Metadata2" outPort="Port 1 (out)" toNode="SUBGRAPH_OUTPUT0:1"/>
+</Phase>
+</Graph>

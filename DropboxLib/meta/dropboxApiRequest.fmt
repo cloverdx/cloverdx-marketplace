@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Record fieldDelimiter="|" name="apiRequest" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="sourceFileUrl" type="string"/>
+<Field name="sourceFileSize" type="long"/>
+<Field name="targetFileUrl" type="string"/>
+<Field name="fileContent" type="byte"/>
+<Field name="offset" type="long"/>
+<Field name="last" type="boolean"/>
+<Field name="sessionId" type="string"/>
+<Field name="writeMode" type="string"/>
+<Field name="autorename" type="boolean"/>
+<Field name="mute" type="boolean"/>
+<Field name="getLink" type="boolean"/>
+<Field name="responseContent" type="string"/>
+<Field containerType="list" name="failedFiles" type="string"/>
+<Field name="statusCode" type="integer"/>
+<Field name="errorMessage" type="string"/>
+<Field name="retry" type="integer"/>
+<Field name="setPassword" type="boolean"/>
+<Field name="linkPassword" type="string"/>
+<Field name="linkExpirationDays" type="integer"/>
+</Record>

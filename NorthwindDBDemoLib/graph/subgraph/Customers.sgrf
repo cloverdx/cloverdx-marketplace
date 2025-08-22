@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" created="Tue Feb 28 16:10:51 CET 2023" description="Customers list" guiVersion="6.0.0.21" id="1677597151805" largeIconPath="${PROJECT}/icons/icon_64.png" licenseCode="CLCDSCLOVE85208925SP" mediumIconPath="${PROJECT}/icons/icon_32.png" name="Customer" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/icon_16.png">
+<Global>
+<outputPorts>
+<singlePort connected="true" name="0"/>
+</outputPorts>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="\t" name="Customers" previewAttachment="${DATAIN_DIR}/Customers.csv" previewAttachmentCharset="UTF-8" quoteChar="both" quotedStrings="false" recordDelimiter="\n" skipSourceRows="1" type="delimited">
+<Field name="id" type="integer">
+<attr name="description"><![CDATA[Unique customer identifier]]></attr>
+</Field>
+<Field name="fullName" type="string">
+<attr name="description"><![CDATA[First name and surname]]></attr>
+</Field>
+<Field name="streetAddress" type="string">
+<attr name="description"><![CDATA[Street address]]></attr>
+</Field>
+<Field name="city" type="string">
+<attr name="description"><![CDATA[City]]></attr>
+</Field>
+<Field name="postalCode" type="integer">
+<attr name="description"><![CDATA[ZIP/Postal code]]></attr>
+</Field>
+<Field name="state" type="string">
+<attr name="description"><![CDATA[State]]></attr>
+</Field>
+<Field name="country" type="string">
+<attr name="description"><![CDATA[Country]]></attr>
+</Field>
+<Field name="email" type="string">
+<attr name="description"><![CDATA[Primary email]]></attr>
+</Field>
+<Field name="phone" type="string">
+<attr name="description"><![CDATA[List of phones]]></attr>
+</Field>
+<Field format="yyyy-MM-dd" name="accountCreated" type="date">
+<attr name="description"><![CDATA[Create date]]></attr>
+</Field>
+<Field eofAsDelimiter="true" name="isActive" type="boolean">
+<attr name="description"><![CDATA[Boolean if the customer is still active or not]]></attr>
+</Field>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="error" recordDelimiter="\n" type="delimited">
+<Field name="message" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata2">
+<Record fieldDelimiter=";" name="NWcustomers" recordDelimiter="\n" type="delimited">
+<Field name="customer_id" size="5" type="string"/>
+<Field name="company_name" size="40" type="string"/>
+<Field name="contact_name" size="30" type="string"/>
+<Field name="contact_title" size="30" type="string"/>
+<Field name="address" size="60" type="string"/>
+<Field name="city" size="15" type="string"/>
+<Field name="region" size="15" type="string"/>
+<Field name="postal_code" size="10" type="string"/>
+<Field name="country" size="15" type="string"/>
+<Field name="phone" size="24" type="string"/>
+<Field name="fax" size="24" type="string"/>
+</Record>
+</Metadata>
+<Connection dbConfig="${CONN_DIR}/NorthwindDB.cfg" id="JDBC1" type="JDBC"/>
+<GraphParameters>
+<GraphParameter name="NUM_OF_PREVIEW_RECORDS">
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter name="LIMIT_CLAUSE">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+
+	string preview= getParamValue("NUM_OF_PREVIEW_RECORDS");
+	
+	if (!isBlank(preview)) {
+		return "LIMIT "+preview;
+	} else {
+		return "";
+	}
+}
+]]></attr>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node dbConnection="JDBC1" guiName="ReadCustomers" guiX="197" guiY="134" id="READ_CUSTOMERS" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[select "public"."customers"."customer_id","public"."customers"."company_name","public"."customers"."contact_name","public"."customers"."contact_title","public"."customers"."address","public"."customers"."city","public"."customers"."region","public"."customers"."postal_code","public"."customers"."country","public"."customers"."phone","public"."customers"."fax"
+from "public"."customers" ${LIMIT_CLAUSE}]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="50" guiY="10" id="SUBGRAPH_INPUT" type="SUBGRAPH_INPUT">
+<Port guiY="110" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="442" guiY="10" id="SUBGRAPH_OUTPUT" type="SUBGRAPH_OUTPUT">
+<Port guiY="151" name="0"/>
+<Port guiY="221" name="1"/>
+</Node>
+<Node debugOutput="true" guiName="Trash" guiX="614" guiY="134" id="TRASH" type="TRASH"/>
+<Edge fromNode="READ_CUSTOMERS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:0"/>
+<Edge fromNode="SUBGRAPH_OUTPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="TRASH:0"/>
+</Phase>
+</Graph>

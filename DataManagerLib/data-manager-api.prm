@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GraphParameters>
+<GraphParameter name="API_ROOT_PATH" value="api/data-manager/v1"/>
+<GraphParameter name="API_URL" value="${CLOVERDX_SERVER}/${API_ROOT_PATH}"/>
+</GraphParameters>

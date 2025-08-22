@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" created="Wed Mar 25 17:15:35 EDT 2020" guiVersion="5.17.0.1498" id="1585240694727" licenseCode="CLP1DCLOVE10231118BY" name="MSGraphCore" nature="subgraph" showComponentDetails="true">
+<Global>
+<outputPorts>
+<singlePort connected="false" name="0"/>
+<singlePort connected="false" keepEdge="true" name="1" required="false"/>
+</outputPorts>
+<Metadata id="AccessToken">
+<Record fieldDelimiter="|" name="AccessToken" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="access_token" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="Error" recordDelimiter="\r\n" type="delimited">
+<Field name="errorMessage" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="Loop" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="content" type="string"/>
+<Field name="contentByte" type="byte"/>
+<Field name="outputFilePath" type="string"/>
+<Field name="statusCode" trim="true" type="integer"/>
+<Field containerType="map" name="header" type="string"/>
+<Field containerType="list" name="rawHeaders" type="string"/>
+<Field name="errorMessage" type="string"/>
+<Field name="URL" type="string"/>
+<Field name="next_page" type="boolean"/>
+<Field name="access_token" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="Output" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="content" type="string"/>
+<Field name="contentByte" type="byte"/>
+<Field name="outputFilePath" type="string"/>
+<Field name="statusCode" trim="true" type="integer"/>
+<Field containerType="map" name="header" type="string"/>
+<Field containerType="list" name="rawHeaders" type="string"/>
+<Field name="errorMessage" type="string"/>
+</Record>
+</Metadata>
+<Connection config="${O_AUTH2_CONNECTION_CORE}" id="OAuth2Connection0" type="OAUTH2"/>
+<GraphParameters>
+<GraphParameter name="URL" public="true"/>
+<GraphParameter name="USE_OAUTH2" public="true" value="false">
+<SingleType name="bool"/>
+</GraphParameter>
+<GraphParameter name="ACCESS_TOKEN_ENABLED">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	if(str2bool(getParamValue("USE_OAUTH2"))){
+		return "Disabled";
+	}
+	return "Enabled";
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter name="O_AUTH2_CONNECTION_CORE">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	// return connection path
+	if(str2bool(getParamValue("USE_OAUTH2"))){
+		return getParamValue("O_AUTH2_CONNECTION");
+	}
+	return getParamValue("CONN_DIR")+"/base_conn.cfg";
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter name="O_AUTH2_CONNECTION_SETTING">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	if(str2bool(getParamValue("USE_OAUTH2"))){
+		return "OAuth2Connection0"; // return connection Id
+	}
+	return "";
+}
+]]></attr>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="FAF6D6" folded="false" fontSize="medium" height="132" id="Note0" textColor="444444" width="283" x="712" y="493">
+<attr name="text"><![CDATA[Data Inspector won't display all records after the HTTP request due to the large response size. Over 1MB.]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="Generate Error Message" guiX="232" guiY="23" id="GENERATE_ERROR_MESSAGE" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer generate() {
+	if (!str2bool(getParamValue("USE_OAUTH2")) && 
+		(isBlank(getParamValue("USERNAME")) || isBlank(getParamValue("PASSWORD")))) {
+			$out.0.errorMessage = "Connection settings error. Missing OAuh2 URL or username, password.";
+			return OK;
+		}
+	return SKIP;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the generate. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if generate() throws an exception.
+// function integer generateOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="No Connection Fail" guiX="533" guiY="23" id="NO_CONNECTION_FAIL" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = $in.0.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="137" guiY="11" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+</Node>
+<Edge fromNode="GENERATE_ERROR_MESSAGE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="NO_CONNECTION_FAIL:0"/>
+</Phase>
+<Phase number="5">
+<Node guiName="Concatenate" guiX="549" guiY="141" id="CONCATENATE" type="CONCATENATE"/>
+<Node guiName="DataGenerator" guiX="232" guiY="141" id="DATA_GENERATOR1" recordsNumber="1" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+	if(str2bool(getParamValue("USE_OAUTH2"))){
+		$out.0.access_token = null;
+		return OK;
+	}
+
+	return SKIP;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the generate. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if generate() throws an exception.
+// function integer generateOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node __CLIENT_ID="${CLIENT_ID}" __CLIENT_SECRET="${CLIENT_SECRET}" __PASSWORD="${PASSWORD}" __SCOPE="${SCOPE}" __TENANT_ID="${TENANT_ID}" __TIMEOUT="${TIMEOUT}" __USERNAME="${USERNAME}" enabled="${ACCESS_TOKEN_ENABLED}" guiName="GetAccessToken" guiX="232" guiY="241" id="GET_ACCESS_TOKEN" jobURL="${SUBGRAPH_DIR}/internal/GetAccessToken.sgrf" type="SUBGRAPH"/>
+<Node addInputFieldsAsParameters="false" guiName="Http call" guiX="712" guiY="401" id="HTTP_CALL" oAuth2Connection="${O_AUTH2_CONNECTION_SETTING}" redirectErrorOutput="true" requestMethod="GET" timeout="${TIMEOUT}" type="HTTP_CONNECTOR">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+map[string, string] headers;
+
+// Transforms input record into output record.
+function integer transform() {
+
+	headers['Authorization'] = 'Bearer ' + $in.0.access_token;
+	
+	if (!str2bool(getParamValue("USE_OAUTH2"))){
+		$out.0.additionalHTTPHeaders = headers;
+	}
+
+	$out.0.URL = $in.0.URL;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+<attr name="standardOutputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.content = $in.1.content;
+//	$out.0.contentByte = $in.1.contentByte;
+	$out.0.outputFilePath = $in.1.outputFilePath;
+	$out.0.statusCode = $in.1.statusCode;
+	$out.0.header = $in.1.header;
+	$out.0.rawHeaders = $in.1.rawHeaders;
+	$out.0.errorMessage = $in.1.errorMessage;
+	$out.0.access_token = $in.0.access_token;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Loop" guiX="1011" guiY="141" id="LOOP" type="LOOP">
+<attr name="whileCondition"><![CDATA[//#CTL2
+$in.0.next_page]]></attr>
+</Node>
+<Node guiName="Loop Input" guiX="773" guiY="141" id="LOOP_INPUT" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.URL = getParamValue("URL");
+	$out.0.next_page = true;
+	
+	if (!str2bool(getParamValue("USE_OAUTH2"))){
+		$out.0.access_token = $in.0.access_token;
+	}
+	
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="response paging" guiX="1002" guiY="401" id="RESPONSE_PAGING" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+variant response;
+boolean parseError = false;
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.1.* = $in.0.*;
+
+	if ($in.0.statusCode == 200){
+		try{
+			response = parseJson($in.0.content);
+		} catch (CTLException ex) {
+			parseError = true;
+		}
+	}
+	
+	if (parseError){
+		$out.1.statusCode = 600;
+		$out.1.errorMessage = "Error while parsing message from successful response.";
+	}
+	
+	if (response != null &&
+		(response typeof map) &&
+		containsKey(response, "@odata.nextLink")
+		) {
+		$out.0.URL = cast(response["@odata.nextLink"], string);
+		$out.0.next_page = true;
+		$out.0.access_token = $in.0.access_token;
+	} else {
+		$out.0.next_page = false; // no more paging
+	}
+	
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node delay="100" guiName="Sleep" guiX="1377" guiY="337" id="SLEEP" type="SLEEP"/>
+<Node guiName="status output" guiX="1377" guiY="472" id="STATUS_OUTPUT" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// https://learn.microsoft.com/en-us/graph/errors
+//list[integer] errorCodes = [400, 401, 403, 404, 405, 406, 409, 410, 411, 412,
+//	413, 415, 416, 422, 423, 429, 500, 501, 503, 504, 507, 509];
+
+// Transforms input record into output record.
+function integer transform() {
+		
+	if($in.0.statusCode != null &&
+		$in.0.statusCode >= 200 && $in.0.statusCode < 300) { // 200 - 299 > successful responses
+		$out.0.* = $in.0.*;
+		return OK;
+	}
+	
+	$out.1.* = $in.0.*;
+	
+	if(isEmpty($in.0.errorMessage)) {
+		string errorMessage;
+		
+		try{
+			errorMessage = cast(parseJson($in.0.content)["error"]["message"], string);
+		} catch(CTLException ex) {
+			errorMessage = "";
+		}
+		
+		$out.1.errorMessage = errorMessage;
+	}
+	return 1;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1637" guiY="11" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="452" name="0"/>
+<Port guiY="528" name="1"/>
+<Port guiY="598" name="2"/>
+</Node>
+<Node guiName="Success" guiX="1250" guiY="141" id="SUCCESS" type="SUCCESS"/>
+<Edge fromNode="CONCATENATE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge15" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="LOOP_INPUT:0"/>
+<Edge fromNode="DATA_GENERATOR1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge14" inPort="Port 0 (in)" metadata="AccessToken" outPort="Port 0 (out)" toNode="CONCATENATE:0"/>
+<Edge fromNode="GET_ACCESS_TOKEN:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="CONCATENATE:1"/>
+<Edge fromNode="HTTP_CALL:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="RESPONSE_PAGING:0"/>
+<Edge fromNode="LOOP:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" outPort="Port 0 (end of loop)" toNode="SUCCESS:0"/>
+<Edge fromNode="LOOP:1" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 1 (continue loop)" toNode="HTTP_CALL:0"/>
+<Edge fromNode="LOOP_INPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (input token)" metadata="Metadata1" outPort="Port 0 (out)" toNode="LOOP:0"/>
+<Edge fromNode="RESPONSE_PAGING:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SLEEP:0"/>
+<Edge fromNode="RESPONSE_PAGING:1" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="STATUS_OUTPUT:0"/>
+<Edge fromNode="SLEEP:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 1 (back from loop)" outPort="Port 0 (out)" toNode="LOOP:1"/>
+<Edge fromNode="STATUS_OUTPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="STATUS_OUTPUT:1" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 1 (in)" metadata="Metadata2" outPort="Port 1 (out)" toNode="SUBGRAPH_OUTPUT0:1"/>
+</Phase>
+</Graph>

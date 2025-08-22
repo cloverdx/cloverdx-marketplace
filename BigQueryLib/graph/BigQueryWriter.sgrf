@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="writers" created="Thu Aug 17 14:00:50 CEST 2023" description="The BigQueryWriter is a writer component in CloverDX that allows writing data to BigQuery tables using Storage Write API. The configuration settings include the Project ID, Data set name, Table name and Path to JSON credentials." guiVersion="6.2.0.14" id="1692275356111" largeIconPath="${PROJECT}/icons/google_bigquery_logo_64.png" licenseCode="CloverDX-Internal-License" mediumIconPath="${PROJECT}/icons/google_bigquery_logo_32.png" name="BigQueryDefaultStreamWriter" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/google_bigquery_logo_16.png">
+<Global>
+<inputPorts>
+<singlePort connected="true" name="0"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="false" keepEdge="false" name="0" required="false"/>
+</outputPorts>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="debugInput1" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="field1" type="integer"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="library.prm"/>
+<GraphParameter label="Table name" name="_TABLE__NAME" public="true" required="true" value="MyTable1">
+<attr name="description"><![CDATA[The name of the table to load data into. Required.]]></attr>
+</GraphParameter>
+<GraphParameter label="Batch size" name="_BATCH__SIZE" public="true" required="false" value="100">
+<attr name="description"><![CDATA[The number of records that can be sent to a database in one batch update.]]></attr>
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter label="Ignore unknown fields" name="_IGNORE_UNKWNOWN_FIELDS" public="true" required="false" value="true">
+<attr name="description"><![CDATA[If true, unknown Json fields to BigQuery will be ignored instead of error out. Please note, it can lead to unintentional data loss, because unknown fields are silently dropped.]]></attr>
+<SingleType name="bool"/>
+</GraphParameter>
+<GraphParameter label="Enable reject information" name="_ENABLE__REJECT__INFORMATION" public="true" required="false" value="true">
+<attr name="description"><![CDATA[If true, the component will return information about all the records that were not uploaded into the table. Records are written to the Error port (port 0). Metadata auto-propagation works for the error port.]]></attr>
+<SingleType name="bool"/>
+</GraphParameter>
+<GraphParameter defaultHint="Default stream" label="Processing type" name="_PROCESSING__TYPE" public="true" required="false" value="defaultStream">
+<attr name="description"><![CDATA[Type of processing]]></attr>
+<SingleType allowCustomValues="false" name="simpleEnum" values="defaultStream|Default stream;committed|Committed;pending|Pending"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="Max retry count" name="_MAX__RETRY__COUNT" public="true" required="false" value="3">
+<attr name="description"><![CDATA[The Max retry count property determines the number of times the component attempts to append a batch when the previous attempt fails. The component only retries if the failure is caused by an INTERNAL, CANCELLED, or ABORTED error code. If the component reaches the maximum number of retries without success, it will report a failure.
+
+]]></attr>
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="Max recreate count" name="_MAX__RECREATE__COUNT" public="true" required="false" value="3">
+<attr name="description"><![CDATA[The Max recreate count property specifies the number of times the component tries to reconnect to the server when the connection is closed. The component only reconnects if the connection is closed by the server or by a network error. If the component reaches the maximum number of recreations without success, it will report a failure.
+
+]]></attr>
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter label="Write mode" name="_WRITE__MODE" public="true" required="false" secure="false" value="APPEND">
+<attr name="description"><![CDATA[Available modes: append or truncate. By default, data will be added to the target table. Using this parameter, you can truncate the target table bewore writing.]]></attr>
+<SingleType allowCustomValues="false" name="simpleEnum" values="APPEND|Append;TRUNCATE|Truncate"/>
+</GraphParameter>
+<GraphParameter name="_PATH__TO__CREDENTIALS_ABSOLUTE">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return toAbsolutePath(getParamValue("_PATH__TO__CREDENTIALS"));
+}
+]]></attr>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<Dictionary/>
+<ExecutionConfig>
+<Property name="classloader_caching" value="true"/>
+</ExecutionConfig>
+</Global>
+<Phase number="0">
+<Node BATCH_SIZE="${_BATCH__SIZE}" DATASET_NAME="${_DATASET__NAME}" ENABLE_REJECT_INFORMATION="${_ENABLE__REJECT__INFORMATION}" IGNORE_UNKWNOWN_FIELDS="${_IGNORE_UNKWNOWN_FIELDS}" MAX_RECREATE_COUNT="${_MAX__RECREATE__COUNT}" MAX_RETRY_COUNT="${_MAX__RETRY__COUNT}" PATH_TO_CREDENTIALS="${_PATH__TO__CREDENTIALS_ABSOLUTE}" PROCESSING_TYPE="${_PROCESSING__TYPE}" PROJECT_ID="${_PROJECT__ID}" TABLE_NAME="${_TABLE__NAME}" WRITE_MODE="${_WRITE__MODE}" genericTransformClass="com.cloverdx.libraries.gcloud.BigQueryBulkWriter.BigQueryWriter" guiName="CustomJavaWriter" guiX="418" guiY="100" id="CUSTOM_JAVA_WRITER" metadataPropagationAlgorithmClass="com.cloverdx.libraries.gcloud.BigQueryBulkWriter.DefaultStreamWriterMetadataProvider" type="GENERIC_WRITER"/>
+<Node debugInput="true" guiName="DebugInput" guiX="30" guiY="100" id="DATA_GENERATOR0" recordsNumber="13848" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+	$out.0.field1 = randomInteger(0,100000);
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the generate. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if generate() throws an exception.
+// function integer generateOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="200" guiY="10" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="800" guiY="10" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Edge fromNode="CUSTOM_JAVA_WRITER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="DATA_GENERATOR0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SUBGRAPH_INPUT0:0"/>
+<Edge fromNode="SUBGRAPH_INPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="CUSTOM_JAVA_WRITER:0"/>
+</Phase>
+</Graph>

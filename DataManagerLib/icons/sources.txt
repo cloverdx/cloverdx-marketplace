@@ -1,0 +1,8 @@
+https://www.flaticon.com/authors/uniconlabs
+	book.png: https://www.flaticon.com/free-icon/book_4238340
+	cross.png: https://www.flaticon.com/free-icon/cross_6713703
+	file.png: https://www.flaticon.com/free-icon/file_5414443
+	garbage.png: https://www.flaticon.com/free-icon/garbage_8134426
+	waste.png: https://www.flaticon.com/free-icon/waste_10708323
+https://www.flaticon.com/authors/mavadee	
+	reload.png https://www.flaticon.com/free-icon/reload_3580291

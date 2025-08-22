@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="JanSlechta" category="transformers" created="Fri Aug 16 10:03:57 CEST 2024" guiVersion="6.5.0.9" id="1723803006586" licenseCode="CLCDSCLOVE85208925SP" name="AzureRequestErrorHandler" nature="subgraph" showComponentDetails="true">
+<Global>
+<inputPorts>
+<singlePort connected="true" name="0"/>
+<singlePort connected="true" name="1"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="true" name="0"/>
+<singlePort connected="false" keepEdge="true" name="1" required="false"/>
+</outputPorts>
+<Metadata id="HTTPConnector_Error">
+<Record fieldDelimiter="|" name="HTTPConnector_Error" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="sourcePath" type="string"/>
+<Field name="targetPath" type="string"/>
+<Field name="errorMessage" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="HTTPConnector_Response1">
+<Record fieldDelimiter="|" name="HTTPConnector_Response" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="sourcePath" type="string"/>
+<Field name="targetPath" type="string"/>
+<Field name="content" type="string"/>
+<Field name="contentByte" type="byte"/>
+<Field name="outputFilePath" type="string"/>
+<Field name="statusCode" trim="true" type="integer"/>
+<Field containerType="map" name="header" type="string"/>
+<Field containerType="list" name="rawHeaders" type="string"/>
+<Field name="errorMessage" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="HTTPConnector_Response">
+<Record fieldDelimiter="|" name="ResponseError" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="originalResponseRecord" type="variant"/>
+<Field name="statusCode" trim="true" type="integer"/>
+<Field name="errorMessage" type="string"/>
+<Field name="errorDetails" type="string"/>
+<Field name="rawErrorResponse" type="string"/>
+<Field containerType="map" name="errorKeys" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter name="FIELDS_MAPPING" public="true">
+<attr name="value"><![CDATA[//#CTL2
+
+// HTTP and lower level error records mapping
+function integer transform() {
+	
+	$out.0.* = $in.0.*;
+	
+	// THERE IS A VARIANT FIELD CONTAINING ALL INPUT FIELDS
+	// YOU CAN EXTRACT THE FIELDS FROM VARIANT TO PASS ADDITIONAL FIELDS THROUGH
+	// SEE THE BELOW EXAMPLE:
+	
+	/*
+	$out.0.sourcePath = $in.0.originalResponseRecord["sourcePath"].toString() : null;
+	*/
+
+	return ALL;
+}
+]]></attr>
+<ComponentReference referencedComponent="EXTRACT_FIELDS" referencedProperty="transform"/>
+</GraphParameter>
+<GraphParameter defaultHint="Values of these fields will be written into the error log in case of failure to identify which record failed." label="Record key fields" name="RECORD_ID" public="true">
+<SingleType edge="Edge3" name="fields"/>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node debugInput="true" guiName="DebugInput" guiX="50" guiY="50" id="DEBUG_INPUT" recordsNumber="0" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the generate. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if generate() throws an exception.
+// function integer generateOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node debugInput="true" guiName="DebugInput" guiX="50" guiY="354" id="DEBUG_INPUT1" recordsNumber="0" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the generate. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if generate() throws an exception.
+// function integer generateOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node debugOutput="true" guiName="DebugOutput" guiX="1477" guiY="50" id="DEBUG_OUTPUT" type="TRASH"/>
+<Node enabled="enableWhenOutputPort1IsConnected" guiName="Extract Fields" guiX="1117" guiY="245" id="EXTRACT_FIELDS" type="REFORMAT">
+<attr name="transform"><![CDATA[${FIELDS_MAPPING}]]></attr>
+</Node>
+<Node enabled="enableWhenOutputPort1IsDisconnected" guiName="Fail" guiX="1117" guiY="354" id="FAIL2" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	if ($in.0.errorDetails == null) {
+		$out.0.errorMessage = $in.0.errorMessage;
+	} else {
+		$out.0.errorMessage = $in.0.errorMessage + " (" + $in.0.statusCode + "): " + $in.0.errorDetails;
+	}
+	if (length($in.0.errorKeys) > 0) {
+		$out.0.errorMessage = "Record (ID: " + $in.0.errorKeys + ") failed with the following error: " + $out.0.errorMessage;
+	}
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="format error metadata" guiX="613" guiY="354" id="FORMAT_ERROR_METADATA1" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.originalResponseRecord = record2map($in.0);
+	$out.0.errorMessage = $in.0.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="gather errors" guiX="891" guiY="246" id="GATHER_ERRORS1" type="SIMPLE_GATHER"/>
+<Node guiName="HTTP 200" guiX="392" guiY="50" id="HTTP_200" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.statusCode >= 200 && $in.0.statusCode < 300]]></attr>
+</Node>
+<Node guiName="Parse Error Response" guiX="613" guiY="246" id="PARSE_ERROR_RESPONSE" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.originalResponseRecord = record2map($in.0);
+	$out.0.errorMessage = parseJson(xml2json($in.0.content))["Error"]["Code"].toString() : "Unexpected error";
+	$out.0.errorDetails = parseJson(xml2json($in.0.content))["Error"]["Message"].toString() : $in.0.content;
+	$out.0.statusCode = $in.0.statusCode;
+	$out.0.rawErrorResponse = $in.0.content;
+	
+	string[] keys = isBlank(getParamValue("RECORD_ID")) ? [] : split(getParamValue("RECORD_ID"), ";");
+
+	foreach (string key : keys) {
+		$out.0.errorKeys[key] = getValueAsString($in.0, key);
+	}
+
+	
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="228" guiY="-45" id="SUBGRAPH_INPUT" type="SUBGRAPH_INPUT">
+<Port guiY="67" name="0"/>
+<Port guiY="371" name="1"/>
+<Port guiY="441" name="2"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1363" guiY="-45" id="SUBGRAPH_OUTPUT" type="SUBGRAPH_OUTPUT">
+<Port guiY="67" name="0"/>
+<Port guiY="263" name="1"/>
+<Port guiY="333" name="2"/>
+</Node>
+<Edge fromNode="DEBUG_INPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" metadata="HTTPConnector_Response1" outPort="Port 0 (out)" toNode="SUBGRAPH_INPUT:0"/>
+<Edge fromNode="DEBUG_INPUT1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 1 (in)" metadata="HTTPConnector_Error" outPort="Port 0 (out)" toNode="SUBGRAPH_INPUT:1"/>
+<Edge fromNode="EXTRACT_FIELDS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge16" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:1"/>
+<Edge fromNode="FORMAT_ERROR_METADATA1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge15" inPort="Port 1 (in)" metadataRef="#//Edge9" outPort="Port 0 (out)" toNode="GATHER_ERRORS1:1"/>
+<Edge fromNode="GATHER_ERRORS1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="EXTRACT_FIELDS:0"/>
+<Edge fromNode="GATHER_ERRORS1:1" guiBendpoints="" guiRouter="Manhattan" id="Edge31" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="FAIL2:0"/>
+<Edge fromNode="HTTP_200:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" outPort="Port 0 (accepted)" toNode="SUBGRAPH_OUTPUT:0"/>
+<Edge fromNode="HTTP_200:1" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" outPort="Port 1 (rejected)" toNode="PARSE_ERROR_RESPONSE:0"/>
+<Edge fromNode="PARSE_ERROR_RESPONSE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" metadata="HTTPConnector_Response" outPort="Port 0 (out)" toNode="GATHER_ERRORS1:0"/>
+<Edge fromNode="SUBGRAPH_INPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="HTTP_200:0"/>
+<Edge fromNode="SUBGRAPH_INPUT:1" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="FORMAT_ERROR_METADATA1:0"/>
+<Edge fromNode="SUBGRAPH_OUTPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" metadata="HTTPConnector_Response1" outPort="Port 0 (out)" toNode="DEBUG_OUTPUT:0"/>
+</Phase>
+</Graph>

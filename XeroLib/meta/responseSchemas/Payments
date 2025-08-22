@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="json_object" type="json_objectType"/>
+  <xs:complexType name="AccountType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="AccountID"/>
+      <xs:element type="xs:string" name="Code" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ContactType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="ContactID"/>
+      <xs:element type="xs:string" name="Name"/>
+      <xs:element type="xs:string" name="HasValidationErrors"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="InvoiceType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="Type"/>
+      <xs:element type="xs:string" name="InvoiceID"/>
+      <xs:element type="xs:string" name="InvoiceNumber"/>
+      <xs:element type="xs:string" name="IsDiscounted"/>
+      <xs:element type="xs:string" name="HasErrors"/>
+      <xs:element type="ContactType" name="Contact"/>
+      <xs:element type="xs:string" name="CurrencyCode"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="PaymentsType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="PaymentID"/>
+      <xs:element type="xs:string" name="BatchPaymentID" minOccurs="0"/>
+      <xs:element type="BatchPaymentType" name="BatchPayment" minOccurs="0"/>
+      <xs:element type="xs:string" name="Date"/>
+      <xs:element type="xs:string" name="BankAmount"/>
+      <xs:element type="xs:string" name="Amount"/>
+      <xs:element type="xs:string" name="Reference" minOccurs="0"/>
+      <xs:element type="xs:string" name="CurrencyRate"/>
+      <xs:element type="xs:string" name="PaymentType"/>
+      <xs:element type="xs:string" name="Status"/>
+      <xs:element type="xs:string" name="UpdatedDateUTC"/>
+      <xs:element type="xs:string" name="HasAccount"/>
+      <xs:element type="xs:string" name="IsReconciled"/>
+      <xs:element type="AccountType" name="Account"/>
+      <xs:element type="InvoiceType" name="Invoice"/>
+      <xs:element type="xs:string" name="HasValidationErrors"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="arrayElem" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="BatchPaymentType">
+    <xs:sequence>
+      <xs:element type="AccountType" name="Account"/>
+      <xs:element type="xs:string" name="BatchPaymentID"/>
+      <xs:element type="xs:string" name="DateString"/>
+      <xs:element type="xs:string" name="Date"/>
+      <xs:element type="xs:string" name="Type"/>
+      <xs:element type="xs:string" name="Status"/>
+      <xs:element type="xs:string" name="TotalAmount"/>
+      <xs:element type="xs:string" name="UpdatedDateUTC"/>
+      <xs:element type="xs:string" name="IsReconciled"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="json_objectType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="Id"/>
+      <xs:element type="xs:string" name="Status"/>
+      <xs:element type="xs:string" name="ProviderName"/>
+      <xs:element type="xs:string" name="DateTimeUTC"/>
+      <xs:element type="PaymentsType" name="Payments" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

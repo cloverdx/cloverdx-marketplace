@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="readers" created="Tue Nov 08 20:16:54 GMT 2022" description="Get contacts with optional filter conditions." guiVersion="6.0.0.21" id="1667940816355" largeIconPath="${PROJECT}/icons/xero_logo_64.png" licenseCode="CLCDSCLOVE72646208SP" mediumIconPath="${PROJECT}/icons/xero_logo_32.png" name="getContacts" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/xero_logo_16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" keepEdge="true" name="0" required="false"/>
+<singlePort connected="false" keepEdge="true" name="1" required="false"/>
+<singlePort connected="false" keepEdge="true" name="2" required="false"/>
+<singlePort connected="false" keepEdge="true" name="3" required="false"/>
+<singlePort connected="false" keepEdge="true" name="4" required="false"/>
+</outputPorts>
+<Metadata fileURL="${META_DIR}/responseInfo.fmt" id="Metadata0"/>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="Address" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="ContactID" type="string"/>
+<Field name="AddressType" type="string"/>
+<Field name="AddressLine1" type="string"/>
+<Field name="AddressLine2" type="string"/>
+<Field name="AddressLine3" type="string"/>
+<Field name="AddressLine4" type="string"/>
+<Field name="City" type="string"/>
+<Field name="Region" type="string"/>
+<Field name="PostalCode" type="string"/>
+<Field name="Country" type="string"/>
+<Field name="AttentionTo" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata4">
+<Record fieldDelimiter="|" name="Contact" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="ContactID" type="string"/>
+<Field name="ContactNumber" type="string"/>
+<Field name="AccountNumber" type="string"/>
+<Field name="ContactStatus" type="string"/>
+<Field name="Name" type="string"/>
+<Field name="FirstName" type="string"/>
+<Field name="LastName" type="string"/>
+<Field name="EmailAddress" type="string"/>
+<Field name="BankAccountDetails" type="string"/>
+<Field name="TaxNumber" type="string"/>
+<Field name="AccountsReceivableTaxType" type="string"/>
+<Field name="AccountsPayableTaxType" type="string"/>
+<Field format="${DATE_FORMAT}" name="UpdatedDateUTC" type="date"/>
+<Field name="IsSupplier" type="boolean"/>
+<Field name="IsCustomer" type="boolean"/>
+<Field name="DefaultCurrency" type="string"/>
+<Field name="HasAttachments" type="boolean"/>
+<Field name="HasValidationErrors" type="boolean"/>
+<Field name="BrandingTheme_BrandingThemeID" type="string"/>
+<Field name="BrandingTheme_Name" type="string"/>
+<Field name="BatchPayments_BankAccountNumber" type="string"/>
+<Field name="BatchPayments_BankAccountName" type="string"/>
+<Field name="BatchPayments_Details" type="string"/>
+<Field name="BatchPayments_Code" type="string"/>
+<Field name="BatchPayments_Reference" type="string"/>
+<Field name="Balances_AccountsReceivable_Outstanding" type="decimal"/>
+<Field name="Balances_AccountsReceivable_Overdue" type="decimal"/>
+<Field name="Balances_AccountsPayable_Outstanding" type="decimal"/>
+<Field name="Balances_AccountsPayable_Overdue" type="decimal"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="ContactINPUT" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="ContactID" type="string"/>
+<Field name="ContactNumber" type="string"/>
+<Field name="AccountNumber" type="string"/>
+<Field name="ContactStatus" type="string"/>
+<Field name="Name" type="string"/>
+<Field name="FirstName" type="string"/>
+<Field name="LastName" type="string"/>
+<Field name="EmailAddress" type="string"/>
+<Field name="BankAccountDetails" type="string"/>
+<Field name="TaxNumber" type="string"/>
+<Field name="AccountsReceivableTaxType" type="string"/>
+<Field name="AccountsPayableTaxType" type="string"/>
+<Field name="UpdatedDateUTC" type="string"/>
+<Field name="IsSupplier" type="boolean"/>
+<Field name="IsCustomer" type="boolean"/>
+<Field name="DefaultCurrency" type="string"/>
+<Field name="HasAttachments" type="boolean"/>
+<Field name="HasValidationErrors" type="boolean"/>
+<Field name="BrandingTheme_BrandingThemeID" type="string"/>
+<Field name="BrandingTheme_Name" type="string"/>
+<Field name="BatchPayments_BankAccountNumber" type="string"/>
+<Field name="BatchPayments_BankAccountName" type="string"/>
+<Field name="BatchPayments_Details" type="string"/>
+<Field name="BatchPayments_Code" type="string"/>
+<Field name="BatchPayments_Reference" type="string"/>
+<Field name="Balances_AccountsReceivable_Outstanding" type="decimal"/>
+<Field name="Balances_AccountsReceivable_Overdue" type="decimal"/>
+<Field name="Balances_AccountsPayable_Outstanding" type="decimal"/>
+<Field name="Balances_AccountsPayable_Overdue" type="decimal"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata3">
+<Record fieldDelimiter="|" name="Phone" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="ContactID" type="string"/>
+<Field name="PhoneType" type="string"/>
+<Field name="PhoneNumber" type="string"/>
+<Field name="PhoneAreaCode" type="string"/>
+<Field name="PhoneCountryCode" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter defaultHint="Optional filter by contact name" label="Name" name="NAME" public="true"/>
+<GraphParameter defaultHint="Optional filter by email" label="Email Address" name="EMAIL_ADDRESS" public="true"/>
+<GraphParameter name="PARAMS">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	string [] paramList;
+	
+	if (getParamValue("NAME") != null and trim(getParamValue("NAME")) != ""){
+		append(paramList, escapeUrlFragment(concat('Name="', getParamValue("NAME"), '"')));
+	}
+	if (getParamValue("EMAIL_ADDRESS") != null and trim(getParamValue("EMAIL_ADDRESS")) != ""){
+		append(paramList, escapeUrlFragment(concat('EmailAddress="', getParamValue("EMAIL_ADDRESS"), '"')));
+	}
+	
+	if (length(paramList) > 0){
+		return concat("?where=", join("+AND+", paramList));	
+	}
+	
+	return "";
+}
+]]></attr>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+<GraphParameterFile fileURL="xeroApi.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="DEF4AB" folded="false" fontSize="medium" height="155" id="Note0" textColor="444444" width="411" x="214" y="256">
+<attr name="text"><![CDATA[h3. Contacts
+
+[https://developer.xero.com/documentation/api/accounting/contacts]]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="convert" guiX="761" guiY="134" id="CONVERT" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.* = $in.0.*;
+	// /Date(1666259038377+0000)/
+	
+	$out.0.UpdatedDateUTC = long2date(str2long(replace(replace($in.0.UpdatedDateUTC, '\+0000\)/', ""), '/Date\(', "")));
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node enabled="enableWhenOutputPort4IsDisconnected" guiName="Fail" guiX="808" guiY="490" id="FAIL" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = $in.0.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="GET Contacts" guiX="214" guiY="134" id="GET_CONTACTS1" jobURL="${XERO_CORE_PAGING_CONNECTOR_URL}" type="SUBGRAPH">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.OAUTH_URL = getParamValue("OAUTH_URL");
+	$out.0.TENANT_ID = getParamValue("TENANT_ID");
+	$out.0.DATE_FORMAT = getParamValue("DATE_FORMAT");
+	$out.0.CALL = concat("https://api.xero.com/api.xro/2.0/Contacts", getParamValue("PARAMS"));
+	
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="parse Contacts response" guiX="463" guiY="134" id="PARSE_CONTACTS_RESPONSE" schema="${META_DIR}/responseSchemas/Contacts" sourceUri="port:$0.content:discrete" type="JSON_EXTRACT">
+<attr name="mapping"><![CDATA[<Mappings>
+	<Mapping element="json_object" outPort="0"
+			xmlFields="{}DateTimeUTC;{}Id;{}ProviderName;{}Status"
+			cloverFields="DateTimeUTC;Id;ProviderName;Status">
+		<Mapping element="Contacts" outPort="1"
+				xmlFields="{}AccountsPayableTaxType;{}AccountsReceivableTaxType;{}BankAccountDetails;{}ContactID;{}ContactNumber;{}ContactStatus;{}DefaultCurrency;{}EmailAddress;{}FirstName;{}HasAttachments;{}HasValidationErrors;{}IsCustomer;{}IsSupplier;{}LastName;{}Name;{}TaxNumber;{}UpdatedDateUTC;{}AccountNumber"
+				cloverFields="AccountsPayableTaxType;AccountsReceivableTaxType;BankAccountDetails;ContactID;ContactNumber;ContactStatus;DefaultCurrency;EmailAddress;FirstName;HasAttachments;HasValidationErrors;IsCustomer;IsSupplier;LastName;Name;TaxNumber;UpdatedDateUTC;AccountNumber">
+			<Mapping element="Addresses" outPort="2"
+					xmlFields="../{}ContactID;{}AddressLine1;{}AddressLine2;{}AddressLine3;{}AddressLine4;{}AddressType;{}AttentionTo;{}City;{}Country;{}PostalCode;{}Region"
+					cloverFields="ContactID;AddressLine1;AddressLine2;AddressLine3;AddressLine4;AddressType;AttentionTo;City;Country;PostalCode;Region">
+			</Mapping>
+			<Mapping element="Phones" outPort="3"
+					xmlFields="../{}ContactID;{}PhoneAreaCode;{}PhoneCountryCode;{}PhoneNumber;{}PhoneType"
+					cloverFields="ContactID;PhoneAreaCode;PhoneCountryCode;PhoneNumber;PhoneType">
+			</Mapping>
+			<Mapping element="BrandingTheme" useParentRecord="true"
+					xmlFields="{}BrandingThemeID;{}Name"
+					cloverFields="BrandingTheme_BrandingThemeID;BrandingTheme_Name">
+			</Mapping>
+			<Mapping element="BatchPayments" useParentRecord="true"
+					xmlFields="{}BankAccountName;{}BankAccountNumber;{}Code;{}Details;{}Reference"
+					cloverFields="BatchPayments_BankAccountName;BatchPayments_BankAccountNumber;BatchPayments_Code;BatchPayments_Details;BatchPayments_Reference">
+			</Mapping>
+			<Mapping element="Balances">
+				<Mapping element="AccountsReceivable" useParentRecord="true"
+						xmlFields="{}Outstanding;{}Overdue"
+						cloverFields="Balances_AccountsReceivable_Outstanding;Balances_AccountsReceivable_Overdue">
+				</Mapping>
+				<Mapping element="AccountsPayable" useParentRecord="true"
+						xmlFields="{}Outstanding;{}Overdue"
+						cloverFields="Balances_AccountsPayable_Outstanding;Balances_AccountsPayable_Overdue">
+				</Mapping>
+			</Mapping>
+		</Mapping>
+	</Mapping>
+</Mappings>
+]]></attr>
+</Node>
+<Node guiName="SimpleCopy" guiX="651" guiY="410" id="SIMPLE_COPY" type="SIMPLE_COPY"/>
+<Node guiName="SubgraphInput" guiX="50" guiY="10" id="SUBGRAPH_INPUT" type="SUBGRAPH_INPUT">
+<Port guiY="110" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="949" guiY="10" id="SUBGRAPH_OUTPUT" type="SUBGRAPH_OUTPUT">
+<Port guiY="151" name="0"/>
+<Port guiY="221" name="1"/>
+<Port guiY="291" name="2"/>
+<Port guiY="361" name="3"/>
+<Port guiY="431" name="4"/>
+<Port guiY="501" name="5"/>
+</Node>
+<Edge fromNode="CONVERT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata4" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:0"/>
+<Edge fromNode="GET_CONTACTS1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (input)" outPort="Port 0 (out)" toNode="PARSE_CONTACTS_RESPONSE:0"/>
+<Edge fromNode="GET_CONTACTS1:1" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="SIMPLE_COPY:0"/>
+<Edge fromNode="PARSE_CONTACTS_RESPONSE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 3 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:3"/>
+<Edge fromNode="PARSE_CONTACTS_RESPONSE:1" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 1 (out)" toNode="CONVERT:0"/>
+<Edge fromNode="PARSE_CONTACTS_RESPONSE:2" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 1 (in)" metadata="Metadata2" outPort="Port 2 (out)" toNode="SUBGRAPH_OUTPUT:1"/>
+<Edge fromNode="PARSE_CONTACTS_RESPONSE:3" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 2 (in)" metadata="Metadata3" outPort="Port 3 (out)" toNode="SUBGRAPH_OUTPUT:2"/>
+<Edge fromNode="SIMPLE_COPY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 4 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:4"/>
+<Edge fromNode="SIMPLE_COPY:1" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="FAIL:0"/>
+</Phase>
+</Graph>

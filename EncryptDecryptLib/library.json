@@ -1,0 +1,61 @@
+{
+  "descriptor" : {
+    "version" : "1.0.1",
+    "name" : "EncryptDecryptLib",
+    "lastModificationDate" : "2025-01-06T16:05:33Z",
+    "initializationJob" : "",
+    "minProductVersion" : "6.0",
+    "maxProductVersion" : "",
+    "productVersion" : "6.6.0.4",
+    "description" : "Encrypt and decrypt files using JDK algorithms or the bundled Bouncy Castle provider. Easily integrates into data pipelines.",
+    "author" : "CloverDX"
+  },
+  "publicInterface" : {
+    "subgraphs" : [ {
+      "mediumIcon" : "./icons/Decrypt32.png",
+      "largeIcon" : "./icons/Decrypt64.png",
+      "icon" : "./icons/Decrypt16.png",
+      "description" : "Decrypt a file previously encrypted with EncryptFile and save output to another file.",
+      "path" : "graph/subgraph/DecryptFile.sgrf"
+    }, {
+      "mediumIcon" : "./icons/Encrypt32.png",
+      "largeIcon" : "./icons/Encrypt64.png",
+      "icon" : "./icons/Encrypt16.png",
+      "description" : "Encrypt a file (specified as URL) with selected algorithm and save to another file.",
+      "path" : "graph/subgraph/EncryptFile.sgrf"
+    }, {
+      "mediumIcon" : "./icons/GetAlgorithms32.png",
+      "largeIcon" : "./icons/GetAlgorithms64.png",
+      "icon" : "./icons/GetAlgorithms16.png",
+      "description" : "List all available encryption algorithms for all providers installed on the system.",
+      "path" : "graph/subgraph/GetAlgorithms.sgrf"
+    }, {
+      "mediumIcon" : "./icons/Decrypt32.png",
+      "largeIcon" : "./icons/Decrypt64.png",
+      "icon" : "./icons/Decrypt16.png",
+      "description" : "",
+      "path" : "graph/subgraph/GpgDecrypt.sgrf"
+    }, {
+      "mediumIcon" : "./icons/Encrypt32.png",
+      "largeIcon" : "./icons/Encrypt64.png",
+      "icon" : "./icons/Encrypt16.png",
+      "description" : "",
+      "path" : "graph/subgraph/GpgEncrypt.sgrf"
+    } ],
+    "dataConnectors" : {
+      "sources" : [ ],
+      "targets" : [ ]
+    },
+    "jobflows" : [ ],
+    "restJobs" : [ ],
+    "metadata" : [ ],
+    "graphs" : [ ]
+  },
+  "healthCheck" : {
+    "description" : "",
+    "path" : ""
+  },
+  "connections" : {
+    "oauth2Connections" : [ ]
+  }
+}

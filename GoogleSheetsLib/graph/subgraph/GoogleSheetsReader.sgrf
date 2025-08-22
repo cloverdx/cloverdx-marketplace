@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="readers" created="Thu Feb 21 11:52:59 GMT 2019" description="Implementation of Google Sheets reader." guiVersion="5.15.0.15" id="1550752866031" largeIconPath="${SUBGRAPH_DIR}/icons/google-sheets-64.png" licenseCode="CLP1DJAVLI42546216BY" mediumIconPath="${SUBGRAPH_DIR}/icons/google-sheets-32.png" name="ReadSheet" nature="subgraph" showComponentDetails="true" smallIconPath="${SUBGRAPH_DIR}/icons/google-sheets-16.png">
+<Global>
+<outputPorts>
+<singlePort connected="true" keepEdge="false" name="0" required="false"/>
+<singlePort connected="true" keepEdge="false" name="1" required="false"/>
+</outputPorts>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="CellData" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="name" type="string"/>
+<Field name="query" type="string"/>
+<Field name="accessToken" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata5">
+<Record fieldDelimiter="|" name="DataRecord" recordDelimiter="\r\n" type="delimited">
+<Field name="row" type="integer"/>
+<Field name="value" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata3">
+<Record fieldDelimiter="|" name="GoogleData" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="colA" scale="0" type="long"/>
+<Field name="colB" type="integer"/>
+<Field name="colC" type="decimal"/>
+<Field name="colD" type="date"/>
+<Field name="colE" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="HTTPConnector_Response">
+<Record fieldDelimiter="|" name="Response" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="content" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata4">
+<Record fieldDelimiter="|" name="Row" recordDelimiter="\r\n" type="delimited">
+<Field name="rowN" type="integer"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="Sheet" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="name" type="string"/>
+<Field name="width" type="integer"/>
+<Field name="height" type="integer"/>
+</Record>
+</Metadata>
+<Connection config="${CONNECTION_URL}" id="OAuth2Connection0" type="OAUTH2"/>
+<GraphParameters>
+<GraphParameter label="Spreadsheet ID" name="SPREADSHEET_ID" public="true"/>
+<GraphParameter label="Sheet name" name="SHEET_NAME" public="true"/>
+<GraphParameter label="Data offset" name="SHEET_OFFSET" public="true" value="0">
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter name="CONNECTION_URL" public="true" required="true" value="${CONN_DIR}/OAuth2/google-oauth.cfg">
+<attr name="description"><![CDATA[Path to the OAUTH2 connection file.]]></attr>
+<SingleType multiple="true" name="file" selectionMode="file_or_directory"/>
+</GraphParameter>
+<GraphParameter label="Data policy" name="DATA_POLICY" public="true" value="strict">
+<SingleType allowCustomValues="false" name="simpleEnum" values="strict|Strict;lenient|Lenient"/>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<Sequence cached="1000" id="Sequence0" name="RowCounter" start="1" step="1" type="PRIMITIVE_SEQUENCE"/>
+<RichTextNote backgroundColor="FFFFFF" folded="false" fontSize="medium" height="177" id="Note0" textColor="444444" width="381" x="615" y="226">
+<attr name="text"><![CDATA[h3. Get sheet names]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="FFFFFF" enabled="enableWhenOutputPort0IsConnected" folded="false" fontSize="medium" height="206" id="Note1" textColor="444444" width="381" x="615" y="21">
+<attr name="text"><![CDATA[h3. Retrieve sheet's data]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node enabled="enableWhenOutputPort0IsConnected" guiName="Build data request" guiX="450" guiY="110" id="BUILD_DATA_REQUEST" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.name = $in.0.name;
+	$out.0.query = concat("'",$in.0.name,"'!A",(${SHEET_OFFSET} + 1).toString(),":",numberToExcel($in.0.width),$in.0.height.toString());
+
+	return ALL;
+}
+
+function string numberToExcel(integer width) {
+	integer remaining = width;
+	string x = "";
+	// 
+	// 
+	while (remaining > 0) {
+		integer ptr = remaining / (alphabet.length() + 1);
+		
+		if (ptr == 0) {
+			ptr = width;
+		}
+		
+		x = x + alphabet.charAt(ptr-1);
+		remaining -= ptr * alphabet.length();
+	}
+	
+	return x;
+}
+]]></attr>
+</Node>
+<Node enabled="enableWhenOutputPort0IsConnected" guiName="Extract data" guiX="833" guiY="110" id="EXTRACT_DATA" sourceUri="port:$0.content:discrete" type="JSON_EXTRACT">
+<attr name="mapping"><![CDATA[<Mappings>
+	<Mapping element="json_object">
+		<Mapping element="values" outPort="1" sequenceField="rowN" sequenceId="Sequence0">
+			<Mapping element="values" outPort="0" parentKey="rowN" generatedKey="row"
+					xmlFields="."
+					cloverFields="value">
+			</Mapping>
+		</Mapping>
+	</Mapping>
+</Mappings>
+]]></attr>
+</Node>
+<Node guiName="Extract sheet names" guiX="811" guiY="287" id="EXTRACT_SHEET_NAMES" sourceUri="port:$0.content:discrete" type="JSON_EXTRACT">
+<attr name="mapping"><![CDATA[<Mappings>
+	<Mapping element="properties">
+		<Mapping element="gridProperties" xmlFields="../{}title;{}columnCount;{}rowCount" cloverFields="name;width;height" outPort="0" />
+	</Mapping>
+</Mappings>]]></attr>
+</Node>
+<Node guiName="Get sheets" guiX="645" guiY="287" id="GET_SHEETS" oAuth2Connection="OAuth2Connection0" type="HTTP_CONNECTOR" url="https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}"/>
+<Node enabled="enableWhenOutputPort0IsConnected" guiName="Get sheet data" guiX="645" guiY="110" id="GET_SHEET_DATA" oAuth2Connection="OAuth2Connection0" type="HTTP_CONNECTOR" url="https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.URL = $out.0.URL.concat($in.0.query.escapeUrlFragment());
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+<attr name="headerProperties"><![CDATA[Authorization=
+]]></attr>
+<attr name="requestParameters"><![CDATA[majorDimension=ROWS
+]]></attr>
+</Node>
+<Node guiName="Sheet name" guiX="1013" guiY="287" id="SHEET_NAME" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+isBlank("${SHEET_NAME}") || $in.0.name.in("${SHEET_NAME}".split(","))]]></attr>
+</Node>
+<Node guiName="SimpleCopy" guiX="1177" guiY="287" id="SIMPLE_COPY1" type="SIMPLE_COPY"/>
+<Node guiName="SubgraphInput" guiX="200" guiY="10" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1361" guiY="7" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="127" name="0"/>
+<Port guiY="304" name="1"/>
+<Port guiY="470" name="2"/>
+</Node>
+<Node enabled="enableWhenOutputPort0IsConnected" guiName="To output format" guiX="1028" guiY="110" id="TO_OUTPUT_FORMAT" key="row(i)" type="DENORMALIZER">
+<attr name="denormalize"><![CDATA[//#CTL2
+// This transformation defines the way in which multiple input records 
+// (with the same key) are denormalized into one output record. 
+
+boolean runInit = true;
+
+integer col = 0;
+string[] type;
+string[] locale;
+string[] format;
+
+// This function is called for each input record from a group of records
+// with the same key.
+function integer append() {
+	if (runInit) {
+		initialize();
+		runInit = false;
+	}
+	
+	set(col++,$in.0.value);
+	return OK;
+}
+
+function boolean initialize() {	
+	for (integer i=0;i<$out.0.length();i++) {
+		map[string,string] props = $out.0.getFieldProperties(i);
+		// 
+		type[i] = $out.0.getFieldType(i);
+		// 
+		format[i] = props.containsKey("format") ? props["format"] : null;
+		locale[i] = props.containsKey("locale") ? props["locale"] : null;
+	}
+	
+	return true;
+}
+
+// This function is called once after the append() function was called for all records
+// of a group of input records defined by the key.
+// It creates a single output record for the whole group.
+function integer transform() {
+	return OK;
+}
+
+function void set(integer col,string val) {
+	if (val != null) {
+		switch (type[col]) {
+			case "string": $out.0.setStringValue(col,val); break;
+			case "integer": $out.0.setIntValue(col,val.str2integer()); break;
+			case "long": $out.0.setLongValue(col,val.str2long()); break;
+			case "date": $out.0.setDateValue(col,val.str2date(format[col])); break;
+			case "decimal": $out.0.setDecimalValue(col,val.str2decimal(nvl(format[col],"#.#E0"),locale[col])); break;
+			case "number": $out.0.setNumValue(col,val.str2double()); break;
+			case "boolean": $out.0.setBoolValue(col,val.str2bool()); break;
+			default: raiseError("Unsupported conversion format: '"+ type[col] +"'.");
+		}
+	}
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if append() throws an exception.
+function integer appendOnError(string errorMessage, string stackTrace) {
+	if ("${DATA_POLICY}" != "lenient") {
+		raiseError("Unable to convert value for field '"+ $out.0.getFieldName(col) +"' details follow:\n" + errorMessage);
+	}
+	
+	return OK;
+}
+
+// Called only if transform() throws an exception.
+//function integer transformOnError(string errorMessage, string stackTrace) {
+//}
+
+// Called after transform() to return the resources that have been used to their initial state
+// so that next group of records with different key may be parsed.
+function void clean() {
+	col = 0;
+}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node debugOutput="true" guiName="Trash" guiX="1468" guiY="110" id="TRASH" type="TRASH"/>
+<Node enabled="enableWhenOutputPort0IsConnected" guiName="Trash" guiX="1028" guiY="21" id="TRASH1" type="TRASH"/>
+<Edge fromNode="BUILD_DATA_REQUEST:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="GET_SHEET_DATA:0"/>
+<Edge fromNode="EXTRACT_DATA:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" metadata="Metadata5" outPort="Port 0 (out)" toNode="TO_OUTPUT_FORMAT:0"/>
+<Edge fromNode="EXTRACT_DATA:1" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" metadata="Metadata4" outPort="Port 1 (out)" toNode="TRASH1:0"/>
+<Edge fromNode="EXTRACT_SHEET_NAMES:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="SHEET_NAME:0"/>
+<Edge fromNode="GET_SHEETS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (input)" metadata="HTTPConnector_Response" outPort="Port 0 (out)" toNode="EXTRACT_SHEET_NAMES:0"/>
+<Edge fromNode="GET_SHEET_DATA:0" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 0 (input)" metadata="HTTPConnector_Response" outPort="Port 0 (out)" toNode="EXTRACT_DATA:0"/>
+<Edge fromNode="SHEET_NAME:0" guiBendpoints="" guiRouter="Manhattan" id="Edge14" inPort="Port 0 (in)" outPort="Port 0 (accepted)" toNode="SIMPLE_COPY1:0"/>
+<Edge fromNode="SIMPLE_COPY1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge15" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:1"/>
+<Edge fromNode="SIMPLE_COPY1:1" guiBendpoints="" guiRouter="Manhattan" id="Edge13" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="BUILD_DATA_REQUEST:0"/>
+<Edge fromNode="SUBGRAPH_OUTPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="TRASH:0"/>
+<Edge fromNode="SUBGRAPH_OUTPUT0:1" guiBendpoints="" guiRouter="Manhattan" id="Edge16" inPort="Port 1 (in)" outPort="Port 1 (out)" toNode="TRASH:1"/>
+<Edge fromNode="TO_OUTPUT_FORMAT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+</Phase>
+</Graph>

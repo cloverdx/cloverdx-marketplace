@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="others" created="Wed Dec 07 10:39:04 EST 2022" description="Get metadata for selected salesforce objects and save metadata file to selected destination." guiVersion="5.17.0.3" id="1670433534148" largeIconPath="${PROJECT}/icons/sf64.png" licenseCode="CLCDSCLOVE72646208SP" mediumIconPath="${PROJECT}/icons/sf32.png" name="getSalesforceObjectMetadata" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/sf16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" name="0"/>
+</outputPorts>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="ctlLines" recordDelimiter="\n" type="delimited">
+<Field name="line" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="debugInput1" recordDelimiter="\n" type="delimited">
+<Field name="field1" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="objectFields" recordDelimiter="\n" type="delimited">
+<Field name="fields" type="string"/>
+</Record>
+</Metadata>
+<Connection config="${CONN_DIR}/Salesforce.cfg" id="SALESFORCE" type="SALESFORCE"/>
+<GraphParameters>
+<GraphParameter defaultHint="Target Metadata Dir" label="Target Metadata Dir" name="TARGET_METADATA_DIR" public="true">
+<attr name="description"><![CDATA[Where to save created metadata]]></attr>
+</GraphParameter>
+<GraphParameter name="EFFECTIVE_METADATA_DIR">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	string tmd = getParamValue("TARGET_METADATA_DIR");
+	if(!isEmpty(tmd)){
+		if(!endsWith(tmd, "/")) {
+			return tmd + "/";
+		} else {
+			return tmd;
+		}
+	} else {
+		return "meta/generated/";
+	}
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter defaultHint="Salesforce Object" label="Salesforce Object" name="OBJECT" public="true" value="Account">
+<attr name="description"><![CDATA[What Salesforce object do you require metadata from.]]></attr>
+</GraphParameter>
+<GraphParameter defaultHint="Name for target metadata" label="Name for target metadata" name="TARGET_METADATA_NAME" public="true">
+<attr name="description"><![CDATA[Name for target metadata. Do not include file extension for the name, it is going to be added automatically.]]></attr>
+</GraphParameter>
+<GraphParameter name="EFFECTIVE_TARGET_METADATA_NAME">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	string tmn = getParamValue("TARGET_METADATA_NAME");
+	if(!isEmpty(tmn)) {
+		return tmn;
+	} else {
+		return getParamValue("OBJECT");
+	}
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter name="WRITE_FIELDS_INTO_CTL_FILE" value="trash">
+<attr name="description"><![CDATA[Use true if you want to create ctl file with fields in string variable.
+Use either true or trash.
+Default is trash.]]></attr>
+</GraphParameter>
+<GraphParameter defaultHint="Username for Salesforce account&#10;" label="Username for Salesforce account&#10;" name="SF_USERNAME" public="true" value="${SALESFORCE_USER}">
+<attr name="description"><![CDATA[Username for Salesforce account. If no value is provided, default value from library configuration is going to be used.
+]]></attr>
+</GraphParameter>
+<GraphParameter defaultHint="Password for Salesforce account&#10;" label="Password for Salesforce account&#10;" name="SF_PASSWORD" public="true" secure="false" value="${SALESFORCE_PASSWORD}">
+<attr name="description"><![CDATA[Password for Salesforce account. If no value is provided, default value from library configuration is going to be used.
+]]></attr>
+</GraphParameter>
+<GraphParameter defaultHint="Salesforce security token&#10;" label="Salesforce security token&#10;" name="SF_TOKEN" public="true" value="${SALESFORCE_SECURITY_TOKEN}">
+<attr name="description"><![CDATA[Salesforce security token for the account. If no value is provided, default value from library configuration is going to be used.
+]]></attr>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="Concatenate" guiX="1049" guiY="278" id="CONCATENATE" type="CONCATENATE"/>
+<Node enabled="${WRITE_FIELDS_INTO_CTL_FILE}" guiName="CTL Comment" guiX="830" guiY="205" id="CTL_COMMENT" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+	$out.0.line = "//#CTL2";
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the generate. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if generate() throws an exception.
+// function integer generateOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node fileURL="${TRANS_DIR}/${OBJECT}_fields.ctl" guiName="FlatFileWriter" guiX="1285" guiY="278" id="FLAT_FILE_WRITER" type="FLAT_FILE_WRITER"/>
+<Node SFObject="${OBJECT}" TargetDir="${EFFECTIVE_METADATA_DIR}" TargetName="${EFFECTIVE_TARGET_METADATA_NAME}" genericTransformClass="com.cloverdx.sflibrary.ExportSalesforceMetadata" guiName="getMetadata" guiX="309" guiY="100" id="GET_METADATA" type="GENERIC_COMPONENT"/>
+<Node guiName="SimpleCopy" guiX="634" guiY="100" id="SIMPLE_COPY" type="SIMPLE_COPY"/>
+<Node guiName="SubgraphInput" guiX="200" guiY="10" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1825" guiY="10" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Node enabled="${WRITE_FIELDS_INTO_CTL_FILE}" guiName="To CTL String" guiX="830" guiY="278" id="TO_CTL_STRING" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	
+	$out.0.line = concat("string fields = \"", $in.0.fields, "\";");
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge fromNode="CONCATENATE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="FLAT_FILE_WRITER:0"/>
+<Edge fromNode="CTL_COMMENT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="CONCATENATE:0"/>
+<Edge fromNode="GET_METADATA:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="SIMPLE_COPY:0"/>
+<Edge fromNode="SIMPLE_COPY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="SIMPLE_COPY:1" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="TO_CTL_STRING:0"/>
+<Edge fromNode="TO_CTL_STRING:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="CONCATENATE:1"/>
+</Phase>
+</Graph>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="others" created="Mon Jul 03 07:57:46 CEST 2017" guiVersion="5.15.0.15" id="1499072539199" licenseCode="CLP1DJAVLI10291612BY" name="EncryptDecrypt" nature="subgraph" showComponentDetails="true">
+<Global>
+<inputPorts>
+<singlePort connected="false" name="0"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="false" name="0"/>
+</outputPorts>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="EncryptOptions" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="inputFileURL" type="string"/>
+<Field name="outputFileName" type="string"/>
+<Field name="password" type="string"/>
+<Field name="salt" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="EncryptResult" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="inputFileURL" type="string"/>
+<Field name="outputFileName" type="string"/>
+<Field name="inputFileSize" type="long"/>
+<Field name="outputFileSize" type="long"/>
+<Field name="status" type="string"/>
+<Field name="errorMessage" type="string"/>
+<Field name="stackTrace" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter label="Processing mode" name="ENCRYPT_OR_DECRYPT" public="true" required="true" value="encrypt">
+<SingleType allowCustomValues="false" name="simpleEnum" values="encrypt;decrypt"/>
+</GraphParameter>
+<GraphParameter label="Crypto transformation name (algorithm/mode/padding)" name="CIPHER_NAME" public="true" required="false" value="AES/CTR/NOPADDING">
+<attr name="description"><![CDATA[Crypto transformation name (algorithm/mode/padding).
+
+Algorithm is one of transformation algorithms available on the system.
+Mode is a block cipher mode. There are many mode available, for generic and secure encryption use CTR mode.
+Padding defines padding to use. If you use CTR mode (streaming), you can use NOPADDING.]]></attr>
+<ComponentReference referencedComponent="ENCRYPT_DECRYPT" referencedProperty="CipherName"/>
+</GraphParameter>
+<GraphParameter label="Key algorithm name" name="KEY_ALGORITHM_NAME" public="true" required="false" value="PBEWITHSHA256AND256BITAES-CBC-BC"/>
+<GraphParameter label="Key generator iterations" name="ITERATIONS" public="true" required="false" value="2000">
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter label="Length of key in bits" name="KEY_LENGTH_BITS" public="true" required="false" value="256">
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="Read/write block size (B)" name="READ_WRITE_BLOCK_SIZE" public="true" required="false" value="1024">
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node CipherName="${CIPHER_NAME}" EncryptOrDecrypt="${ENCRYPT_OR_DECRYPT}" Iterations="${ITERATIONS}" KeyAlgorithmName="${KEY_ALGORITHM_NAME}" KeyLengthBits="${KEY_LENGTH_BITS}" ReadWriteBlockSize="${READ_WRITE_BLOCK_SIZE}" genericTransformClass="com.cloverdx.libraries.encryption.EncryptDecrypt" guiName="EncryptDecrypt" guiX="404" guiY="100" id="ENCRYPT_DECRYPT" type="GENERIC_TRANSFORMER"/>
+<Node guiName="SubgraphInput" guiX="200" guiY="10" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="297" name="1"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="756" guiY="10" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Edge fromNode="ENCRYPT_DECRYPT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="SUBGRAPH_INPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="ENCRYPT_DECRYPT:0"/>
+</Phase>
+</Graph>

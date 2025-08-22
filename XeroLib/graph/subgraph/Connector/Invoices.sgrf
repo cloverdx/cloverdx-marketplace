@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="readers" created="Tue Nov 08 20:16:54 GMT 2022" description="Retrieve sales invoices or purchase bills." guiVersion="6.0.0.1544" id="1667939738036" largeIconPath="${PROJECT}/icons/xero_logo_64.png" licenseCode="CLCDSCLOVE72646208SP" mediumIconPath="${PROJECT}/icons/xero_logo_32.png" name="getInvoices" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/xero_logo_16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" name="0" required="true"/>
+</outputPorts>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="Invoice" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="Type" type="string">
+<attr name="description"><![CDATA[Invoice type
+]]></attr>
+</Field>
+<Field name="InvoiceID" type="string">
+<attr name="description"><![CDATA[Xero generated identifier for invoice (unique within organisations)]]></attr>
+</Field>
+<Field name="InvoiceNumber" type="string">
+<attr name="description"><![CDATA[ACCREC - Unique alpha numeric code identifying invoice (printable ASCII characters only)
+ACCPAY - non-unique alpha numeric code identifying invoice (printable ASCII characters only)]]></attr>
+</Field>
+<Field name="Reference" type="string">
+<attr name="description"><![CDATA[ACCREC only - additional reference number]]></attr>
+</Field>
+<Field name="AmountDue" type="decimal">
+<attr name="description"><![CDATA[Amount remaining to be paid on invoice]]></attr>
+</Field>
+<Field name="AmountPaid" type="decimal">
+<attr name="description"><![CDATA[Sum of payments received for invoice]]></attr>
+</Field>
+<Field name="AmountCredited" type="decimal">
+<attr name="description"><![CDATA[Sum of all credit notes, over-payments and pre-payments applied to invoice]]></attr>
+</Field>
+<Field name="CurrencyRate" type="decimal"/>
+<Field name="SentToContact" type="boolean">
+<attr name="description"><![CDATA[Boolean to indicate whether the invoice in the Xero app displays as "sent"]]></attr>
+</Field>
+<Field name="IsDiscounted" type="boolean"/>
+<Field name="HasAttachments" type="boolean">
+<attr name="description"><![CDATA[Boolean to indicate if an invoice has an attachment]]></attr>
+</Field>
+<Field name="HasErrors" type="boolean"/>
+<Field name="RepeatingInvoiceID" type="string">
+<attr name="description"><![CDATA[Xero generated identifier for repeating invoice template (unique within organisations). Present only if the invoice is created as part of a Repeating Invoice.]]></attr>
+</Field>
+<Field format="${DATE_FORMAT}" name="Date" type="date">
+<attr name="description"><![CDATA[Date invoice was issued]]></attr>
+</Field>
+<Field format="${DATE_FORMAT}" name="DueDate" type="date">
+<attr name="description"><![CDATA[Date invoice is due]]></attr>
+</Field>
+<Field name="Status" type="string">
+<attr name="description"><![CDATA[Invoice status code]]></attr>
+</Field>
+<Field name="LineAmountTypes" type="string"/>
+<Field name="SubTotal" type="decimal">
+<attr name="description"><![CDATA[Total of invoice excluding taxes]]></attr>
+</Field>
+<Field name="TotalTax" type="decimal">
+<attr name="description"><![CDATA[Total tax on invoice]]></attr>
+</Field>
+<Field name="Total" type="decimal">
+<attr name="description"><![CDATA[Total of Invoice tax inclusive (i.e. SubTotal + TotalTax)]]></attr>
+</Field>
+<Field format="${DATE_FORMAT}" name="UpdatedDateUTC" type="date">
+<attr name="description"><![CDATA[Last modified date UTC format]]></attr>
+</Field>
+<Field name="CurrencyCode" type="string">
+<attr name="description"><![CDATA[The currency that invoice has been raised in]]></attr>
+</Field>
+<Field name="FullyPaidOnDate" type="string">
+<attr name="description"><![CDATA[The date the invoice was fully paid. Only returned on fully paid invoices]]></attr>
+</Field>
+<Field name="ContactID" type="string"/>
+<Field name="ContactName" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata4">
+<Record fieldDelimiter="|" name="InvoiceINPUT" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="Type" type="string"/>
+<Field name="InvoiceID" type="string"/>
+<Field name="InvoiceNumber" type="string"/>
+<Field name="Reference" type="string"/>
+<Field name="AmountDue" type="decimal"/>
+<Field name="AmountPaid" type="decimal"/>
+<Field name="AmountCredited" type="decimal"/>
+<Field name="CurrencyRate" type="decimal"/>
+<Field name="SentToContact" type="boolean"/>
+<Field name="IsDiscounted" type="boolean"/>
+<Field name="HasAttachments" type="boolean"/>
+<Field name="HasErrors" type="boolean"/>
+<Field name="RepeatingInvoiceID" type="string"/>
+<Field name="DateString" type="string"/>
+<Field name="Date" type="string"/>
+<Field name="DueDateString" type="string"/>
+<Field name="DueDate" type="string"/>
+<Field name="BrandingThemeID" type="string"/>
+<Field name="Status" type="string"/>
+<Field name="LineAmountTypes" type="string"/>
+<Field name="SubTotal" type="decimal"/>
+<Field name="TotalTax" type="decimal"/>
+<Field name="Total" type="decimal"/>
+<Field name="UpdatedDateUTC" type="string"/>
+<Field name="CurrencyCode" type="string"/>
+<Field name="FullyPaidOnDate" type="string"/>
+<Field name="ContactID" type="string"/>
+<Field name="ContactName" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter defaultHint="Optional filter by type of invoice" label="Invoice Type" name="TYPE" public="true">
+<attr name="description"><![CDATA[Filter based on Invoice type]]></attr>
+<SingleType allowCustomValues="false" name="simpleEnum" values="ACCPAY|ACCPAY - Accounts Payable;ACCREC|ACCREC - Accounts Receivable"/>
+</GraphParameter>
+<GraphParameter defaultHint="Optional filter by invoice status" label="Invoice Status" name="STATUS" public="true" required="false">
+<SingleType allowCustomValues="false" name="simpleEnum" values="DRAFT;SUBMITTED;AUTHORISED;DELETED;VOIDED;PAID"/>
+</GraphParameter>
+<GraphParameter defaultHint="Optional filter by contact name" label="Contact Name" name="CONTACT_NAME" public="true">
+<attr name="description"><![CDATA[Filter based on contact name]]></attr>
+</GraphParameter>
+<GraphParameter name="PARAMS">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	string [] paramList;
+	
+	if (getParamValue("TYPE") != null and trim(getParamValue("TYPE")) != ""){
+		append(paramList, escapeUrlFragment(concat('Type="', getParamValue("TYPE"), '"')));
+	}
+	if (getParamValue("STATUS") != null and trim(getParamValue("STATUS")) != ""){
+		append(paramList, escapeUrlFragment(concat('Status="', getParamValue("STATUS"), '"')));
+	}
+	if (getParamValue("CONTACT_NAME") != null and trim(getParamValue("CONTACT_NAME")) != ""){
+		append(paramList, escapeUrlFragment(concat('Contact.Name="', getParamValue("CONTACT_NAME"), '"')));
+	}
+	
+	if (length(paramList) > 0){
+		return concat("?where=", join("+AND+", paramList));	
+	}
+	
+	return "";
+}
+]]></attr>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+<GraphParameterFile fileURL="xeroApi.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="DEF4AB" folded="false" fontSize="medium" height="155" id="Note0" textColor="444444" width="410" x="214" y="311">
+<attr name="text"><![CDATA[h3. Invoices
+
+[https://developer.xero.com/documentation/api/accounting/invoices]]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="convert and handle preview" guiX="674" guiY="178" id="CONVERT_AND_HANDLE_PREVIEW" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+integer NUM_OF_PREVIEW_RECORDS = null;
+integer count = 0;
+
+function void init(){
+	
+	if (getParamValue("NUM_OF_PREVIEW_RECORDS") != null and trim(getParamValue("NUM_OF_PREVIEW_RECORDS")) != ""){
+		if (isInteger(getParamValue("NUM_OF_PREVIEW_RECORDS"))){
+			NUM_OF_PREVIEW_RECORDS = str2integer(getParamValue("NUM_OF_PREVIEW_RECORDS"));
+		}else{
+			raiseError(concat('Parameter for number of records in preview (NUM_OF_PREVIEW_RECORDS) is expected to be the whole number. Not "', getParamValue("NUM_OF_PREVIEW_RECORDS"), '"'));
+		}	
+	}
+	
+}
+
+
+function integer transform() {
+	//handling preview driven by NUM_OF_PREVIEW_RECORDS parameter
+	if (NUM_OF_PREVIEW_RECORDS != null and count >= NUM_OF_PREVIEW_RECORDS){
+		return SKIP;
+	}
+	count++;
+	
+	$out.0.* = $in.0.*;
+	// /Date(1666259038377+0000)/
+	
+	$out.0.UpdatedDateUTC = long2date(str2long(replace(replace($in.0.UpdatedDateUTC, '\+0000\)/', ""), '/Date\(', "")));
+	$out.0.Date = long2date(str2long(replace(replace($in.0.Date, '\+0000\)/', ""), '/Date\(', "")));
+	$out.0.DueDate = long2date(str2long(replace(replace($in.0.DueDate, '\+0000\)/', ""), '/Date\(', "")));
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="Fail" guiX="674" guiY="266" id="FAIL1" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = $in.0.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="GET Invoices" guiX="214" guiY="178" id="GET_INVOICES" jobURL="${XERO_CORE_PAGING_CONNECTOR_URL}" type="SUBGRAPH">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.OAUTH_URL = getParamValue("OAUTH_URL");
+	$out.0.TENANT_ID = getParamValue("TENANT_ID");
+	$out.0.DATE_FORMAT = getParamValue("DATE_FORMAT");
+	$out.0.NUM_OF_PREVIEW_RECORDS = getParamValue("NUM_OF_PREVIEW_RECORDS");
+	$out.0.CALL = concat("https://api.xero.com/api.xro/2.0/Invoices", getParamValue("PARAMS"));
+	
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="parse Invoices response" guiX="458" guiY="178" id="PARSE_INVOICES_RESPONSE" schema="${META_DIR}/responseSchemas/Invoices" sourceUri="port:$0.content:discrete" type="JSON_EXTRACT">
+<attr name="mapping"><![CDATA[<Mappings>
+		<Mapping element="Invoices" outPort="0"
+				xmlFields="{}AmountCredited;{}AmountDue;{}AmountPaid;{}BrandingThemeID;{}CurrencyCode;{}CurrencyRate;{}Date;{}DateString;{}DueDate;{}DueDateString;{}FullyPaidOnDate;{}HasAttachments;{}HasErrors;{}InvoiceID;{}InvoiceNumber;{}IsDiscounted;{}LineAmountTypes;{}Reference;{}RepeatingInvoiceID;{}SentToContact;{}Status;{}SubTotal;{}Total;{}TotalTax;{}Type;{}UpdatedDateUTC"
+				cloverFields="AmountCredited;AmountDue;AmountPaid;BrandingThemeID;CurrencyCode;CurrencyRate;Date;DateString;DueDate;DueDateString;FullyPaidOnDate;HasAttachments;HasErrors;InvoiceID;InvoiceNumber;IsDiscounted;LineAmountTypes;Reference;RepeatingInvoiceID;SentToContact;Status;SubTotal;Total;TotalTax;Type;UpdatedDateUTC">
+		</Mapping>
+</Mappings>
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="50" guiY="10" id="SUBGRAPH_INPUT" type="SUBGRAPH_INPUT">
+<Port guiY="110" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1384" guiY="9" id="SUBGRAPH_OUTPUT" type="SUBGRAPH_OUTPUT">
+<Port guiY="107" name="0"/>
+<Port guiY="177" name="1"/>
+</Node>
+<Edge fromNode="CONVERT_AND_HANDLE_PREVIEW:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:0"/>
+<Edge fromNode="GET_INVOICES:0" guiBendpoints="" guiRouter="Manhattan" id="Edge16" inPort="Port 0 (input)" outPort="Port 0 (out)" toNode="PARSE_INVOICES_RESPONSE:0"/>
+<Edge fromNode="GET_INVOICES:1" guiBendpoints="" guiRouter="Manhattan" id="Edge15" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="FAIL1:0"/>
+<Edge fromNode="PARSE_INVOICES_RESPONSE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" metadata="Metadata4" outPort="Port 0 (out)" toNode="CONVERT_AND_HANDLE_PREVIEW:0"/>
+</Phase>
+</Graph>

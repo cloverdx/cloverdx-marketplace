@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="droben" created="Mon Nov 07 20:53:52 GMT 2022" guiVersion="5.17.0.1496" id="1667860442439" licenseCode="CLCDSCLOVE72646208SP" name="xeroCoreConnector" nature="subgraph" showComponentDetails="true">
+<Global>
+<inputPorts>
+<singlePort connected="false" keepEdge="true" name="0" required="false"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="false" keepEdge="true" name="0" required="false"/>
+<singlePort connected="false" keepEdge="true" name="1" required="false"/>
+</outputPorts>
+<Metadata id="HTTPConnector_Response">
+<Record fieldDelimiter="|" name="ErrorPort" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="statusCode" trim="true" type="integer"/>
+<Field name="errorMessage" type="string"/>
+<Field name="content" type="string"/>
+<Field name="contentByte" type="byte"/>
+<Field name="outputFilePath" type="string"/>
+<Field containerType="map" name="header" type="string"/>
+<Field containerType="list" name="rawHeaders" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="XeroConnectorInputParams" recordDelimiter="\n" type="delimited">
+<Field name="params" type="string"/>
+</Record>
+</Metadata>
+<Connection config="${OAUTH_URL}" id="OAuth2Connection0" type="OAUTH2"/>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="xeroApi.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="DEF4AB" folded="false" fontSize="medium" height="155" id="Note0" textColor="444444" width="429" x="216" y="343">
+<attr name="text"><![CDATA[h3. Xero Connector
+
+[https://developer.xero.com/documentation/getting-started-guide/]
+[https://developer.xero.com/documentation/guides/oauth2/limits/]
+[https://developer.xero.com/documentation/api/accounting/overview]]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="Combine" guiX="18" guiY="146" id="COMBINE" incompleteTuples="true" type="COMBINE">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.params = $in.1.params;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Fail" guiX="452" guiY="242" id="FAIL" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = $in.0.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="get trigger token" guiX="-153" guiY="37" id="GET_TRIGGER_TOKEN" type="GET_JOB_INPUT">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="status 200 &amp; OK" guiX="452" guiY="146" id="STATUS_200_OK1" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+function integer transform() {
+	
+	if ($in.0.statusCode == 200 and contains($in.0.content, '"Status": "OK",')){
+		$out.0.* = $in.0.*;
+		return OK;
+	}
+	
+	$out.1.* = $in.0.*;
+	
+	//https://developer.xero.com/documentation/api/accounting/responsecodes
+	switch($in.0.statusCode){
+		case 400 : $out.1.errorMessage = "Bad Request - A validation exception has occurred."; break;
+		case 401 : $out.1.errorMessage = "Unauthorized - Invalid authorization credentials."; break;	
+		case 403 : $out.1.errorMessage = "Not Permitted	 - User doesn't have permission to access the resource."; break;	
+		case 404 : $out.1.errorMessage = "Not Found - 	The resource you have specified cannot be found."; break;	
+		case 412 : $out.1.errorMessage = "Precondition Failed - One or more conditions given in the request header fields were invalid."; break;	
+		case 429 : $out.1.errorMessage = "Rate Limit Exceeded - The API rate limit for your organisation/application pairing has been exceeded."; break;	
+		case 500 : $out.1.errorMessage = "Internal Error - An unhandled error with the Xero API. Contact the Xero API team if problems persist."; break;
+		case 501 : $out.1.errorMessage = "Not Implemented - The method you have called has not been implemented."; break;	
+		case 503 : $out.1.errorMessage = "Not Available - 	API is currently unavailable – typically due to a scheduled outage – try again soon."; break;	
+	}
+
+	return 1;
+}
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="-236" guiY="10" id="SUBGRAPH_INPUT" type="SUBGRAPH_INPUT">
+<Port guiY="177" name="0"/>
+<Port guiY="230" name="1"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="812" guiY="10" id="SUBGRAPH_OUTPUT" type="SUBGRAPH_OUTPUT">
+<Port guiY="163" name="0"/>
+<Port guiY="233" name="1"/>
+<Port guiY="303" name="2"/>
+</Node>
+<Node guiName="XERO" guiX="214" guiY="146" id="XERO" oAuth2Connection="OAuth2Connection0" type="HTTP_CONNECTOR" url="${CALL}">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	if ($in.0.params != null){
+		$out.0.URL = concat(getParamValue("CALL"), $in.0.params);
+	}	
+
+	return ALL;
+}
+]]></attr>
+<attr name="headerProperties"><![CDATA[Accept=application/json\n
+xero-tenant-id=${REAL_TENANT_ID}
+]]></attr>
+</Node>
+<Edge fromNode="COMBINE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="XERO:0"/>
+<Edge fromNode="GET_TRIGGER_TOKEN:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="COMBINE:0"/>
+<Edge fromNode="STATUS_200_OK1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:0"/>
+<Edge fromNode="STATUS_200_OK1:1" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 1 (in)" metadata="HTTPConnector_Response" outPort="Port 1 (out)" toNode="SUBGRAPH_OUTPUT:1"/>
+<Edge fromNode="SUBGRAPH_INPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 1 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="COMBINE:1"/>
+<Edge fromNode="XERO:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="STATUS_200_OK1:0"/>
+<Edge fromNode="XERO:1" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="FAIL:0"/>
+</Phase>
+</Graph>

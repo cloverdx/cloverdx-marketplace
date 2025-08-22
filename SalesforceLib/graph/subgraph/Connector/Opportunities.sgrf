@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="readers" created="Sun Dec 11 12:38:18 EST 2022" description="Get all records for Salesforce Opportunities object." guiVersion="6.0.0.21" id="1670868168881" largeIconPath="${PROJECT}/icons/sf64.png" licenseCode="CLCDSCLOVE72646208SP" mediumIconPath="${PROJECT}/icons/sf32.png" name="getSalesforceOpportunities" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/sf16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" name="0"/>
+</outputPorts>
+<Metadata fileURL="${META_DIR}/generated/${OBJECT}.fmt" id="Metadata1"/>
+<GraphParameters>
+<GraphParameter name="OBJECT" value="Opportunity"/>
+<GraphParameter name="REQUIRED_FIELDS">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+import "${TRANS_DIR}/${OBJECT}_fields.ctl";
+
+function string getValue() {
+	return fields;
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter defaultHint="Username for Salesforce account&#10;" label="Username for Salesforce account&#10;" name="SF_USERNAME" public="false" value="${SALESFORCE_USER}">
+<attr name="description"><![CDATA[Username for Salesforce account. If no value is provided, default value from library configuration is going to be used.
+]]></attr>
+</GraphParameter>
+<GraphParameter defaultHint="Password for Salesforce account&#10;" label="Password for Salesforce account&#10;" name="SF_PASSWORD" public="false" value="${SALESFORCE_PASSWORD}">
+<attr name="description"><![CDATA[Password for Salesforce account. If no value is provided, default value from library configuration is going to be used.
+]]></attr>
+</GraphParameter>
+<GraphParameter defaultHint="Salesforce security token&#10;" label="Salesforce security token&#10;" name="SF_TOKEN" public="false" secure="false" value="${SALESFORCE_SECURITY_TOKEN}">
+<attr name="description"><![CDATA[Salesforce security token for the account. If no value is provided, default value from library configuration is going to be used.
+]]></attr>
+</GraphParameter>
+<GraphParameter name="NUM_OF_PREVIEW_RECORDS"/>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node __OBJECT="${OBJECT}" __REQUESTED_FIELDS="${REQUIRED_FIELDS}" __SF_PASSWORD="${SF_PASSWORD}" __SF_TOKEN="${SF_TOKEN}" __SF_USERNAME="${SF_USERNAME}" guiName="Subgraph" guiX="388" guiY="100" id="SUBGRAPH" jobURL="${SUBGRAPH_DIR}/getSalesforceObjectRecords.sgrf" type="SUBGRAPH">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.NUM_OF_PREVIEW_RECORDS = getParamValue("NUM_OF_PREVIEW_RECORDS");
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="200" guiY="10" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="800" guiY="10" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Edge fromNode="SUBGRAPH:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+</Phase>
+</Graph>

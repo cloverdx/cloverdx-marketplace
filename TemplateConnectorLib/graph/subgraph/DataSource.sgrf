@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="readers" created="Tue Feb 28 10:40:12 CET 2023" description="Write description here." guiVersion="6.0.0.21" id="1677579896822" largeIconPath="${PROJECT}/icons/icon_64.png" licenseCode="CLCDSCLOVE85208925SP" mediumIconPath="${PROJECT}/icons/icon_32.png" name="CustomerSample" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/icon_16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" name="0"/>
+</outputPorts>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="\t" name="Customers" previewAttachment="${DATAIN_DIR}/Customers.csv" previewAttachmentCharset="UTF-8" quoteChar="both" quotedStrings="false" recordDelimiter="\n" skipSourceRows="1" type="delimited">
+<Field label="ID" name="id" type="integer">
+<attr name="description"><![CDATA[Unique customer identifier]]></attr>
+</Field>
+<Field label="Full name" name="fullName" type="string">
+<attr name="description"><![CDATA[First name and surname]]></attr>
+</Field>
+<Field label="Street address" name="streetAddress" type="string">
+<attr name="description"><![CDATA[Street address]]></attr>
+</Field>
+<Field label="City" name="city" type="string">
+<attr name="description"><![CDATA[City]]></attr>
+</Field>
+<Field label="Postal code" name="postalCode" type="integer">
+<attr name="description"><![CDATA[ZIP/Postal code]]></attr>
+</Field>
+<Field label="State" name="state" type="string">
+<attr name="description"><![CDATA[State]]></attr>
+</Field>
+<Field label="Country" name="country" type="string">
+<attr name="description"><![CDATA[Country]]></attr>
+</Field>
+<Field label="Email" name="email" type="string">
+<attr name="description"><![CDATA[Primary email]]></attr>
+</Field>
+<Field label="Phone" name="phone" type="string">
+<attr name="description"><![CDATA[List of phones]]></attr>
+</Field>
+<Field format="yyyy-MM-dd" label="Account created" name="accountCreated" type="date">
+<attr name="description"><![CDATA[Create date]]></attr>
+</Field>
+<Field eofAsDelimiter="true" label="Is active" name="isActive" type="boolean">
+<attr name="description"><![CDATA[Boolean if the customer is still active or not]]></attr>
+</Field>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="error" recordDelimiter="\n" type="delimited">
+<Field name="message" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter name="NUM_OF_PREVIEW_RECORDS" public="true">
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter label="Active customers only" name="ACTIVE_INACTiVE" public="true">
+<attr name="description"><![CDATA[Filter to keep just active or inactive customers]]></attr>
+<SingleType name="bool"/>
+</GraphParameter>
+<GraphParameter label="State" name="STATE" public="true">
+<SingleType allowCustomValues="false" name="simpleEnum" values="TX;NY;FL"/>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="DEF4AB" folded="false" fontSize="medium" height="363" id="Note0" textColor="444444" width="345" x="73" y="133">
+<attr name="text"><![CDATA[h3. Replace this part with your Data Source (subgraph called DataSourceImplementation) 
+
+
+- Output data must be on a single port
+- Metadata on that port must have user-friendly field names, labels and descriptions.
+- Data Source must observe the NUM_OF_PREVIEW_RECORDS parameter – if set, the data source must limit it’s output to only the specified number of records, if not set, it should generate the full data.
+- (optional) You can generate record-level errors via a second port which will be collected by the error handling logic below]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="FAF6D6" folded="false" fontSize="medium" height="298" id="Note1" textColor="444444" width="503" x="440" y="133">
+<attr name="text"><![CDATA[h3. Did you implement preview functionality?
+
+
+- For better performance, data sources must implement a so called “preview mode” in which they produce only a limited number of output records instead of the full data set
+
+- DataSourceImplementation must observe the NUM_OF_PREVIEW_RECORDS parameter – if set, the data source must limit it’s output to only the specified number of records, if not set, it should generate the full data.
+
+- Don’t modify this part. It only ensures the output won’t exceed the NUM_OF_PREVIEW_RECORDS. However, in order to optimize performance, you should limit the number of records on the source.
+]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="FAF6D6" folded="false" fontSize="medium" height="172" id="Note2" textColor="444444" width="503" x="440" y="446">
+<attr name="text"><![CDATA[h3. Error handling
+
+
+- This part collects and concatenates all record-level errors (if any)
+- No need to modify this section.]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="create error output" guiX="469" guiY="537" id="CREATE_ERROR_OUTPUT" type="DENORMALIZER">
+<attr name="denormalize"><![CDATA[//#CTL2
+
+string [] errorMessageList;
+
+function integer append() {
+	
+	append(errorMessageList, concat("Error at line ", num2str($in.0.recordNo), ":", $in.0.errorMessage));
+	
+	return OK;
+}
+
+
+function integer transform() {
+
+	$out.0.message = join("\n", errorMessageList);
+
+	return OK;
+}
+]]></attr>
+</Node>
+<Node guiName="Data Source Implementation" guiX="145" guiY="379" id="DATA_SOURCE_IMPLEMENTATION" jobURL="${SUBGRAPH_DIR}/DataSourceImplementation.sgrf" type="SUBGRAPH">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.NUM_OF_PREVIEW_RECORDS = getParamValue("NUM_OF_PREVIEW_RECORDS");
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Example of implementation of preview logic" guiX="469" guiY="323" id="EXAMPLE_OF_IMPLEMENTATION_OF_PREVIEW_LOGIC" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+integer count = 0;
+
+integer NUM_OF_PREVIEW_RECORDS = -1;
+
+function void init(){
+	if (getParamValue("NUM_OF_PREVIEW_RECORDS") != null and trim(getParamValue("NUM_OF_PREVIEW_RECORDS")) != ""){
+		if (isInteger(getParamValue("NUM_OF_PREVIEW_RECORDS"))){
+			NUM_OF_PREVIEW_RECORDS = str2integer(getParamValue("NUM_OF_PREVIEW_RECORDS"));
+		}else{
+			raiseError(concat('Parameter NUM_OF_PREVIEW_RECORDS should be the whole number, not "', getParamValue("NUM_OF_PREVIEW_RECORDS")));	
+		}	
+	}	
+}
+
+function integer transform() {
+	
+	if (NUM_OF_PREVIEW_RECORDS > 0 and count > NUM_OF_PREVIEW_RECORDS){
+		return SKIP;	
+	}
+	
+	count++;
+	
+	$out.0.* = $in.0.*;
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="Fail" guiX="701" guiY="537" id="FAIL" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = $in.0.message;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="18" guiY="7" id="SUBGRAPH_INPUT" type="SUBGRAPH_INPUT">
+<Port guiY="346" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="968" guiY="7" id="SUBGRAPH_OUTPUT" type="SUBGRAPH_OUTPUT">
+<Port guiY="340" name="0"/>
+<Port guiY="410" name="1"/>
+</Node>
+<Edge fromNode="CREATE_ERROR_OUTPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="FAIL:0"/>
+<Edge fromNode="DATA_SOURCE_IMPLEMENTATION:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="EXAMPLE_OF_IMPLEMENTATION_OF_PREVIEW_LOGIC:0"/>
+<Edge fromNode="DATA_SOURCE_IMPLEMENTATION:1" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="CREATE_ERROR_OUTPUT:0"/>
+<Edge fromNode="EXAMPLE_OF_IMPLEMENTATION_OF_PREVIEW_LOGIC:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:0"/>
+</Phase>
+</Graph>

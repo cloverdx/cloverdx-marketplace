@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="writers" created="Tue Jun 04 13:10:06 CEST 2024" description="Update value of a column in a dataset." guiVersion="7.1.0.8" id="1717596816267" largeIconPath="${PROJECT}/icons/DataSetRowColumnUpdate64.png" licenseCode="CloverDX-Internal-License" mediumIconPath="${PROJECT}/icons/DataSetRowColumnUpdate48.png" name="DataSetRowColumnUpdate" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/DataSetRowColumnUpdate16.png">
+<Global>
+<inputPorts>
+<singlePort connected="false" name="0"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="false" keepEdge="true" name="0" required="false"/>
+<singlePort connected="false" keepEdge="false" name="1" required="false"/>
+</outputPorts>
+<Metadata fileURL="${META_DIR}/ErrorOutput.fmt" id="Metadata3"/>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="Response" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="content" type="string"/>
+<Field name="outputFilePath" type="string"/>
+<Field name="statusCode" trim="true" type="integer"/>
+<Field containerType="map" name="header" type="string"/>
+<Field containerType="list" name="rawHeaders" type="string"/>
+<Field name="errorMessage" type="string"/>
+<Field name="dataSetCode" type="string"/>
+<Field name="rowId" trim="true" type="long"/>
+<Field name="columnName" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="RowIdentification" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="dataSetCode" type="string"/>
+<Field name="rowId" type="long"/>
+<Field name="columnName" type="string"/>
+<Field name="newValue" type="variant"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="UpdateStatus" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="dataSetCode" type="string"/>
+<Field name="rowId" trim="true" type="integer"/>
+<Field name="columnName" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter defaultHint="Specify data set to work with" label="Data set code" name="DATA_SET_CODE" public="true"/>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+<GraphParameterFile fileURL="data-manager-api.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node enabled="enableWhenOutputPort1IsDisconnected" guiName="Fail" guiX="1370" guiY="425" id="FAIL1" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = $in.0.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Filter" guiX="770" guiY="100" id="FILTER" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.statusCode == 200]]></attr>
+</Node>
+<Node guiName="Format error" guiX="970" guiY="250" id="FORMAT_ERROR" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+import "${TRANS_DIR}/ApiFailReporter.ctl";
+// Transforms input record into output record.
+function integer transform() {
+	mapErrorMessage();
+	return ALL;
+}]]></attr>
+</Node>
+<Node guiName="Map" guiX="1170" guiY="100" id="MAP" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.* = $in.0.*;
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="Map" guiX="245" guiY="100" id="MAP1" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.dataSetCode = nvl($in.0.dataSetCode, "${DATA_SET_CODE}");
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="PUT row/column update" guiX="495" guiY="100" id="PUT_ROW_COLUMN_UPDATE" password="${CLOVERDX_PASS}" requestMethod="PUT" type="HTTP_CONNECTOR" url="${API_URL}/data-sets/*{dataSetCode}/rows/*{rowId}/columns/*{columnName}" username="${CLOVERDX_USER}">
+<attr name="errorOutputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.1.errorMessage = "Error during column update, data set code:"+$in.0.dataSetCode+", column: "+$in.0.columnName+", row ID "+$in.0.rowId+", error message: "+ $in.1.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	variant newValue = {
+		"value" -> $in.0.newValue
+	};
+	$out.0.requestContent = writeJson(newValue);
+	
+	printLog(info, $out.0.requestContent);
+
+	return ALL;
+}
+]]></attr>
+<attr name="standardOutputMapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.dataSetCode = $in.0.dataSetCode;
+	$out.0.rowId = $in.0.rowId;
+	$out.0.columnName = $in.0.columnName;
+	$out.0.* = $in.1.*;
+
+	return ALL;
+}
+]]></attr>
+<attr name="headerProperties"><![CDATA[Content-Type=application/json
+]]></attr>
+</Node>
+<Node guiName="SimpleGather" guiX="1170" guiY="350" id="SIMPLE_GATHER" type="SIMPLE_GATHER"/>
+<Node guiName="SubgraphInput" guiX="95" guiY="5" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1545" guiY="5" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+<Port guiY="262" name="2"/>
+</Node>
+<Edge fromNode="FILTER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" outPort="Port 0 (accepted)" toNode="MAP:0"/>
+<Edge fromNode="FILTER:1" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 1 (rejected)" toNode="FORMAT_ERROR:0"/>
+<Edge fromNode="FORMAT_ERROR:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="SIMPLE_GATHER:0"/>
+<Edge fromNode="MAP:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="MAP1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="PUT_ROW_COLUMN_UPDATE:0"/>
+<Edge fromNode="PUT_ROW_COLUMN_UPDATE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="FILTER:0"/>
+<Edge fromNode="PUT_ROW_COLUMN_UPDATE:1" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 1 (in)" metadata="Metadata3" outPort="Port 1 (out)" toNode="SIMPLE_GATHER:1"/>
+<Edge fromNode="SIMPLE_GATHER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:1"/>
+<Edge fromNode="SIMPLE_GATHER:1" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="FAIL1:0"/>
+<Edge fromNode="SUBGRAPH_INPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="MAP1:0"/>
+</Phase>
+</Graph>

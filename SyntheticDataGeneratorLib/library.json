@@ -1,0 +1,109 @@
+{
+  "descriptor" : {
+    "version" : "2.0",
+    "name" : "SyntheticDataGeneratorLib",
+    "description" : "Create realistic test data like contacts, products, and orders to support development and demos—no real data needed.",
+    "productVersion" : "6.5.0.24",
+    "author" : "CloverDX",
+    "lastModificationDate" : "2024-05-29T14:13:04Z",
+    "initializationJob" : "",
+    "maxProductVersion" : "",
+    "minProductVersion" : "6.0"
+  },
+  "connections" : {
+    "oauth2Connections" : [ ]
+  },
+  "healthCheck" : {
+    "description" : "",
+    "path" : ""
+  },
+  "publicInterface" : {
+    "metadata" : [ ],
+    "subgraphs" : [ {
+      "icon" : "./graph/subgraph/icons/GenerateAddresses16.png",
+      "largeIcon" : "./graph/subgraph/icons/GenerateAddresses64.png",
+      "mediumIcon" : "./graph/subgraph/icons/GenerateAddresses32.png",
+      "description" : "Generate full address with realistic properties.",
+      "path" : "graph/subgraph/GenerateAddresses.sgrf"
+    }, {
+      "icon" : "./graph/subgraph/icons/GenerateOrders16.png",
+      "largeIcon" : "./graph/subgraph/icons/GenerateOrders64.png",
+      "mediumIcon" : "./graph/subgraph/icons/GenerateOrders32.png",
+      "description" : "Generate random orders complete with dates, addresses and line items.",
+      "path" : "graph/subgraph/GenerateOrders.sgrf"
+    }, {
+      "icon" : "./graph/subgraph/icons/GeneratePerson16.png",
+      "largeIcon" : "./graph/subgraph/icons/GeneratePerson64.png",
+      "mediumIcon" : "./graph/subgraph/icons/GeneratePerson32.png",
+      "description" : "Generate random person with full names and basic contact details.",
+      "path" : "graph/subgraph/GeneratePerson.sgrf"
+    }, {
+      "icon" : "./graph/subgraph/icons/OnlineStoreContacts16.png",
+      "largeIcon" : "./graph/subgraph/icons/OnlineStoreContacts64.png",
+      "mediumIcon" : "./graph/subgraph/icons/OnlineStoreContacts32.png",
+      "description" : "Get customer contacts in an OnlineStore. Contacts have name, address, email and phone.",
+      "path" : "graph/subgraph/OnlineStoreContacts.sgrf"
+    }, {
+      "icon" : "./graph/subgraph/icons/OnlineStoreInvoices16.png",
+      "largeIcon" : "./graph/subgraph/icons/OnlineStoreInvoices64.png",
+      "mediumIcon" : "./graph/subgraph/icons/OnlineStoreInvoices32.png",
+      "description" : "Returns random invoice data.",
+      "path" : "graph/subgraph/OnlineStoreInvoices.sgrf"
+    }, {
+      "icon" : "./graph/subgraph/icons/OnlineStoreOrders16.png",
+      "largeIcon" : "./graph/subgraph/icons/OnlineStoreOrders64.png",
+      "mediumIcon" : "./graph/subgraph/icons/OnlineStoreOrders32.png",
+      "description" : "Return orders from the OnlineStore.",
+      "path" : "graph/subgraph/OnlineStoreOrders.sgrf"
+    }, {
+      "icon" : "./graph/subgraph/icons/OnlineStoreOrdersLineItems16.png",
+      "largeIcon" : "./graph/subgraph/icons/OnlineStoreOrdersLineItems64.png",
+      "mediumIcon" : "./graph/subgraph/icons/OnlineStoreOrdersLineItems32.png",
+      "description" : "Return line items belonging to orders from the OnlineStore.",
+      "path" : "graph/subgraph/OnlineStoreOrdersLineItems.sgrf"
+    }, {
+      "icon" : "./graph/subgraph/icons/OnlineStoreProducts16.png",
+      "largeIcon" : "./graph/subgraph/icons/OnlineStoreProducts64.png",
+      "mediumIcon" : "./graph/subgraph/icons/OnlineStoreProducts32.png",
+      "description" : "Get list of all products sold by the OnlineStore.",
+      "path" : "graph/subgraph/OnlineStoreProducts.sgrf"
+    } ],
+    "dataConnectors" : {
+      "targets" : [ ],
+      "sources" : [ {
+        "icon" : "./graph/subgraph/icons/OnlineStoreContacts16.png",
+        "largeIcon" : "./graph/subgraph/icons/OnlineStoreContacts64.png",
+        "mediumIcon" : "./graph/subgraph/icons/OnlineStoreContacts32.png",
+        "description" : "Get customer contacts in an OnlineStore. Contacts have name, address, email and phone.",
+        "path" : "graph/subgraph/OnlineStoreContacts.sgrf"
+      }, {
+        "icon" : "./graph/subgraph/icons/OnlineStoreInvoices16.png",
+        "largeIcon" : "./graph/subgraph/icons/OnlineStoreInvoices64.png",
+        "mediumIcon" : "./graph/subgraph/icons/OnlineStoreInvoices32.png",
+        "description" : "Returns random invoice data.",
+        "path" : "graph/subgraph/OnlineStoreInvoices.sgrf"
+      }, {
+        "icon" : "./graph/subgraph/icons/OnlineStoreOrders16.png",
+        "largeIcon" : "./graph/subgraph/icons/OnlineStoreOrders64.png",
+        "mediumIcon" : "./graph/subgraph/icons/OnlineStoreOrders32.png",
+        "description" : "Return orders from the OnlineStore.",
+        "path" : "graph/subgraph/OnlineStoreOrders.sgrf"
+      }, {
+        "icon" : "./graph/subgraph/icons/OnlineStoreOrdersLineItems16.png",
+        "largeIcon" : "./graph/subgraph/icons/OnlineStoreOrdersLineItems64.png",
+        "mediumIcon" : "./graph/subgraph/icons/OnlineStoreOrdersLineItems32.png",
+        "description" : "Return line items belonging to orders from the OnlineStore.",
+        "path" : "graph/subgraph/OnlineStoreOrdersLineItems.sgrf"
+      }, {
+        "icon" : "./graph/subgraph/icons/OnlineStoreProducts16.png",
+        "largeIcon" : "./graph/subgraph/icons/OnlineStoreProducts64.png",
+        "mediumIcon" : "./graph/subgraph/icons/OnlineStoreProducts32.png",
+        "description" : "Get list of all products sold by the OnlineStore.",
+        "path" : "graph/subgraph/OnlineStoreProducts.sgrf"
+      } ]
+    },
+    "graphs" : [ ],
+    "jobflows" : [ ],
+    "restJobs" : [ ]
+  }
+}

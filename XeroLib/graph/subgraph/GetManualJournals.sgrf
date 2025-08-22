@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="readers" created="Tue Nov 08 23:02:28 GMT 2022" description="Get manual journals data." guiVersion="6.0.0.1547" id="1667949765296" largeIconPath="${PROJECT}/icons/xero_logo_64.png" licenseCode="CLCDSCLOVE72646208SP" mediumIconPath="${PROJECT}/icons/xero_logo_32.png" name="getManualJournals" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/xero_logo_16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" keepEdge="true" name="0" required="false"/>
+<singlePort connected="false" keepEdge="true" name="1" required="false"/>
+<singlePort connected="false" keepEdge="true" name="2" required="false"/>
+</outputPorts>
+<Metadata fileURL="${META_DIR}/responseInfo.fmt" id="Metadata0"/>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="ManualJournal" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field format="${DATE_FORMAT}" name="Date" type="date"/>
+<Field name="Status" type="string"/>
+<Field name="LineAmountTypes" type="string"/>
+<Field name="UpdatedDateUTC" type="string"/>
+<Field name="ManualJournalID" type="string"/>
+<Field name="Narration" type="string"/>
+<Field name="HasAttachments" type="boolean"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="ManualJournalINPUT" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="Date" type="string"/>
+<Field name="Status" type="string"/>
+<Field name="LineAmountTypes" type="string"/>
+<Field name="UpdatedDateUTC" type="string"/>
+<Field name="ManualJournalID" type="string"/>
+<Field name="Narration" type="string"/>
+<Field name="HasAttachments" type="boolean"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+<GraphParameterFile fileURL="xeroApi.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="DEF4AB" folded="false" fontSize="medium" height="155" id="Note0" textColor="444444" width="449" x="224" y="312">
+<attr name="text"><![CDATA[h3. Manual Journals
+
+[https://developer.xero.com/documentation/api/accounting/manualjournals]]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="convert" guiX="752" guiY="134" id="CONVERT" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.* = $in.0.*;
+	// /Date(1666259038377+0000)/
+	
+	$out.0.Date = long2date(str2long(replace(replace($in.0.Date, '\+0000\)/', ""), '/Date\(', "")));
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node enabled="enableWhenOutputPort2IsDisconnected" guiName="Fail" guiX="852" guiY="367" id="FAIL" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = $in.0.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="GET Manual Journals" guiX="214" guiY="134" id="GET_MANUAL_JOURNALS" jobURL="${XERO_CORE_CONNECTOR_URL}" type="SUBGRAPH">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.OAUTH_URL = getParamValue("OAUTH_URL");
+	$out.0.TENANT_ID = getParamValue("TENANT_ID");
+	$out.0.DATE_FORMAT = getParamValue("DATE_FORMAT");
+	$out.0.CALL = "https://api.xero.com/api.xro/2.0/ManualJournals";
+	
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="parse ManualJournals response" guiX="465" guiY="134" id="PARSE_MANUAL_JOURNALS_RESPONSE" schema="${META_DIR}/responseSchemas/ManualJournals" sourceUri="port:$0.content:discrete" type="JSON_EXTRACT">
+<attr name="mapping"><![CDATA[<Mappings>
+	<Mapping element="json_object" outPort="0">
+		<Mapping element="ManualJournals" outPort="1"
+				xmlFields="{}Date;{}HasAttachments;{}LineAmountTypes;{}ManualJournalID;{}Narration;{}Status;{}UpdatedDateUTC"
+				cloverFields="Date;HasAttachments;LineAmountTypes;ManualJournalID;Narration;Status;UpdatedDateUTC">
+		</Mapping>
+	</Mapping>
+</Mappings>
+]]></attr>
+</Node>
+<Node guiName="SimpleCopy" guiX="693" guiY="274" id="SIMPLE_COPY" type="SIMPLE_COPY"/>
+<Node guiName="SubgraphInput" guiX="50" guiY="10" id="SUBGRAPH_INPUT" type="SUBGRAPH_INPUT">
+<Port guiY="110" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1005" guiY="10" id="SUBGRAPH_OUTPUT" type="SUBGRAPH_OUTPUT">
+<Port guiY="151" name="0"/>
+<Port guiY="221" name="1"/>
+<Port guiY="291" name="2"/>
+<Port guiY="361" name="3"/>
+</Node>
+<Edge fromNode="CONVERT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:0"/>
+<Edge fromNode="GET_MANUAL_JOURNALS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge30" inPort="Port 0 (input)" outPort="Port 0 (out)" toNode="PARSE_MANUAL_JOURNALS_RESPONSE:0"/>
+<Edge fromNode="GET_MANUAL_JOURNALS:1" guiBendpoints="" guiRouter="Manhattan" id="Edge31" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="SIMPLE_COPY:0"/>
+<Edge fromNode="PARSE_MANUAL_JOURNALS_RESPONSE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge33" inPort="Port 1 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:1"/>
+<Edge fromNode="PARSE_MANUAL_JOURNALS_RESPONSE:1" guiBendpoints="" guiRouter="Manhattan" id="Edge32" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 1 (out)" toNode="CONVERT:0"/>
+<Edge fromNode="SIMPLE_COPY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 2 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:2"/>
+<Edge fromNode="SIMPLE_COPY:1" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="FAIL:0"/>
+</Phase>
+</Graph>

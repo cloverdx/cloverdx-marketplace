@@ -1,0 +1,148 @@
+{
+  "descriptor" : {
+    "name" : "XeroLib",
+    "version" : "1.1",
+    "productVersion" : "6.6.0.4",
+    "description" : "Seamlessly connect Xero Accounting to CloverDX. Access invoices, payments, contacts, and more to automate financial workflows and reporting.",
+    "author" : "CloverDX",
+    "initializationJob" : "graph/setTenantID.grf",
+    "lastModificationDate" : "2024-09-23T16:19:02Z",
+    "minProductVersion" : "6.0",
+    "maxProductVersion" : ""
+  },
+  "connections" : {
+    "oauth2Connections" : [ {
+      "jobPath" : "graph/setTenantID.grf",
+      "path" : "conn/xero.cfg"
+    } ]
+  },
+  "publicInterface" : {
+    "metadata" : [ ],
+    "subgraphs" : [ {
+      "mediumIcon" : "./icons/xero_logo_32.png",
+      "largeIcon" : "./icons/xero_logo_64.png",
+      "icon" : "./icons/xero_logo_16.png",
+      "description" : "Get contacts with optional filter conditions.",
+      "path" : "graph/subgraph/Connector/Contacts.sgrf"
+    }, {
+      "mediumIcon" : "./icons/xero_logo_32.png",
+      "largeIcon" : "./icons/xero_logo_64.png",
+      "icon" : "./icons/xero_logo_16.png",
+      "description" : "Retrieve sales invoices or purchase bills.",
+      "path" : "graph/subgraph/Connector/Invoices.sgrf"
+    }, {
+      "mediumIcon" : "./icons/xero_logo_32.png",
+      "largeIcon" : "./icons/xero_logo_64.png",
+      "icon" : "./icons/xero_logo_16.png",
+      "description" : "Provides payments data with optional filter conditions.",
+      "path" : "graph/subgraph/Connector/Payments.sgrf"
+    }, {
+      "mediumIcon" : "./icons/xero_logo_32.png",
+      "largeIcon" : "./icons/xero_logo_64.png",
+      "icon" : "./icons/xero_logo_16.png",
+      "description" : "Provides supplier invoices.",
+      "path" : "graph/subgraph/Contextual/GetAccountsPayable.sgrf"
+    }, {
+      "mediumIcon" : "./icons/xero_logo_32.png",
+      "largeIcon" : "./icons/xero_logo_64.png",
+      "icon" : "./icons/xero_logo_16.png",
+      "description" : "Get supplier invoices with coresponding customer details with due date in the next X days.",
+      "path" : "graph/subgraph/Contextual/GetAccountsPayableNearDueDate.sgrf"
+    }, {
+      "mediumIcon" : "./icons/xero_logo_32.png",
+      "largeIcon" : "./icons/xero_logo_64.png",
+      "icon" : "./icons/xero_logo_16.png",
+      "description" : "Provides customer invoices.",
+      "path" : "graph/subgraph/Contextual/GetAccountsReceivable.sgrf"
+    }, {
+      "mediumIcon" : "./icons/xero_logo_32.png",
+      "largeIcon" : "./icons/xero_logo_64.png",
+      "icon" : "./icons/xero_logo_16.png",
+      "description" : "Get customer invoices with coresponding customer details with due date in the last X days.",
+      "path" : "graph/subgraph/Contextual/GetAccountsReceivableAfterDueDate.sgrf"
+    }, {
+      "mediumIcon" : "./icons/xero_logo_32.png",
+      "largeIcon" : "./icons/xero_logo_64.png",
+      "icon" : "./icons/xero_logo_16.png",
+      "description" : "Provides accounts with optional filter conditions.",
+      "path" : "graph/subgraph/GetAccounts.sgrf"
+    }, {
+      "mediumIcon" : "./icons/xero_logo_32.png",
+      "largeIcon" : "./icons/xero_logo_64.png",
+      "icon" : "./icons/xero_logo_16.png",
+      "description" : "Retrieve any spend or receive money transactions with optional filter condition.",
+      "path" : "graph/subgraph/GetBankTransactions.sgrf"
+    }, {
+      "mediumIcon" : "./icons/xero_logo_32.png",
+      "largeIcon" : "./icons/xero_logo_64.png",
+      "icon" : "./icons/xero_logo_16.png",
+      "description" : "Get contacts with optional filter conditions.",
+      "path" : "graph/subgraph/GetContacts.sgrf"
+    }, {
+      "mediumIcon" : "./icons/xero_logo_32.png",
+      "largeIcon" : "./icons/xero_logo_64.png",
+      "icon" : "./icons/xero_logo_16.png",
+      "description" : "Get contacts with optional filter conditions.",
+      "path" : "graph/subgraph/GetContactsByID.sgrf"
+    }, {
+      "mediumIcon" : "./icons/xero_logo_32.png",
+      "largeIcon" : "./icons/xero_logo_64.png",
+      "icon" : "./icons/xero_logo_16.png",
+      "description" : "Provides credit notes data.",
+      "path" : "graph/subgraph/GetCreditNotes.sgrf"
+    }, {
+      "mediumIcon" : "./icons/xero_logo_32.png",
+      "largeIcon" : "./icons/xero_logo_64.png",
+      "icon" : "./icons/xero_logo_16.png",
+      "description" : "Retrieve sales invoices or purchase bills.",
+      "path" : "graph/subgraph/GetInvoices.sgrf"
+    }, {
+      "mediumIcon" : "./icons/xero_logo_32.png",
+      "largeIcon" : "./icons/xero_logo_64.png",
+      "icon" : "./icons/xero_logo_16.png",
+      "description" : "Retrieve the journal data.",
+      "path" : "graph/subgraph/GetJournals.sgrf"
+    }, {
+      "mediumIcon" : "./icons/xero_logo_32.png",
+      "largeIcon" : "./icons/xero_logo_64.png",
+      "icon" : "./icons/xero_logo_16.png",
+      "description" : "Get manual journals data.",
+      "path" : "graph/subgraph/GetManualJournals.sgrf"
+    }, {
+      "mediumIcon" : "./icons/xero_logo_32.png",
+      "largeIcon" : "./icons/xero_logo_64.png",
+      "icon" : "./icons/xero_logo_16.png",
+      "description" : "Provides payments data with optional filter conditions.",
+      "path" : "graph/subgraph/GetPayments.sgrf"
+    } ],
+    "dataConnectors" : {
+      "sources" : [ {
+        "mediumIcon" : "./icons/xero_logo_32.png",
+        "largeIcon" : "./icons/xero_logo_64.png",
+        "icon" : "./icons/xero_logo_16.png",
+        "description" : "Get contacts with optional filter conditions.",
+        "path" : "graph/subgraph/Connector/Contacts.sgrf"
+      }, {
+        "mediumIcon" : "./icons/xero_logo_32.png",
+        "largeIcon" : "./icons/xero_logo_64.png",
+        "icon" : "./icons/xero_logo_16.png",
+        "description" : "Retrieve sales invoices or purchase bills.",
+        "path" : "graph/subgraph/Connector/Invoices.sgrf"
+      }, {
+        "mediumIcon" : "./icons/xero_logo_32.png",
+        "largeIcon" : "./icons/xero_logo_64.png",
+        "icon" : "./icons/xero_logo_16.png",
+        "description" : "Provides payments data with optional filter conditions.",
+        "path" : "graph/subgraph/Connector/Payments.sgrf"
+      } ],
+      "targets" : [ ]
+    },
+    "jobflows" : [ ],
+    "restJobs" : [ ],
+    "graphs" : [ ]
+  },
+  "healthCheck" : {
+    "description" : "",
+    "path" : "graph/healthCheck.grf"
+  }
+}

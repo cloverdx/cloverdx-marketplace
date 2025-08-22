@@ -1,0 +1,52 @@
+{
+  "descriptor" : {
+    "version" : "1.0.1",
+    "description" : "Google Drive suite, providing functionality related to Google Drive management. Provides an ability to list Google Drive content, download, and upload files.",
+    "name" : "GoogleDriveLib",
+    "author" : "CloverDX",
+    "productVersion" : "6.5.0.9",
+    "initializationJob" : "",
+    "minProductVersion" : "",
+    "maxProductVersion" : "",
+    "lastModificationDate" : "2024-10-01T07:45:04Z"
+  },
+  "connections" : {
+    "oauth2Connections" : [ {
+      "jobPath" : "graph/subgraph/GoogleDriveDirectory.sgrf",
+      "path" : "conn/OAuth2/google-oauth.cfg"
+    } ]
+  },
+  "publicInterface" : {
+    "metadata" : [ ],
+    "dataConnectors" : {
+      "sources" : [ ],
+      "targets" : [ ]
+    },
+    "graphs" : [ ],
+    "jobflows" : [ ],
+    "restJobs" : [ ],
+    "subgraphs" : [ {
+      "largeIcon" : "./graph/subgraph/icons/google-drive-64.png",
+      "icon" : "./graph/subgraph/icons/google-drive-16.png",
+      "mediumIcon" : "./graph/subgraph/icons/google-drive-32.png",
+      "description" : "Downloads a file from Google Drive",
+      "path" : "graph/subgraph/GoogleDriveGetFile.sgrf"
+    }, {
+      "largeIcon" : "./graph/subgraph/icons/google-drive-64.png",
+      "icon" : "./graph/subgraph/icons/google-drive-16.png",
+      "mediumIcon" : "./graph/subgraph/icons/google-drive-32.png",
+      "description" : "Lists files saved on Google Drive",
+      "path" : "graph/subgraph/GoogleDriveListFiles.sgrf"
+    }, {
+      "largeIcon" : "./graph/subgraph/icons/google-drive-64.png",
+      "icon" : "./graph/subgraph/icons/google-drive-16.png",
+      "mediumIcon" : "./graph/subgraph/icons/google-drive-32.png",
+      "description" : "Writes file onto Google Drive.",
+      "path" : "graph/subgraph/GoogleDriveWriter.sgrf"
+    } ]
+  },
+  "healthCheck" : {
+    "description" : "",
+    "path" : ""
+  }
+}

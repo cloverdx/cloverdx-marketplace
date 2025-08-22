@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="writers" created="Wed Aug 09 12:42:08 CEST 2023" description="The Data Target for writing to Snowflake database requires you to specify the connection to the existing Snowflake instance. This includes account details, warehouse, database, and schema. In the connector itself, you will need to specify the table name and behavior of how to proceed when the table exists or not (recreate, create if not exists). Additionally, users can specify how to work with errors (continue on error or stop the processing)." guiVersion="6.2.0.14" id="1691579190636" largeIconPath="${PROJECT}/icons/snowflake_64.png" licenseCode="Unlicensed" mediumIconPath="${PROJECT}/icons/snowflake_32.png" name="SnowflakeTarget" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/snowflake_16.png">
+<Global>
+<inputPorts>
+<singlePort connected="true" name="0"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="false" keepEdge="true" name="0" required="false"/>
+</outputPorts>
+<Metadata id="Metadata5">
+<Record fieldDelimiter="|" name="ChunkExtents" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="file" type="string"/>
+<Field name="chunk" type="integer"/>
+<Field name="firstRow" type="integer"/>
+<Field name="size" type="integer"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="debugInput1" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="wranglerId" type="long"/>
+<Field name="field1" type="string"/>
+<Field name="field2" type="string"/>
+<Field name="field3" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata4">
+<Record fieldDelimiter="|" name="SnowflakeBulkWriter_Chunk" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="file" type="string"/>
+<Field name="chunk" type="integer"/>
+<Field name="status" type="string"/>
+<Field name="parsedRows" trim="true" type="long"/>
+<Field name="loadedRows" trim="true" type="long"/>
+<Field name="errorLimit" trim="true" type="long"/>
+<Field name="errorCount" trim="true" type="long"/>
+<Field name="firstError" type="string"/>
+<Field name="firstErrorLine" trim="true" type="long"/>
+<Field name="firstErrorCharacter" trim="true" type="long"/>
+<Field name="firstErrorColumnName" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="SQL" recordDelimiter="\r\n" type="delimited">
+<Field name="query" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="ConnectorTarget_Rejects">
+<Record fieldDelimiter="|" name="SubgraphOutput_ConnectorTarget_Rejects" recordDelimiter="\r\n" type="delimited">
+<Field name="wranglerId" type="long"/>
+<Field name="rejectReasonFieldName" type="string"/>
+<Field name="rejectReasonMessage" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata3">
+<Record fieldDelimiter=";" label="&quot;validate&quot;" name="ValidationResult" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="ERROR" size="16777216" type="string"/>
+<Field name="FILE" size="16777216" type="string"/>
+<Field name="LINE" size="18" type="long"/>
+<Field name="CHARACTER" size="18" type="long"/>
+<Field name="BYTE_OFFSET" size="18" type="long"/>
+<Field name="CATEGORY" size="16777216" type="string"/>
+<Field name="CODE" size="18" type="long"/>
+<Field name="SQL_STATE" size="16777216" type="string"/>
+<Field name="COLUMN_NAME" size="16777216" type="string"/>
+<Field name="ROW_NUMBER" size="18" type="long"/>
+<Field name="ROW_START_LINE" size="18" type="long"/>
+<Field name="REJECTED_RECORD" size="16777216" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata2">
+<Record fieldDelimiter=";" label="&quot;validate&quot;" name="ValidationResultWithWranglerId" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="ERROR" size="16777216" type="string"/>
+<Field name="FILE" size="16777216" type="string"/>
+<Field name="LINE" size="18" type="long"/>
+<Field name="CHARACTER" size="18" type="long"/>
+<Field name="BYTE_OFFSET" size="18" type="long"/>
+<Field name="CATEGORY" size="16777216" type="string"/>
+<Field name="CODE" size="18" type="long"/>
+<Field name="SQL_STATE" size="16777216" type="string"/>
+<Field name="COLUMN_NAME" size="16777216" type="string"/>
+<Field name="ROW_NUMBER" size="18" type="long"/>
+<Field name="ROW_START_LINE" size="18" type="long"/>
+<Field name="REJECTED_RECORD" size="16777216" type="string"/>
+<Field name="wranglerId" type="long"/>
+</Record>
+</Metadata>
+<Connection database="SNOWFLAKE" dbURL="jdbc:snowflake://${SNOWFLAKE_ACCOUNT_IDENTIFIER}.${SNOWFLAKE_REGION}.snowflakecomputing.com/?warehouse=${SNOWFLAKE_WAREHOUSE}&amp;db=${SNOWFLAKE_DATABASE}&amp;schema=${SNOWFLAKE_SCHEMA}" id="JDBC0" jdbcSpecific="SNOWFLAKE" name="SnowflakeConnection" password="${SNOWFLAKE_PASSWORD}" type="JDBC" user="${SNOWFLAKE_USERNAME}"/>
+<GraphParameters>
+<GraphParameter label="DB table" name="DB_TABLE" public="true" required="true" value="MY_TABLE">
+<attr name="description"><![CDATA[Name of the target table]]></attr>
+</GraphParameter>
+<GraphParameter label="Create table if not exists" name="CREATE_TARGET_TABLE" public="true" required="false" value="true">
+<attr name="description"><![CDATA[Create target tableif it doesn't exist.]]></attr>
+<SingleType name="bool"/>
+</GraphParameter>
+<GraphParameter label="Continue on error" name="CONTINUE_ON_ERROR" public="true" required="false" value="false">
+<attr name="description"><![CDATA[Continue loading even if an error occurs on record level. Rejected records can be retrieved via the output port.]]></attr>
+<SingleType name="bool"/>
+</GraphParameter>
+<GraphParameter label="Force re-create table" name="FORCE_CREATE_TABLE" public="true" value="false">
+<attr name="description"><![CDATA[Re-create the table. Will drop the table deleting all data and create it anew.]]></attr>
+<SingleType name="bool"/>
+</GraphParameter>
+<GraphParameter name="_DROP_TABLE_ENABLED">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return getParamValue("FORCE_CREATE_TABLE")=="true"?"enabled":"disabled";
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter label="Enabled" name="_ADJUST_METADATA" value="true">
+<SingleType name="bool"/>
+</GraphParameter>
+<GraphParameter label="Enabled" name="_ERROR_PROCESSING_ENABLED">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return toString(
+		str2bool(getParamValue("CONTINUE_ON_ERROR")) and isSubgraphOutputPortConnected(0)
+	);
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter name="_ERROR_PROCESSING_DISABLED">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return toString(not str2bool(getParamValue("_ERROR_PROCESSING_ENABLED")));
+}
+]]></attr>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+<GraphParameterFile fileURL="dependencies.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="FAF6D6" folded="false" fontSize="medium" height="160" id="Note0" textColor="444444" width="473" x="276" y="-324">
+<attr name="text"><![CDATA[h3. Drop table
+Drop the target table if force recreate is enabled]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="FAF6D6" folded="false" fontSize="medium" height="354" id="Note1" textColor="444444" width="586" x="276" y="-127">
+<attr name="text"><![CDATA[h3. Adjust metadata
+Remove {{wraglerId}} field from the source metadata if present, so that it will not be written to target table. Can be disabled by a parameter.]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="FAF6D6" folded="false" fontSize="medium" height="609" id="Note2" textColor="444444" width="1261" x="1241" y="-94">
+<attr name="text"><![CDATA[h3. Handle errors
+
+In case of errors, look at partially loaded chunks and execute a validation query on the chunk. This will return all records that fail the validation. Next the wranglerId is reconstructed by using the number of records reported to be in each chunk and applying this as the offset added to the position of the record in the chunk.
+
+The validation query should be identical to query used by CloverDX to load the data into the table, but it has VALIDATION_MODE=RETURN_ALL_ERRORS at the end. The validation query doesn't write any data into the table. The stage files deletion must be disabled so that the validation query can be run on the data if needed and therefore the files are deleted explicitly at the end.
+]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="C1E6FF" folded="false" fontSize="medium" height="241" id="Note3" textColor="444444" width="307" x="903" y="-31">
+<attr name="text"><![CDATA[h3. Load data into Snowflake]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="DAD8C9" folded="false" fontSize="medium" height="245" id="Note4" textColor="444444" width="930" x="281" y="255">
+<attr name="text"><![CDATA[h1. Snowflake data target
+
+An implementation of a CloverDX data target for Snowflake.
+
+* fast write speeds thanks to bulk load usage
+* can create the target table
+* can re-create (drop and then create) the target table
+* can either:
+	** fail on first error, rollig back the transaction
+	** ignore errors, returning rejected rcord on the output port
+
+{{wranglerId}} field generated by CloverDX Wrangler is removed from the input and not written to the target. To facilitate this, the *MetdataFactory* library is used and its installation is therefore required.
+]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node debugInput="true" guiName="DebugInput" guiX="-9" guiY="100" id="DATA_GENERATOR0" recordsNumber="100" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+	$out.0.field1 = randomString(3,5);
+	$out.0.field2 = randomString(3,5);
+	$out.0.field3 = randomString(3,5);
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the generate. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if generate() throws an exception.
+// function integer generateOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node dbConnection="JDBC0" enabled="${FORCE_CREATE_TABLE}" guiName="Drop table" guiX="582" guiY="-267" id="DROP_TABLE" type="DB_EXECUTE">
+<attr name="sqlQuery"><![CDATA[DROP TABLE IF EXISTS ${SNOWFLAKE_SCHEMA}.${DB_TABLE}]]></attr>
+</Node>
+<Node enabled="${_ADJUST_METADATA}" guiName="Get input meta" guiX="299" guiY="-28" id="GET_INPUT_META" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+	return ALL;
+}]]></attr>
+</Node>
+<Node enabled="${_ADJUST_METADATA}" guiName="Meta change" guiX="491" guiY="100" id="META_CHANGE" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.* = $in.0.*;
+	return ALL;
+}]]></attr>
+</Node>
+<Node enabled="${_ADJUST_METADATA}" guiName="Modified meta" guiX="702" guiY="-28" id="MODIFIED_META" type="TRASH"/>
+<Node enabled="${_ADJUST_METADATA}" guiName="Remove wrangler id" guiX="476" guiY="-28" id="REMOVE_WRANGLER_ID" jobURL="${METADATA_FACTORY_LIB}/graph/subgraph/MetadataFactory.sgrf" type="SUBGRAPH">
+<attr name="__FIELD_FILTER"><![CDATA[wranglerId]]></attr>
+<attr name="guiDescription"><![CDATA[Component capable changing / extending metadata connected to its input port. It can extend, remove fields based on filter based on specific fields or based on regular expression matching field names.]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="200" guiY="-317" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Edge fromNode="DATA_GENERATOR0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SUBGRAPH_INPUT0:0"/>
+<Edge fromNode="GET_INPUT_META:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadataRef="#//Edge1" outPort="Port 0 (out)" toNode="REMOVE_WRANGLER_ID:0"/>
+<Edge fromNode="META_CHANGE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" metadataRef="#//Edge4" outPort="Port 0 (out)" toNode="SNOWFLAKE_BULK_WRITER:0"/>
+<Edge fromNode="REMOVE_WRANGLER_ID:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="MODIFIED_META:0"/>
+<Edge debugMode="all" fromNode="SUBGRAPH_INPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="META_CHANGE:0"/>
+</Phase>
+<Phase number="1">
+<Node enabled="${_ERROR_PROCESSING_ENABLED}" guiName="Caculate chunk extents" guiX="1851" guiY="197" id="CACULATE_CHUNK_EXTENTS" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+ChunkExtents previous;
+previous.firstRow = 1;
+previous.size = 0;
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.file = "@" + getParamValue("DB_TABLE") + "/" + $in.0.file;
+	$out.0.chunk = $in.0.chunk;
+	$out.0.firstRow = previous.firstRow + previous.size;
+	$out.0.size = long2integer($in.0.parsedRows);
+	previous = $out.0;
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node enabled="${_ERROR_PROCESSING_ENABLED}" guiName="Calculate wrangler id" guiX="2103" guiY="100" id="CALCULATE_WRANGLER_ID" joinKey="$FILE=$file" type="EXT_HASH_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.wranglerId = $in.1.firstRow + $in.0.ROW_NUMBER -1;
+	return ALL;
+}]]></attr>
+</Node>
+<Node enabled="${_ERROR_PROCESSING_ENABLED}" guiName="Extract chunk ordinal" guiX="1463" guiY="197" id="EXTRACT_CHUNK_ORDINAL" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.chunk = str2integer($in.0.file.matchGroups('.*/chunk_(\d+)\.csv\.gz')[1]);
+	return ALL;
+}]]></attr>
+</Node>
+<Node enabled="${_ERROR_PROCESSING_ENABLED}" guiName="ExtSort" guiX="1677" guiY="197" id="EXT_SORT" sortKey="chunk(a)" type="EXT_SORT"/>
+<Node enabled="${_ERROR_PROCESSING_ENABLED}" guiName="Fail" guiX="2293" guiY="197" id="FAIL" type="FAIL"/>
+<Node enabled="${_ERROR_PROCESSING_ENABLED}" guiName="Generate validation query" guiX="1683" guiY="100" id="GENERATE_VALIDATION_QUERY" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.query = concatWithSeparator("\n",
+		"COPY INTO " + getParamValue("DB_TABLE"),
+		"FROM @%"+ getParamValue("DB_TABLE") + "/" + $in.0.file,
+		"FILE_FORMAT = ( TYPE = CSV ENCODING = UTF8 COMPRESSION = GZIP BINARY_FORMAT = BASE64 TIMESTAMP_FORMAT = 'YYYY-MM-DD HH24:MI:SS.FF TZHTZM' DATE_FORMAT = 'YYYY-MM-DD' TIME_FORMAT = 'HH24:MI:SS.FF' FIELD_OPTIONALLY_ENCLOSED_BY = '''' NULL_IF = () EMPTY_FIELD_AS_NULL = TRUE  RECORD_DELIMITER = '\n' FIELD_DELIMITER = '|')",
+
+	  	"VALIDATION_MODE=RETURN_ALL_ERRORS;"
+	);
+	return ALL;
+}]]></attr>
+</Node>
+<Node enabled="${_ERROR_PROCESSING_ENABLED}" guiName="Only partially loaded" guiX="1463" guiY="100" id="ONLY_PARTIALLY_LOADED" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.status == "PARTIALLY_LOADED"]]></attr>
+</Node>
+<Node guiName="SimpleCopy" guiX="1306" guiY="100" id="SIMPLE_COPY" type="SIMPLE_COPY"/>
+<Node continueOnError="${CONTINUE_ON_ERROR}" createTargetTable="${CREATE_TARGET_TABLE}" dbConnection="JDBC0" dbTable="${DB_TABLE}" guiName="SnowflakeBulkWriter" guiX="976" guiY="100" id="SNOWFLAKE_BULK_WRITER" removeFilesFromStage="${_ERROR_PROCESSING_DISABLED}" type="SNOWFLAKE_BULK_WRITER"/>
+<Node guiName="To output metadata" guiX="2293" guiY="100" id="TO_OUTPUT_METADATA" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+function integer transform() {
+	// we must keep the same meta on output for wrangler,
+	// so this will throw out all the chunk records if error processing is disabled
+	if (str2bool(getParamValue("_ERROR_PROCESSING_DISABLED"))) {
+		return SKIP; //trashify
+	}else{
+		//using dynamic access because metadata can change
+		$out.0.wranglerId = getLongValue($in.0, "wranglerId");
+		$out.0.rejectReasonFieldName = getStringValue($in.0, "COLUMN_NAME");
+		$out.0.rejectReasonMessage = getStringValue($in.0, "ERROR");
+	}
+
+	return ALL;
+}]]></attr>
+</Node>
+<Node dbConnection="JDBC0" enabled="${_ERROR_PROCESSING_ENABLED}" guiName="Validation pass" guiX="1897" guiY="100" id="VALIDATION_PASS" type="DB_INPUT_TABLE" url="port:$0.query:discrete"/>
+<Edge fromNode="CACULATE_CHUNK_EXTENTS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge15" inPort="Port 1 (slave)" metadata="Metadata5" outPort="Port 0 (out)" toNode="CALCULATE_WRANGLER_ID:1"/>
+<Edge debugMode="all" fromNode="CALCULATE_WRANGLER_ID:0" guiBendpoints="" guiRouter="Manhattan" id="Edge14" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="TO_OUTPUT_METADATA:0"/>
+<Edge fromNode="CALCULATE_WRANGLER_ID:1" guiBendpoints="" guiRouter="Manhattan" id="Edge18" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="FAIL:0"/>
+<Edge fromNode="EXTRACT_CHUNK_ORDINAL:0" guiBendpoints="" guiRouter="Manhattan" id="Edge17" inPort="Port 0 (in)" metadata="Metadata4" outPort="Port 0 (out)" toNode="EXT_SORT:0"/>
+<Edge fromNode="EXT_SORT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge16" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="CACULATE_CHUNK_EXTENTS:0"/>
+<Edge fromNode="GENERATE_VALIDATION_QUERY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="VALIDATION_PASS:0"/>
+<Edge fromNode="ONLY_PARTIALLY_LOADED:0" guiBendpoints="" guiRouter="Manhattan" id="Edge20" inPort="Port 0 (in)" outPort="Port 0 (accepted)" toNode="GENERATE_VALIDATION_QUERY:0"/>
+<Edge fromNode="SIMPLE_COPY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="ONLY_PARTIALLY_LOADED:0"/>
+<Edge fromNode="SIMPLE_COPY:1" guiBendpoints="" guiRouter="Manhattan" id="Edge13" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="EXTRACT_CHUNK_ORDINAL:0"/>
+<Edge fromNode="SIMPLE_COPY:2" guiBendpoints="" guiRouter="Manhattan" id="Edge22" inPort="Port 0 (in)" outPort="Port 2 (out)" toNode="GENERATE_REMOVAL_QUERY:0"/>
+<Edge fromNode="SNOWFLAKE_BULK_WRITER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 0 (chunks)" toNode="SIMPLE_COPY:0"/>
+<Edge debugMode="all" fromNode="TO_OUTPUT_METADATA:0" guiBendpoints="" guiRouter="Manhattan" id="Edge19" inPort="Port 0 (in)" metadata="ConnectorTarget_Rejects" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="VALIDATION_PASS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 0 (driver)" metadata="Metadata3" outPort="Port 0 (out)" toNode="CALCULATE_WRANGLER_ID:0"/>
+</Phase>
+<Phase number="9">
+<Node enabled="${_ERROR_PROCESSING_ENABLED}" guiName="Generate removal query" guiX="2087" guiY="399" id="GENERATE_REMOVAL_QUERY" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.query = concatWithSeparator("\n",
+		"REMOVE @%" + getParamValue("DB_TABLE") + "/" + $in.0.file
+	);
+	return ALL;
+}]]></attr>
+</Node>
+<Node dbConnection="JDBC0" enabled="${_ERROR_PROCESSING_ENABLED}" guiName="Remove stage files" guiX="2297" guiY="399" id="REMOVE_STAGE_FILES" type="DB_EXECUTE" url="port:$0.query:discrete"/>
+<Node guiName="SubgraphOutput" guiX="2886" guiY="-317" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Edge fromNode="GENERATE_REMOVAL_QUERY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge23" inPort="Port 0 (input parameters)" metadata="Metadata1" outPort="Port 0 (out)" toNode="REMOVE_STAGE_FILES:0"/>
+</Phase>
+</Graph>

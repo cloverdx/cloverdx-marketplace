@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Branislav Repcek" category="readers" created="Tue May 16 17:04:00 CEST 2023" description="Returns random invoice data." guiVersion="6.5.0.24" id="1684406701761" largeIconPath="${SUBGRAPH_DIR}/icons/OnlineStoreInvoices64.png" licenseCode="CLCDSCLOVE85208925SP" mediumIconPath="${SUBGRAPH_DIR}/icons/OnlineStoreInvoices32.png" name="OnlineStoreInvoices" nature="subgraph" showComponentDetails="true" smallIconPath="${SUBGRAPH_DIR}/icons/OnlineStoreInvoices16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" name="0"/>
+</outputPorts>
+<Metadata fileURL="${META_DIR}/Invoice.fmt" id="Metadata0"/>
+<GraphParameters>
+<GraphParameter label="Number of records to generate" name="RECORD_COUNT" public="true" value="1000">
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter label="Minimum invoice due date" name="INVOICE_MIN_DATE" public="true" value="2023-01-01">
+<SingleType format="yyyy-MM-dd" name="datetime"/>
+</GraphParameter>
+<GraphParameter label="Maximum ivnoice  due date" name="INVOICE_MAX_DATE" public="true" value="2023-12-31">
+<SingleType format="yyyy-MM-dd" name="datetime"/>
+</GraphParameter>
+<GraphParameter label="Maximum invoice amount" name="INVOICE_MAX_AMOUNT" public="true" value="50000">
+<SingleType name="decimalStr"/>
+</GraphParameter>
+<GraphParameter label="Probabilty of unpaid invoice past due date in %" name="UNPAID_PAST_DUE_PERCENT" public="true" value="5">
+<SingleType name="decimalStr"/>
+</GraphParameter>
+<GraphParameter name="NUM_OF_PREVIEW_RECORDS"/>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="Generate invoices" guiX="460" guiY="100" id="GENERATE_INVOICES" recordsNumber="-1" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+import "${TRANS_DIR}/Common.ctl";
+
+const string[] CURRENCIES = [
+	"AUD",
+	"BGN",
+	"CAD",
+	"CHF",
+	"CNY",
+	"CZK",
+	"DKK",
+	"EUR",
+	"GBP",
+	"HUF",
+	"JPY",
+	"NOK",
+	"NZD",
+	"PLN",
+	"RON",
+	"RUB",
+	"SEK",
+	"TRY",
+	"USD"
+];
+
+const integer RECORD_COUNT = getRecordCount(${RECORD_COUNT});
+const date MIN_DUE_DATE = ${INVOICE_MIN_DATE};
+const date MAX_DUE_DATE = ${INVOICE_MAX_DATE};
+const decimal MAX_AMOUNT = ${INVOICE_MAX_AMOUNT};
+const number UNPAID_PAST_DUE_PROB = ${UNPAID_PAST_DUE_PERCENT} / 100.0;
+const number PAID_ON_TIME_PROB = 1.0 - UNPAID_PAST_DUE_PROB;
+
+const date NOW = today();
+
+integer cnt = 0;
+
+function integer generate() {
+	if (cnt == RECORD_COUNT) {
+		return STOP;
+	}
+	
+	$out.0.Invoice_no = cnt++;
+	$out.0.Invoice_amount = randomDecimal(1, MAX_AMOUNT);
+	$out.0.Invoice_currency = getRandomListItem(CURRENCIES);
+	
+	$out.0.Received_date = randomDate(MIN_DUE_DATE, MAX_DUE_DATE);
+	$out.0.Due_date = randomDate($out.0.Received_date, MAX_DUE_DATE);
+	
+	if (random() >= UNPAID_PAST_DUE_PROB) {
+		// Invice was paid, assign random date paid.
+		$out.0.Date_paid = randomDate($out.0.Received_date, $out.0.Due_date);
+	}
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="200" guiY="10" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="876" guiY="10" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Edge fromNode="GENERATE_INVOICES:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+</Phase>
+</Graph>

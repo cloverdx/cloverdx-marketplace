@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="readers" created="Thu Nov 24 20:52:32 GMT 2022" description="Provides supplier invoices." guiVersion="5.17.0.3" id="1669324979075" largeIconPath="${PROJECT}/icons/xero_logo_64.png" licenseCode="CLCDSCLOVE72646208SP" mediumIconPath="${PROJECT}/icons/xero_logo_32.png" name="getAccountsReceivableAfterDueDate" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/xero_logo_16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" keepEdge="true" name="0" required="false"/>
+<singlePort connected="false" keepEdge="true" name="1" required="false"/>
+<singlePort connected="false" keepEdge="true" name="2" required="false"/>
+<singlePort connected="false" keepEdge="true" name="3" required="false"/>
+</outputPorts>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node __TYPE="ACCPAY" guiName="Get ACCPAY" guiX="193" guiY="72" id="GET_ACCPAY" jobURL="${SUBGRAPH_DIR}/GetInvoices.sgrf" type="SUBGRAPH">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.OAUTH_URL = getParamValue("OAUTH_URL");
+	$out.0.TENANT_ID = getParamValue("TENANT_ID");
+	$out.0.DATE_FORMAT = getParamValue("DATE_FORMAT");
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="50" guiY="-6" id="SUBGRAPH_INPUT" type="SUBGRAPH_INPUT">
+<Port guiY="110" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="463" guiY="-8" id="SUBGRAPH_OUTPUT" type="SUBGRAPH_OUTPUT">
+<Port guiY="89" name="0"/>
+<Port guiY="159" name="1"/>
+<Port guiY="229" name="2"/>
+<Port guiY="299" name="3"/>
+<Port guiY="369" name="4"/>
+</Node>
+<Edge fromNode="GET_ACCPAY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:0"/>
+<Edge fromNode="GET_ACCPAY:1" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 1 (in)" outPort="Port 1 (out)" toNode="SUBGRAPH_OUTPUT:1"/>
+<Edge fromNode="GET_ACCPAY:2" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 2 (in)" outPort="Port 2 (out)" toNode="SUBGRAPH_OUTPUT:2"/>
+<Edge fromNode="GET_ACCPAY:4" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 3 (in)" outPort="Port 4 (out)" toNode="SUBGRAPH_OUTPUT:3"/>
+</Phase>
+</Graph>

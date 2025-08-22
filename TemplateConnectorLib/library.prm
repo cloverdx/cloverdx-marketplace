@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GraphParameters>
+<GraphParameter label="Configuration parameter" name="CONFIGURATION_PARAMETER" public="true">
+<attr name="description"><![CDATA[Description of the configuration parameter]]></attr>
+</GraphParameter>
+</GraphParameters>

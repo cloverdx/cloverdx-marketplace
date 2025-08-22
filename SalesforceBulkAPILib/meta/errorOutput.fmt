@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Record fieldDelimiter="|" name="errorOutput" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="content" type="string"/>
+<Field name="statusCode" type="integer"/>
+<Field name="errorMessage" type="string"/>
+</Record>

@@ -1,0 +1,67 @@
+{
+  "descriptor" : {
+    "version" : "1.2",
+    "name" : "BigQueryLib",
+    "description" : "Stream or batch data into Google BigQuery using the Storage Write API. Handles schema updates, errors, and retries automatically.",
+    "maxProductVersion" : "",
+    "lastModificationDate" : "2025-02-03T10:44:25Z",
+    "minProductVersion" : "6.2",
+    "initializationJob" : "",
+    "productVersion" : "6.7.0.13",
+    "author" : "CloverDX"
+  },
+  "connections" : {
+    "oauth2Connections" : [ ]
+  },
+  "publicInterface" : {
+    "subgraphs" : [ {
+      "mediumIcon" : "./icons/google_bigquery_logo_32.png",
+      "largeIcon" : "./icons/google_bigquery_logo_64.png",
+      "icon" : "./icons/google_bigquery_logo_16.png",
+      "description" : "The BigQueryReader is a CloverDX component that reads data from a BigQuery table. It propagates metadata automatically, considers the Selected fields attribute (only selected fields are propagated to the output metadata), and can use custom metadata. The BigQueryReader uses the BigQuery Storage API.",
+      "path" : "graph/BigQueryReader.sgrf"
+    }, {
+      "mediumIcon" : "",
+      "largeIcon" : "",
+      "icon" : "",
+      "description" : "The BigQueryTarget is a target component in CloverDX Wrangler that allows writing data to BigQuery tables using Storage Write API. The configuration settings include the Project ID, Data set name, Table name and Path to JSON credentials.",
+      "path" : "graph/BigQueryTarget.sgrf"
+    }, {
+      "mediumIcon" : "./icons/google_bigquery_logo_32.png",
+      "largeIcon" : "./icons/google_bigquery_logo_64.png",
+      "icon" : "./icons/google_bigquery_logo_16.png",
+      "description" : "The BigQueryWriter is a writer component in CloverDX that allows writing data to BigQuery tables using Storage Write API. The configuration settings include the Project ID, Data set name, Table name and Path to JSON credentials.",
+      "path" : "graph/BigQueryWriter.sgrf"
+    }, {
+      "mediumIcon" : "./icons/google_bigquery_logo_32.png",
+      "largeIcon" : "./icons/google_bigquery_logo_64.png",
+      "icon" : "./icons/google_bigquery_logo_16.png",
+      "description" : "BigQueryExecuteCommand allows to execute Big Query commands, typically DDL statements. It is not expected to run SELECT command, anyway, it is posssible to run this command but only first 20 MB data will be returned in a JSON format. For reading from Big Query tables, please use Big Query Reader compoennt (will be available later in this library).",
+      "path" : "graph/utils/BigQueryExecuteCommand.sgrf"
+    }, {
+      "mediumIcon" : "./icons/google_bigquery_logo_32.png",
+      "largeIcon" : "./icons/google_bigquery_logo_64.png",
+      "icon" : "./icons/google_bigquery_logo_16.png",
+      "description" : "Using this component you can get a schema for a specific Big Query table. The output is in a JSON format.",
+      "path" : "graph/utils/BigQueryGetTableSchema.sgrf"
+    } ],
+    "dataConnectors" : {
+      "sources" : [ ],
+      "targets" : [ {
+        "mediumIcon" : "",
+        "largeIcon" : "",
+        "icon" : "",
+        "description" : "The BigQueryTarget is a target component in CloverDX Wrangler that allows writing data to BigQuery tables using Storage Write API. The configuration settings include the Project ID, Data set name, Table name and Path to JSON credentials.",
+        "path" : "graph/BigQueryTarget.sgrf"
+      } ]
+    },
+    "jobflows" : [ ],
+    "restJobs" : [ ],
+    "metadata" : [ ],
+    "graphs" : [ ]
+  },
+  "healthCheck" : {
+    "description" : "",
+    "path" : ""
+  }
+}

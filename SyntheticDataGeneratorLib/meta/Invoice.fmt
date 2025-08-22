@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Record fieldDelimiter="\t" name="Invoice" previewAttachmentCharset="UTF-8" quoteChar="both" quotedStrings="false" recordDelimiter="\r\n" skipSourceRows="1" type="delimited">
+<attr name="description"><![CDATA[Raw invoice record - all columns as strings. Useful when trying to salvage data from partially invalid records in the source.]]></attr>
+<Field label="Invoice no" name="Invoice_no" type="integer">
+<attr name="description"><![CDATA[Invoice number, matches accounting invoice id]]></attr>
+</Field>
+<Field format="yyyy-MM-dd" label="Received date" name="Received_date" type="date">
+<attr name="description"><![CDATA[When was the invoice received.]]></attr>
+</Field>
+<Field format="yyyy-MM-dd" label="Due date" name="Due_date" type="date">
+<attr name="description"><![CDATA[When the invoice is due. Only the date part is relevant.]]></attr>
+</Field>
+<Field format="yyyy-MM-dd" label="Date paid" name="Date_paid" type="date">
+<attr name="description"><![CDATA[When the invoice was paid. Can be empty for unpaid invoices. Synced with accounting system.]]></attr>
+</Field>
+<Field label="Invoice amount" length="15" name="Invoice_amount" scale="2" type="decimal">
+<attr name="description"><![CDATA[Total amount on the invoice in invoice currency]]></attr>
+</Field>
+<Field eofAsDelimiter="true" label="Invoice currency" name="Invoice_currency" type="string">
+<attr name="description"><![CDATA[3-letter code of the invoice currency.]]></attr>
+</Field>
+</Record>

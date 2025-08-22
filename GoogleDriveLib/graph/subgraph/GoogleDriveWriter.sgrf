@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="writers" created="Tue Jul 20 15:03:58 CEST 2021" description="Writes file onto Google Drive." guiVersion="5.16.0.1447" id="1626941628924" largeIconPath="${SUBGRAPH_DIR}/icons/google-drive-64.png" licenseCode="CLP1DCLOVE94730539BY" mediumIconPath="${SUBGRAPH_DIR}/icons/google-drive-32.png" name="GoogleDriveWriter" nature="subgraph" showComponentDetails="true" smallIconPath="${SUBGRAPH_DIR}/icons/google-drive-16.png">
+<Global>
+<inputPorts>
+<singlePort connected="true" name="0"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="false" keepEdge="true" name="0" required="false"/>
+</outputPorts>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="GoogleDriveWriterInput" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="googleDrivePath" type="string"/>
+<Field name="fileUrl" type="string"/>
+<Field name="content" type="byte"/>
+</Record>
+</Metadata>
+<Metadata id="HTTPConnector_Response">
+<Record fieldDelimiter="|" name="GoogleDriveWriterOutput" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="content" type="string"/>
+<Field name="contentByte" type="byte"/>
+<Field name="outputFilePath" type="string"/>
+<Field name="statusCode" trim="true" type="integer"/>
+<Field containerType="map" name="header" type="string"/>
+<Field containerType="list" name="rawHeaders" type="string"/>
+<Field name="errorMessage" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata3">
+<Record fieldDelimiter="|" name="HTTPResponse" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="response" type="string"/>
+<Field name="__googleDirectory" type="string"/>
+</Record>
+</Metadata>
+<Connection config="${CONNECTION_URL}" id="OAuth2Connection1" type="OAUTH2"/>
+<GraphParameters>
+<GraphParameter name="CONNECTION_URL" public="true" required="true" value="${CONN_DIR}/OAuth2/google-oauth.cfg">
+<attr name="description"><![CDATA[Path to the OAUTH2 connection file.]]></attr>
+<SingleType multiple="true" name="file" selectionMode="file_or_directory"/>
+</GraphParameter>
+<GraphParameter name="BOUNDARY">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return randomUUID().replace("-","");
+}
+]]></attr>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="CrossJoin" guiX="487" guiY="100" id="CROSS_JOIN" type="CROSS_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.__googleDirectory = ! isBlank($in.0.googleDrivePath.getFileExtension()) ? $in.0.googleDrivePath.getFilePath() : $in.0.googleDrivePath;
+	
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Customise metadata" guiX="249" guiY="429" id="CUSTOMISE_METADATA" type="GET_JOB_INPUT">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node debugInput="true" guiName="DebugInput" guiX="12" guiY="100" id="DATA_GENERATOR0" recordsNumber="1" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+	$out.0.googleDrivePath = "test/directory/upload.me.csv";
+	$out.0.content = "name,label\ntest,line".str2byte("utf-8");
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the generate. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if generate() throws an exception.
+// function integer generateOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Directory exists?" guiX="941" guiY="100" id="DIRECTORY_EXISTS" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.__googleDirectory.indexOf(":") > 0]]></attr>
+</Node>
+<Node __CONNECTION_URL="${CONNECTION_URL}" __GOOGLE_DIRECTORY_PATH="__googleDirectory" guiName="Find directory" guiX="737" guiY="100" id="FIND_DIRECTORY" jobURL="${SUBGRAPH_DIR}/GoogleDriveDirectory.sgrf" type="SUBGRAPH"/>
+<Node guiName="Load file" guiX="1197" guiY="100" id="LOAD_FILE" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+isEmpty($in.0.fileUrl)]]></attr>
+</Node>
+<Node guiName="Load file" guiX="1398" guiY="-20" id="LOAD_FILE2" jobURL="${SUBGRAPH_DIR}/LoadFile.sgrf" type="SUBGRAPH"/>
+<Node guiName="SimpleGather" guiX="1602" guiY="100" id="SIMPLE_GATHER1" type="SIMPLE_GATHER"/>
+<Node guiName="SubgraphInput" guiX="200" guiY="-16" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="249" name="1"/>
+</Node>
+<Node guiName="Upload to Google Drive" guiX="1800" guiY="100" id="UPLOAD_TO_GOOGLE_DRIVE" oAuth2Connection="OAuth2Connection1" requestMethod="POST" type="HTTP_CONNECTOR" url="https://www.googleapis.com/upload/drive/v3/files">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.requestContent = join("\r\n",[
+	"--${BOUNDARY}",
+	"Content-Type: application/json; charset=utf-8",
+	"",
+	{ 
+		"mimeType" -> "text/csv", 
+		"name" -> isBlank($in.0.googleDrivePath.getFileName()) ? $in.0.fileUrl.getFileName() : $in.0.googleDrivePath.getFileName(), 
+		"parents" -> [ $in.0.__googleDirectory.left($in.0.__googleDirectory.indexOf(":")) ] 
+	}.writeJson(),
+	"--${BOUNDARY}",
+	"Content-Type: text/csv; charset=utf-8",
+	"",
+	$in.0.content.byte2str("utf-8"),
+	"--${BOUNDARY}--"
+]);
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+<attr name="standardOutputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.1.*;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+<attr name="headerProperties"><![CDATA[Authorization=
+Content-Type=multipart/related; boundary\="${BOUNDARY}"
+]]></attr>
+<attr name="requestParameters"><![CDATA[uploadType=multipart
+]]></attr>
+</Node>
+<Edge fromNode="CROSS_JOIN:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="FIND_DIRECTORY:0"/>
+<Edge fromNode="CUSTOMISE_METADATA:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 1 (slave)" metadata="Metadata3" outPort="Port 0 (out)" toNode="CROSS_JOIN:1"/>
+<Edge fromNode="DATA_GENERATOR0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_INPUT0:0"/>
+<Edge fromNode="DIRECTORY_EXISTS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge14" inPort="Port 0 (in)" outPort="Port 0 (accepted)" toNode="LOAD_FILE:0"/>
+<Edge fromNode="DIRECTORY_EXISTS:1" guiBendpoints="" guiRouter="Manhattan" id="Edge15" inPort="Port 0 (in)" outPort="Port 1 (rejected)" toNode="DIRECTORY_DOES_NOT_EXIST:0"/>
+<Edge fromNode="FIND_DIRECTORY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="DIRECTORY_EXISTS:0"/>
+<Edge fromNode="LOAD_FILE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" outPort="Port 0 (accepted)" toNode="SIMPLE_GATHER1:0"/>
+<Edge fromNode="LOAD_FILE:1" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 0 (in)" outPort="Port 1 (rejected)" toNode="LOAD_FILE2:0"/>
+<Edge fromNode="LOAD_FILE2:0" guiBendpoints="" guiRouter="Manhattan" id="Edge16" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="SIMPLE_GATHER1:1"/>
+<Edge fromNode="SIMPLE_GATHER1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="UPLOAD_TO_GOOGLE_DRIVE:0"/>
+<Edge fromNode="SUBGRAPH_INPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (master)" metadata="Metadata2" outPort="Port 0 (out)" toNode="CROSS_JOIN:0"/>
+<Edge fromNode="UPLOAD_TO_GOOGLE_DRIVE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" metadata="HTTPConnector_Response" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+</Phase>
+<Phase number="99">
+<Node guiName="Directory does not exist" guiX="1179" guiY="231" id="DIRECTORY_DOES_NOT_EXIST" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = "Directory '" + $in.0.__googleDirectory.substring($in.0.__googleDirectory.indexOf(":")+1) + "' not found on your Google Drive.";
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="SubgraphOutput" guiX="2220" guiY="-16" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="118" name="0"/>
+<Port guiY="183" name="1"/>
+</Node>
+</Phase>
+</Graph>

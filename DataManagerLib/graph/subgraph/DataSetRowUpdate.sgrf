@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="writers" created="Tue Jun 04 13:10:06 CEST 2024" description="Update values of matching columns in a data set row based on star mapping from the input." guiVersion="7.0.0.15" id="1717596816267" largeIconPath="${PROJECT}/icons/DataSetRowUpdate64.png" licenseCode="CloverDX-Internal-License" mediumIconPath="${PROJECT}/icons/DataSetRowUpdate48.png" name="DataSetRowColumnUpdate" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/DataSetRowUpdate16.png">
+<Global>
+<inputPorts>
+<singlePort connected="false" name="0"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="false" keepEdge="true" name="0" required="false"/>
+<singlePort connected="false" keepEdge="false" name="1" required="false"/>
+</outputPorts>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="Response" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="content" type="string"/>
+<Field name="outputFilePath" type="string"/>
+<Field name="statusCode" trim="true" type="integer"/>
+<Field containerType="map" name="header" type="string"/>
+<Field containerType="list" name="rawHeaders" type="string"/>
+<Field name="errorMessage" type="string"/>
+<Field name="dataSetCode" type="string"/>
+<Field name="rowId" trim="true" type="long"/>
+<Field name="columnName" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="RowIdentification" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="dataSetCode" type="string"/>
+<Field name="rowId" type="long"/>
+<Field name="columnName" type="string"/>
+<Field name="newValue" type="variant"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="UpdateStatus" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="dataSetCode" type="string"/>
+<Field name="rowId" trim="true" type="integer"/>
+<Field name="columnName" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter defaultHint="Specify data set to work with" label="Data set code" name="DATA_SET_CODE" public="true" required="true"/>
+<GraphParameter label="Field with row id" name="ROW_ID_FIELD" public="true" required="true">
+<SingleType edge="Edge0" fieldType="long" name="field"/>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+<GraphParameterFile fileURL="data-manager-api.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node __CLOVERDX_PASS="${CLOVERDX_PASS}" __CLOVERDX_SERVER="${CLOVERDX_SERVER}" __CLOVERDX_USER="${CLOVERDX_USER}" __DATA_SET_CODE="${DATA_SET_CODE}" guiName="DataSetRowColumnUpdate" guiX="620" guiY="100" id="DATA_SET_ROW_COLUMN_UPDATE" jobURL="${SUBGRAPH_DIR}/DataSetRowColumnUpdate.sgrf" type="SUBGRAPH"/>
+<Node enabled="enableWhenOutputPort1IsDisconnected" guiName="Fail" guiX="1120" guiY="300" id="FAIL" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = $in.0.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Normalizer" guiX="295" guiY="100" id="NORMALIZER" type="NORMALIZER">
+<attr name="normalize"><![CDATA[//#CTL2
+
+// Which field is the row id? This is only computed for the first record.
+integer rowIdFieldIndex = -1;
+
+function integer count() {
+	if (rowIdFieldIndex < 0) {
+		rowIdFieldIndex = 0;
+	}
+	return length($in.0);
+}
+
+function integer transform(integer i) {
+	if (i == rowIdFieldIndex) {
+		// Row id is not going to be updated.
+		return SKIP;
+	}
+
+	$out.0.dataSetCode = "${DATA_SET_CODE}";
+	$out.0.rowId = getLongValue($in.0, "${ROW_ID_FIELD}");
+	$out.0.columnName = getFieldName($in.0, i);
+	$out.0.newValue = getValue($in.0, i);
+
+	return OK;
+}
+]]></attr>
+</Node>
+<Node guiName="SimpleCopy" guiX="895" guiY="175" id="SIMPLE_COPY" type="SIMPLE_COPY"/>
+<Node guiName="SubgraphInput" guiX="95" guiY="3" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1295" guiY="5" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="192" name="1"/>
+<Port guiY="267" name="2"/>
+</Node>
+<Edge fromNode="DATA_SET_ROW_COLUMN_UPDATE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="DATA_SET_ROW_COLUMN_UPDATE:1" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="SIMPLE_COPY:0"/>
+<Edge fromNode="NORMALIZER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="DATA_SET_ROW_COLUMN_UPDATE:0"/>
+<Edge fromNode="SIMPLE_COPY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:1"/>
+<Edge fromNode="SIMPLE_COPY:1" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="FAIL:0"/>
+<Edge fromNode="SUBGRAPH_INPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="NORMALIZER:0"/>
+</Phase>
+</Graph>

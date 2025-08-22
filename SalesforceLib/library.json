@@ -1,0 +1,81 @@
+{
+  "descriptor" : {
+    "productVersion" : "6.0.0.21",
+    "author" : "CloverDX",
+    "description" : "Connect CloverDX to Salesforce and access objects like Accounts, Leads, and Opportunities. Includes components for reading data and metadata with configurable parameters.",
+    "initializationJob" : "jobflow/initMetadata.jbf",
+    "lastModificationDate" : "2023-04-12T09:22:53Z",
+    "name" : "SalesforceLib",
+    "version" : "1.0"
+  },
+  "publicInterface" : {
+    "metadata" : [ ],
+    "subgraphs" : [ {
+      "largeIcon" : "./icons/sf64.png",
+      "icon" : "./icons/sf16.png",
+      "mediumIcon" : "./icons/sf32.png",
+      "description" : "Get metadata for selected salesforce objects and save metadata file to selected destination.",
+      "path" : "graph/subgraph/getSalesforceObjectMetadata.sgrf"
+    }, {
+      "largeIcon" : "./icons/sf64.png",
+      "icon" : "./icons/sf16.png",
+      "mediumIcon" : "./icons/sf32.png",
+      "description" : "Get all records for selected Salesforce object",
+      "path" : "graph/subgraph/getSalesforceObjectRecords.sgrf"
+    }, {
+      "largeIcon" : "./icons/sf64.png",
+      "icon" : "./icons/sf16.png",
+      "mediumIcon" : "./icons/sf32.png",
+      "description" : "Get all records for Salesforce Account object.",
+      "path" : "graph/subgraph/Connector/Accounts.sgrf"
+    }, {
+      "largeIcon" : "./icons/sf64.png",
+      "icon" : "./icons/sf16.png",
+      "mediumIcon" : "./icons/sf32.png",
+      "description" : "Get all records for Salesforce Campaign object.",
+      "path" : "graph/subgraph/Connector/Campaigns.sgrf"
+    }, {
+      "largeIcon" : "./icons/sf64.png",
+      "icon" : "./icons/sf16.png",
+      "mediumIcon" : "./icons/sf32.png",
+      "description" : "Get all records for Salesforce Leads object.",
+      "path" : "graph/subgraph/Connector/Leads.sgrf"
+    }, {
+      "largeIcon" : "./icons/sf64.png",
+      "icon" : "./icons/sf16.png",
+      "mediumIcon" : "./icons/sf32.png",
+      "description" : "Get all records for Salesforce Opportunities object.",
+      "path" : "graph/subgraph/Connector/Opportunities.sgrf"
+    } ],
+    "dataConnectors" : {
+      "sources" : [ {
+        "largeIcon" : "./icons/sf64.png",
+        "icon" : "./icons/sf16.png",
+        "mediumIcon" : "./icons/sf32.png",
+        "description" : "Get all records for Salesforce Leads object.",
+        "path" : "graph/subgraph/Connector/Leads.sgrf"
+      }, {
+        "largeIcon" : "./icons/sf64.png",
+        "icon" : "./icons/sf16.png",
+        "mediumIcon" : "./icons/sf32.png",
+        "description" : "Get all records for Salesforce Account object.",
+        "path" : "graph/subgraph/Connector/Accounts.sgrf"
+      }, {
+        "largeIcon" : "./icons/sf64.png",
+        "icon" : "./icons/sf16.png",
+        "mediumIcon" : "./icons/sf32.png",
+        "description" : "Get all records for Salesforce Opportunities object.",
+        "path" : "graph/subgraph/Connector/Opportunities.sgrf"
+      }, {
+        "largeIcon" : "./icons/sf64.png",
+        "icon" : "./icons/sf16.png",
+        "mediumIcon" : "./icons/sf32.png",
+        "description" : "Get all records for Salesforce Campaign object.",
+        "path" : "graph/subgraph/Connector/Campaigns.sgrf"
+      } ]
+    },
+    "jobflows" : [ ],
+    "restJobs" : [ ],
+    "graphs" : [ ]
+  }
+}

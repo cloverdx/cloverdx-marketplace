@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" created="Wed Mar 25 17:15:35 EDT 2020" guiVersion="5.17.0.1498" id="1585233970060" licenseCode="CLP1DCLOVE10231118BY" name="GetAccessToken" nature="subgraph" showComponentDetails="true">
+<Global>
+<outputPorts>
+<singlePort connected="true" name="0"/>
+</outputPorts>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="AccessToken" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="access_token" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata3">
+<Record fieldDelimiter="|" name="HttpInput" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="client_id" type="string"/>
+<Field name="client_secret" type="string"/>
+<Field name="scope" type="string"/>
+<Field name="userName" type="string"/>
+<Field name="password" type="string"/>
+<Field name="grant_type" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="HttpResponse" recordDelimiter="\n" type="delimited">
+<Field name="content" type="string"/>
+<Field name="contentByte" type="byte"/>
+<Field name="statusCode" trim="true" type="integer"/>
+<Field containerType="map" name="header" type="string"/>
+<Field name="errorMessage" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+<GraphParameter name="URL">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return "https://login.microsoftonline.com/"+getParamValue("TENANT_ID")+"/oauth2/v2.0/token";
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter name="GRANT_TYPE" secure="false" value="password">
+<attr name="description"><![CDATA[Must be set to "password".]]></attr>
+</GraphParameter>
+</GraphParameters>
+<RichTextNote backgroundColor="ECF0F0" folded="false" fontSize="medium" height="181" id="Note0" textColor="444444" width="841" x="426" y="-124">
+<attr name="text"><![CDATA[h3. Generates  access token for parent graph
+ token is valid 1 hour, during each call the token is recreated]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="Fail" guiX="1253" guiY="284" id="FAIL" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = $in.0.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node enabled="enabled" guiName="HTTP request input" guiX="279" guiY="89" id="HTTP_REQUEST_INPUT" recordsNumber="1" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+	$out.0.client_id = getParamValue("CLIENT_ID");
+	$out.0.client_secret = getParamValue("CLIENT_SECRET");
+	$out.0.grant_type = getParamValue("GRANT_TYPE");
+	$out.0.userName = getParamValue("USERNAME");
+	$out.0.password = getParamValue("PASSWORD");
+	$out.0.scope = getParamValue("SCOPE");
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the generate. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if generate() throws an exception.
+// function integer generateOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node addInputFieldsAsParameters="true" addInputFieldsAsParametersTo="BODY" enabled="enabled" guiName="Make HTTP request to get an access token" guiX="553" guiY="89" id="MAKE_HTTP_REQUEST_TO_GET_AN_ACCESS_TOKEN" redirectErrorOutput="true" requestMethod="POST" timeout="${TIMEOUT}" type="HTTP_CONNECTOR" url="${URL}">
+<attr name="standardOutputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.statusCode = $in.1.statusCode;
+	$out.0.content = $in.1.content;
+	$out.0.contentByte = $in.1.contentByte;
+	$out.0.header = $in.1.header;
+	$out.0.errorMessage = $in.1.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="parse response" guiX="1253" guiY="89" id="PARSE_RESPONSE" schema="${META_DIR}/responseSchemas/Get_access_token_response_json" sourceUri="port:$0.content:discrete" type="JSON_EXTRACT">
+<attr name="mapping"><![CDATA[<Mappings>
+	<Mapping element="json_object" outPort="0"
+			xmlFields="{}access_token"
+			cloverFields="access_token">
+	</Mapping>
+</Mappings>
+]]></attr>
+</Node>
+<Node guiName="status output" guiX="980" guiY="89" id="STATUS_OUTPUT" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// https://learn.microsoft.com/en-us/graph/errors
+//list[integer] errorCodes = [400, 401, 403, 404, 405, 406, 409, 410, 411, 412,
+//	413, 415, 416, 422, 423, 429, 500, 501, 503, 504, 507, 509];
+
+// Transforms input record into output record.
+function integer transform() {
+		
+	if($in.0.statusCode != null &&
+		($in.0.statusCode >= 200 && $in.0.statusCode < 300)) { // 200 - 299 > successful responses
+		$out.0.* = $in.0.*;
+		return OK;
+	}
+	
+	$out.1.* = $in.0.*;
+	
+	if(isEmpty($in.0.errorMessage)) {
+		string errorMessage;
+	
+		try{
+			errorMessage = cast(parseJson($in.0.content)["error"]["message"], string);
+		} catch(CTLException ex) {
+			errorMessage = "";
+		}
+		
+		$out.1.errorMessage = "Get Access Token Error. " + errorMessage;
+	}
+	return 1;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="200" guiY="-119" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1471" guiY="-119" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="108" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Node debugOutput="true" guiName="Trash" guiX="1613" guiY="89" id="TRASH" type="TRASH"/>
+<Edge fromNode="HTTP_REQUEST_INPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="MAKE_HTTP_REQUEST_TO_GET_AN_ACCESS_TOKEN:0"/>
+<Edge fromNode="MAKE_HTTP_REQUEST_TO_GET_AN_ACCESS_TOKEN:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="STATUS_OUTPUT:0"/>
+<Edge fromNode="PARSE_RESPONSE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="STATUS_OUTPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (input)" outPort="Port 0 (out)" toNode="PARSE_RESPONSE:0"/>
+<Edge fromNode="STATUS_OUTPUT:1" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="FAIL:0"/>
+<Edge fromNode="SUBGRAPH_OUTPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="TRASH:0"/>
+</Phase>
+</Graph>

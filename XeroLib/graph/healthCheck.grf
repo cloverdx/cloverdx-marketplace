@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="MartinTomaschek" created="Wed Nov 08 13:58:05 CET 2023" guiVersion="6.2.1.3" id="1699451772501" licenseCode="Unlicensed" name="healthCheck" showComponentDetails="true">
+<Global>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="DAD8C9" folded="false" fontSize="medium" height="127" id="Note0" textColor="444444" width="441" x="215" y="113">
+<attr name="text"><![CDATA[h3. Tets connectivity
+
+Try to get a single page of contacts.]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="Contacts" guiX="239" guiY="311" id="CONTACTS" jobURL="${SUBGRAPH_DIR}/Connector/Contacts.sgrf" type="SUBGRAPH">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.NUM_RECORDS_PER_PAGE = "1";
+	$out.0.NUM_OF_PREVIEW_RECORDS = "1";
+	
+	$out.0.TENANT_ID = getParamValue("TENANT_ID");
+	$out.0.OAUTH_URL = getParamValue("OAUTH_URL");
+	
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="Trash" guiX="428" guiY="311" id="TRASH" type="TRASH"/>
+<Edge debugMode="off" fromNode="CONTACTS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="TRASH:0"/>
+</Phase>
+</Graph>

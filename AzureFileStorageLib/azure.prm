@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GraphParameters>
+<GraphParameter defaultHint="Enter the name of your Storage account." label="Storage Account" name="STORAGE_NAME" public="true" required="true">
+<attr name="description"><![CDATA[Enter the name of your Storage Account. To view a list of all your storage accounts, navigate to the Storage Accounts service from the Azure portal dashboard.
+
+Hint: Parameterize this property to reuse the property value in other components from the library.]]></attr>
+</GraphParameter>
+<GraphParameter defaultHint="Enter the name of your File service, which can be found in the &quot;File service&quot; section of your Storage account." label="File Share" name="SHARE_NAME" public="true" required="true">
+<attr name="description"><![CDATA[Your Azure File Share can be found in the "File service" section under "Storage account."
+
+Hint: Parameterize this property to reuse the property value in other components from the library.]]></attr>
+</GraphParameter>
+<GraphParameter defaultHint="&#10;Enter your SAS token, which can be found under the Security + Networking properties of your Storage account." label="SAS token" name="SAS_KEY" public="true" required="true">
+<attr name="description"><![CDATA[SAS token can be found under Secutity + networking properties in your Storage account.
+
+Hint: Parameterize this property to reuse the property value in other components from the library.]]></attr>
+</GraphParameter>
+<GraphParameter label="SAS token" name="SAS_TOKEN" public="false" required="false">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	string token = getParamValue('SAS_KEY');
+	if(startsWith(token, '?')){
+		token = substring(token, 1);
+	}
+	return token;
+}
+]]></attr>
+<attr name="description"><![CDATA[Can be found under specific Storage account Secutity + networking properties.
+A shared access signature (SAS) is a URI that grants restricted access rights to Azure Storage resources. You can provide a shared access signature to clients who should not be trusted with your storage account key but whom you wish to delegate access to certain storage account resources. By distributing a shared access signature URI to these clients, you grant them access to a resource for a specified period of time.]]></attr>
+</GraphParameter>
+<GraphParameter category="advanced" label="File storage address" name="STORAGE_FILE_ADDRESS" public="true" value="file.core.windows.net">
+<attr name="description"><![CDATA[Provide the endpoint base hostname that identifies the Azure File Share and generates a unique URL for accessing it.
+
+For example, if you access your AFS using the URL: "https://<storage-account-name>.file.core.windows.net/<file-share-name>", the value for this property would be "file.core.windows.net".
+
+Hint: Parameterize this property to reuse the property value in other components from the library.]]></attr>
+</GraphParameter>
+<GraphParameter category="advanced" label="Debug mode" name="DEBUG" public="true" value="false">
+<SingleType name="bool"/>
+</GraphParameter>
+</GraphParameters>

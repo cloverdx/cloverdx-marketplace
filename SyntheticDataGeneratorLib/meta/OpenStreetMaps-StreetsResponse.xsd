@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="json_object" type="json_objectType"/>
+  <xs:complexType name="osm3sType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="timestamp_osm_base"/>
+      <xs:element type="xs:string" name="timestamp_areas_base"/>
+      <xs:element type="xs:string" name="copyright"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="nodesType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:byte" name="arrayDepth" use="optional"/>
+        <xs:attribute type="xs:string" name="arrayElem" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="tagsType">
+    <xs:sequence minOccurs="0">
+      <xs:element type="xs:string" name="bicycle"/>
+      <xs:element type="xs:string" name="bridge"/>
+      <xs:element type="xs:string" name="hgv"/>
+      <xs:element type="xs:string" name="access"/>
+      <xs:element type="xs:string" name="highway"/>
+      <xs:element type="xs:string" name="maxspeed"/>
+      <xs:element type="xs:string" name="layer"/>
+      <xs:element type="xs:string" name="motor_vehicle"/>
+      <xs:element type="xs:string" name="motorcycle"/>
+      <xs:element type="xs:string" name="lanes"/>
+      <xs:element type="xs:string" name="name"/>
+      <xs:element type="xs:string" name="ref"/>
+      <xs:element type="xs:string" name="oneway"/>
+      <xs:element type="xs:string" name="source"/>
+      <xs:element type="xs:string" name="source_x003aref"/>
+      <xs:element type="xs:string" name="service"/>
+      <xs:element type="xs:string" name="surface"/>
+      <xs:element type="xs:string" name="maxweight"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="elementsType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="type"/>
+      <xs:element type="xs:string" name="id"/>
+      <xs:element type="nodesType" name="nodes" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element type="tagsType" name="tags"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="arrayElem" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="json_objectType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="version"/>
+      <xs:element type="xs:string" name="generator"/>
+      <xs:element type="osm3sType" name="osm3s"/>
+      <xs:element type="elementsType" name="elements" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

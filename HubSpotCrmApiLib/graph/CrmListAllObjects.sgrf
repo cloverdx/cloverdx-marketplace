@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="readers" created="Tue May 13 13:23:29 CEST 2025" description="Get HubSpot Objects and Properties&#10;&#10;&#10;Returns HubSpot object details along with fully qualified name (&quot;fullyQualifiedName&quot; field).&#10;Also returns properties of those Hubsport objects. &#10;Both data set can be joined by using the &quot;fullyQualifiedName&quot; field. " guiVersion="6.7.0.29" id="1747208969113" largeIconPath="${PROJECT}/icons/HubSpot-search-64.png" licenseCode="CLCDSCLOVE72646208SP" mediumIconPath="${PROJECT}/icons/HubSpot-32.png" name="CrmListAllObjects" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/HubSpot-16.png">
+<Global>
+<outputPorts>
+<singlePort connected="true" name="0"/>
+<singlePort connected="true" name="1"/>
+<singlePort connected="false" keepEdge="false" name="2" required="false"/>
+</outputPorts>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="ErrorOutput" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="errorCode" type="string"/>
+<Field name="errorText" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="HubspotObjectProperties" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="fullyQualifiedName" type="string"/>
+<Field name="updatedAt" type="string"/>
+<Field name="createdAt" type="string"/>
+<Field name="name" type="string"/>
+<Field name="label" type="string"/>
+<Field name="type" type="string"/>
+<Field name="fieldType" type="string"/>
+<Field name="description" type="string"/>
+<Field name="groupName" type="string"/>
+<Field name="createdUserId" type="string"/>
+<Field name="updatedUserId" type="string"/>
+<Field name="referencedObjectType" type="string"/>
+<Field name="displayOrder" type="string"/>
+<Field name="calculated" type="string"/>
+<Field name="externalOptions" type="string"/>
+<Field name="archived" type="string"/>
+<Field name="hasUniqueValue" type="string"/>
+<Field name="hidden" type="string"/>
+<Field name="showCurrencySymbol" type="string"/>
+<Field name="hubspotDefined" type="string"/>
+<Field name="formField" type="string"/>
+<Field name="calculationFormula" type="string"/>
+<Field name="dateDisplayHint" type="string"/>
+<Field name="dataSensitivity" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="HubspotObjects" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="fullyQualifiedName" type="string"/>
+<Field name="requiredProperties" type="string"/>
+<Field name="searchableProperties" type="string"/>
+<Field name="primaryDisplayProperty" type="string"/>
+<Field name="secondaryDisplayProperties" type="string"/>
+<Field name="description" type="string"/>
+<Field name="allowsSensitiveProperties" type="string"/>
+<Field name="archived" type="string"/>
+<Field name="restorable" type="string"/>
+<Field name="metaType" type="string"/>
+<Field name="id" type="string"/>
+<Field name="createdAt" type="string"/>
+<Field name="updatedAt" type="string"/>
+<Field name="createdByUserId" type="string"/>
+<Field name="updatedByUserId" type="string"/>
+<Field name="objectTypeId" type="string"/>
+<Field name="name" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+<GraphParameter name="API_CALL_SUBGRAPH">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	string api_call_subgraph;
+	
+	if (not isBlank(getParamValue("PRIVATE_APP_TOKEN"))){
+		api_call_subgraph = "${SUBGRAPH_DIR}/ApiCall-PrivateApp.sgrf";
+	} else {
+		api_call_subgraph = "${SUBGRAPH_DIR}/ApiCall-Oauth2.sgrf";
+	}
+	return api_call_subgraph;
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter label="REQUEST_METHOD" name="REQUEST_METHOD" public="false" required="false" value="GET"/>
+<GraphParameter label="DESIRED_RESPONSE_STATUS" name="DESIRED_RESPONSE_STATUS" public="false" required="false" value="200"/>
+</GraphParameters>
+<RichTextNote backgroundColor="DAD8C9" folded="false" fontSize="medium" height="161" id="Note0" textColor="444444" width="564" x="213" y="450">
+<attr name="text"><![CDATA[h3. Get HubSpot Objects and Properties
+
+
+Returns HubSpot object details along with fully qualified name ("fullyQualifiedName" field).
+Also returns properties of those Hubsport objects. 
+Both data set can be joined by using the "fullyQualifiedName" field. 
+]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node __HTTP_CALL_RETRY_COUNT="${HTTP_CALL_RETRY_COUNT}" __HTTP_CALL_RETRY_DELAY="${HTTP_CALL_RETRY_DELAY}" __HTTP_CALL_SUCCESS_STATUS_CODE="${DESIRED_RESPONSE_STATUS}" __HTTP_CALL_TIMEOUT="${HTTP_CALL_TIMEOUT}" __O_AUTH2_CONNECTION="${O_AUTH2_CONNECTION}" __PRIVATE_APP_TOKEN="${PRIVATE_APP_TOKEN}" guiName="Call HubSpot API" guiX="431" guiY="65" id="CALL_HUB_SPOT_API" jobURL="${API_CALL_SUBGRAPH}" skipCheckConfig="false" type="SUBGRAPH"/>
+<Node debugOutput="true" guiName="DebugOutput" guiX="1556" guiY="65" id="DEBUG_OUTPUT" type="TRASH"/>
+<Node debugOutput="true" guiName="DebugOutput" guiX="1556" guiY="135" id="DEBUG_OUTPUT1" type="TRASH"/>
+<Node enabled="enableWhenOutputPort2IsDisconnected" guiName="Fail" guiX="1255" guiY="372" id="FAIL1" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = $in.0.errorText;
+	
+	return ALL;
+}]]></attr>
+</Node>
+<Node guiName="Genrate request" guiX="214" guiY="65" id="GENRATE_REQUEST" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+	$out.0.httpRequestUrl =  "https://api.hubapi.com/crm-object-schemas/v3/schemas";
+	$out.0.httpRequestCharset = "UTF-8";
+	
+	$out.0.httpRequestMethod = getParamValue("REQUEST_METHOD");
+	
+	return ALL;
+}]]></attr>
+</Node>
+<Node guiName="Is response ok?" guiX="650" guiY="65" id="IS_RESPONSE_OK" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.httpResponseStatusCode == ${DESIRED_RESPONSE_STATUS}]]></attr>
+</Node>
+<Node guiName="JSONExtract" guiX="870" guiY="65" id="JSONEXTRACT" sourceUri="port:$0.httpResponseBody:discrete" type="JSON_EXTRACT">
+<attr name="mapping"><![CDATA[<Mappings>
+	<Mapping element="json_object">
+		<Mapping element="results" outPort="0"
+				xmlFields="{}allowsSensitiveProperties;{}archived;{}createdAt;{}createdByUserId;{}description;{}fullyQualifiedName;{}id;{}metaType;{}name;{}objectTypeId;{}primaryDisplayProperty;{}requiredProperties;{}restorable;{}searchableProperties;{}secondaryDisplayProperties;{}updatedAt;{}updatedByUserId"
+				cloverFields="allowsSensitiveProperties;archived;createdAt;createdByUserId;description;fullyQualifiedName;id;metaType;name;objectTypeId;primaryDisplayProperty;requiredProperties;restorable;searchableProperties;secondaryDisplayProperties;updatedAt;updatedByUserId">
+			<Mapping element="properties" outPort="1"
+					xmlFields="../{}fullyQualifiedName;{}archived;{}calculated;{}calculationFormula;{}createdAt;{}createdUserId;{}dataSensitivity;{}dateDisplayHint;{}description;{}displayOrder;{}externalOptions;{}fieldType;{}formField;{}groupName;{}hasUniqueValue;{}hidden;{}hubspotDefined;{}label;{}name;{}referencedObjectType;{}showCurrencySymbol;{}type;{}updatedAt;{}updatedUserId"
+					cloverFields="fullyQualifiedName;archived;calculated;calculationFormula;createdAt;createdUserId;dataSensitivity;dateDisplayHint;description;displayOrder;externalOptions;fieldType;formField;groupName;hasUniqueValue;hidden;hubspotDefined;label;name;referencedObjectType;showCurrencySymbol;type;updatedAt;updatedUserId">
+			</Mapping>
+		</Mapping>
+	</Mapping>
+</Mappings>
+]]></attr>
+</Node>
+<Node guiName="Map To Error" guiX="870" guiY="238" id="MAP_TO_ERROR" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorCode = num2str($in.0.httpResponseStatusCode);
+	$out.0.errorText = "HubSpot API call failed. \n Status: " + num2str($in.0.httpResponseStatusCode)
+		+ "\n Error message: " +$in.0.httpResponseErrorMessage
+		+ "\n Response body: " +$in.0.httpResponseBody
+	;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="SimpleCopy" guiX="1066" guiY="238" id="SIMPLE_COPY" type="SIMPLE_COPY"/>
+<Node guiName="SubgraphInput" guiX="50" guiY="-14" id="SUBGRAPH_INPUT" type="SUBGRAPH_INPUT">
+<Port guiY="110" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1442" guiY="-19" id="SUBGRAPH_OUTPUT" type="SUBGRAPH_OUTPUT">
+<Port guiY="82" name="0"/>
+<Port guiY="152" name="1"/>
+<Port guiY="228" name="2"/>
+<Port guiY="292" name="3"/>
+</Node>
+<Edge fromNode="CALL_HUB_SPOT_API:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="IS_RESPONSE_OK:0"/>
+<Edge fromNode="GENRATE_REQUEST:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="CALL_HUB_SPOT_API:0"/>
+<Edge fromNode="IS_RESPONSE_OK:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (input)" outPort="Port 0 (accepted)" toNode="JSONEXTRACT:0"/>
+<Edge fromNode="IS_RESPONSE_OK:1" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 1 (rejected)" toNode="MAP_TO_ERROR:0"/>
+<Edge fromNode="JSONEXTRACT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:0"/>
+<Edge fromNode="JSONEXTRACT:1" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 1 (in)" metadata="Metadata1" outPort="Port 1 (out)" toNode="SUBGRAPH_OUTPUT:1"/>
+<Edge fromNode="MAP_TO_ERROR:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="SIMPLE_COPY:0"/>
+<Edge fromNode="SIMPLE_COPY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 2 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:2"/>
+<Edge fromNode="SIMPLE_COPY:1" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="FAIL1:0"/>
+<Edge fromNode="SUBGRAPH_OUTPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="DEBUG_OUTPUT:0"/>
+<Edge fromNode="SUBGRAPH_OUTPUT:1" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 1 (out)" toNode="DEBUG_OUTPUT1:0"/>
+</Phase>
+</Graph>

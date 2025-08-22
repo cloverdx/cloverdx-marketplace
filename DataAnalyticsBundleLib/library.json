@@ -1,0 +1,61 @@
+{
+  "descriptor" : {
+    "version" : "1.1.2",
+    "description" : "Analyze and infer the structure of CSV and JSON files. Automatically generate CloverDX metadata to support dynamic, schema-flexible data pipelines.",
+    "name" : "DataAnalyticsBundleLib",
+    "minProductVersion" : "6.0",
+    "maxProductVersion" : "",
+    "lastModificationDate" : "2025-06-26T14:53:34Z",
+    "author" : "CloverDX",
+    "initializationJob" : "",
+    "productVersion" : "7.0.1.7"
+  },
+  "connections" : {
+    "oauth2Connections" : [ ]
+  },
+  "healthCheck" : {
+    "description" : "",
+    "path" : ""
+  },
+  "publicInterface" : {
+    "metadata" : [ ],
+    "subgraphs" : [ {
+      "icon" : "./ico/anlzr-ff-16.png",
+      "largeIcon" : "./ico/anlzr-ff-64.png",
+      "mediumIcon" : "./ico/anlzr-ff-32.png",
+      "description" : "Implementation of a workflow that analyzes source flat file and creates metadata structure based on it.",
+      "path" : "graph/analyzers/AnalyzeFlatFile.sgrf"
+    }, {
+      "icon" : "./ico/anlzr-json-16.png",
+      "largeIcon" : "./ico/anlzr-json-64.png",
+      "mediumIcon" : "./ico/anlzr-json-32.png",
+      "description" : "Implementation of a workflow that analyzes source JSON file and creates metadata structure based on it.",
+      "path" : "graph/analyzers/AnalyzeJsonFile.sgrf"
+    }, {
+      "icon" : "./ico/fmtr-fmt-16.png",
+      "largeIcon" : "./ico/fmtr-fmt-64.png",
+      "mediumIcon" : "./ico/fmtr-fmt-32.png",
+      "description" : "Implementation of a workflow that creates .fmt file used for CloverDX metadata.",
+      "path" : "graph/formatter/FmtFormatter.sgrf"
+    }, {
+      "icon" : "./ico/fmtr-json-16.png",
+      "largeIcon" : "./ico/fmtr-json-64.png",
+      "mediumIcon" : "./ico/fmtr-json-32.png",
+      "description" : "Implementation of a workflow that saved metadata structure in JSON format.",
+      "path" : "graph/formatter/JsonFormatter.sgrf"
+    }, {
+      "icon" : "./ico/fmtr-fmt-16.png",
+      "largeIcon" : "./ico/fmtr-fmt-64.png",
+      "mediumIcon" : "./ico/fmtr-fmt-32.png",
+      "description" : "Reads a CloverDX metadata (.fmt) file",
+      "path" : "graph/readers/FmtReader.sgrf"
+    } ],
+    "dataConnectors" : {
+      "sources" : [ ],
+      "targets" : [ ]
+    },
+    "restJobs" : [ ],
+    "jobflows" : [ ],
+    "graphs" : [ ]
+  }
+}

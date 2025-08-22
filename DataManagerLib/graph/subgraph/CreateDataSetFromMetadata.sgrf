@@ -1,0 +1,562 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="others" created="Mon May 27 10:21:32 CEST 2024" description="Create a new data set based on provided metadata file." guiVersion="7.1.0.8" id="1716802276091" largeIconPath="${PROJECT}/icons/CreateDataSetFromMetadata64.png" licenseCode="CloverDX-Internal-License" mediumIconPath="${PROJECT}/icons/CreateDataSetFromMetadata48.png" name="CreateDataSetFromMetadata" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/CreateDataSetFromMetadata16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" keepEdge="true" name="0" required="false"/>
+<singlePort connected="false" keepEdge="true" name="1" required="false"/>
+<singlePort connected="false" keepEdge="false" name="2" required="false"/>
+</outputPorts>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="DataManagerSystemColumns" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="_id" type="long"/>
+<Field name="_status" type="string"/>
+<Field name="_deleted" type="boolean"/>
+<Field name="_createdByRunId" type="long"/>
+<Field format="yyyy-MM-dd HH:mm:ss.SSS" name="_createdTimestamp" type="date"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata4">
+<Record fieldDelimiter="|" name="Dataset" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="name" type="string"/>
+<Field name="code" type="string"/>
+<Field name="description" type="string"/>
+<Field name="type" type="string"/>
+<Field name="enabled" type="boolean"/>
+<Field name="stats" type="variant"/>
+<Field name="permissions" type="variant"/>
+<Field name="usesValidity" type="boolean"/>
+<Field name="lookupKey" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="DataSetBasicSettings" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="name" type="string"/>
+<Field name="type" type="string"/>
+<Field name="description" type="string"/>
+<Field name="dataRetentionDays" type="integer"/>
+<Field name="enabled" type="boolean"/>
+<Field name="batchKey" type="string"/>
+<Field name="lookupKey" type="string"/>
+<Field name="usesValidity" type="boolean"/>
+<Field containerType="list" name="permissionsAdmin" type="string"/>
+<Field containerType="list" name="permissionsApprover" type="string"/>
+<Field containerType="list" name="permissionsEditor" type="string"/>
+<Field containerType="list" name="permissionsReader" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="DataSetColumn" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="name" type="string"/>
+<Field name="label" type="string"/>
+<Field name="internalName" type="string"/>
+<Field name="description" type="string"/>
+<Field name="type" type="string"/>
+<Field name="editable" type="boolean"/>
+<Field name="system" type="boolean"/>
+<Field name="deleted" type="boolean"/>
+<Field name="visibility" type="string"/>
+<Field name="restrictedToLookup" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata3">
+<Record fieldDelimiter="|" name="ErrorOutput" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="errorMessage" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter label="Metadata URL" name="METADATA_URL" public="true" required="true">
+<SingleType fileExtension="*.fmt" multiple="false" name="file" selectionMode="file_only"/>
+</GraphParameter>
+<GraphParameter label="Data set type" name="DATA_SET_TYPE" public="true" required="true" value="TransactionalDataSet">
+<SingleType allowCustomValues="false" name="simpleEnum" values="TransactionalDataSet|Transactional data set (default);ReferenceDataSet|Reference data set"/>
+</GraphParameter>
+<GraphParameter category="basic" label="Data retention (days)" name="DATA_RETENTION_DAYS" public="true" value="30">
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter category="advanced" defaultHint="Enter a name for dataset (default: metadata filename)" label="Data set name" name="DATA_SET_NAME" public="true">
+<SingleType allowCustomValues="true" name="simpleEnum" values="metadata:filename|Use metadata filename;metadata:label|Use label from metadata (requires DataAnalyticsBundleLib);metadata:name|Use name from metadata (requires DataAnalyticsBundleLib)"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="System columns to add" name="SYSTEM_COLUMNS_TO_ADD" public="true" value="_status">
+<SingleType metadata="Metadata1" name="fields"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="Effective dates for reference data sets" name="EFFECTIVE_DATES" public="true" value="AUTO">
+<SingleType allowCustomValues="false" name="simpleEnum" values="AUTO|Autodetect;FORCE_ENABLED|Force enabled (must have _validFrom and _validTo fields);FORCE_DISABLED|Force disabled (validFrom/To are treated as normal fields)"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="Pemmissions - admins" name="ADMINS" public="true">
+<attr name="description"><![CDATA[Sets permissions on the dataset. Comma or semicollon separated list of CloverDX users.]]></attr>
+</GraphParameter>
+<GraphParameter category="advanced" label="Pemmissions - approveres" name="APPROVERS" public="true">
+<attr name="description"><![CDATA[Sets permissions on the dataset. Comma or semicollon separated list of CloverDX users.]]></attr>
+</GraphParameter>
+<GraphParameter category="advanced" label="Pemmissions - dataset editors" name="EDITORS" public="true">
+<attr name="description"><![CDATA[Sets permissions on the dataset. Comma or semicollon separated list of CloverDX users.]]></attr>
+</GraphParameter>
+<GraphParameter category="advanced" label="Pemmissions - dataset readers" name="READERS" public="true">
+<attr name="description"><![CDATA[Sets permissions on the dataset. Comma or semicollon separated list of CloverDX users.]]></attr>
+</GraphParameter>
+<GraphParameter name="_USE_FMT_READER">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return in(getParamValue("DATA_SET_NAME"), ["metadata:name", "metadata:label"]).toString() : "false";
+}
+]]></attr>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+<GraphParameterFile fileURL="data-manager-api.prm"/>
+<GraphParameterFile fileURL="dependencies.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="EAEAEA" folded="false" fontSize="medium" height="400" id="Note0" textColor="444444" width="650" x="1300" y="250">
+<attr name="text"><![CDATA[h3. Error handling]]></attr>
+</RichTextNote>
+<Dictionary>
+<Entry input="false" name="createdDataSetCode" output="true" type="string"/>
+</Dictionary>
+</Global>
+<Phase number="0">
+<Node guiName="Columns" guiX="320" guiY="275" id="COLUMNS" recordsNumber="-1" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+import metadata "${METADATA_URL}" TARGET_META;
+TARGET_META tmp;
+
+const boolean IS_REFERENCE_DATA_SET = "${DATA_SET_TYPE}" == "ReferenceDataSet";
+
+const string[] SYSTEM_COLUMNS_TO_ADD = split(getParamValue("SYSTEM_COLUMNS_TO_ADD"), ";");
+const integer SYSTEM_COLUMNS_COUNT = IS_REFERENCE_DATA_SET ? 0 : length(SYSTEM_COLUMNS_TO_ADD); // No columns will be added to ref data sets.
+
+integer i = 0;
+
+function integer generate() {
+	if (i == length(tmp) + SYSTEM_COLUMNS_COUNT) {
+		return STOP;
+	}
+
+	if (!IS_REFERENCE_DATA_SET) {
+		if (i < SYSTEM_COLUMNS_COUNT) {
+			$out.0.name = SYSTEM_COLUMNS_TO_ADD[i];
+			$out.0.label = SYSTEM_COLUMNS_TO_ADD[i];
+			$out.0.type = "string";
+			$out.0.editable = true;
+			$out.0.deleted = false;
+			$out.0.system = true;
+			$out.0.visibility = "VISIBLE_BY_DEFAULT";
+			
+			++i;
+			
+			return ALL;
+		}
+	}
+	
+	integer j = i - SYSTEM_COLUMNS_COUNT;
+
+	$out.0.name = getFieldName(tmp, j);
+	$out.0.label = getFieldLabel(tmp, j);
+	$out.0.internalName = $out.0.name;
+	$out.0.type = getInputFieldType(j);
+	$out.0.system = false;
+	$out.0.deleted = false;
+	if (IS_REFERENCE_DATA_SET) {
+		$out.0.editable = true;
+		$out.0.visibility = "VISIBLE_BY_DEFAULT";
+	} else {
+		$out.0.editable = getFieldIsEditable(j);
+		$out.0.visibility = getFieldVisibility(j);
+	}
+	$out.0.restrictedToLookup = getInputFieldLookupName(j);
+	
+	++i;
+
+	return ALL;
+}
+
+function string getInputFieldType(integer i) {
+	string ft = getFieldType(tmp, i);
+	
+	switch (ft) {
+		case "string":
+			return "string";
+			
+		case "long":
+			return "integer";
+
+		case "integer":
+		case "date":
+		case "boolean":
+		case "decimal":
+			return ft;
+			
+		default:
+			raiseError("Unsupported field type: " + ft + ", field " + getFieldName(tmp, i));
+	}
+}
+
+function string getInputFieldLookupName(integer i) {
+	map[string, string] fieldProps = getFieldProperties(tmp, i);
+	
+	return fieldProps["dataManagerRestrictedToLookup"];
+}
+
+function boolean getFieldIsEditable(integer i) {
+	map[string, string] fieldProps = getFieldProperties(tmp, i);
+	string editableProp = fieldProps["dataManagerEditable"];
+	switch (trim(lowerCase(editableProp))) {
+		case "true":
+			return true;
+			
+		case null:
+		case "false":
+			return false;
+			
+		default:
+			raiseError("Property 'dataManagerEditable' for field \"" + getFieldName(tmp, i) + "\" has unsupported value \"" + editableProp + "\".");
+	}
+}
+
+function string getFieldVisibility(integer i) {
+	map[string, string] fieldProps = getFieldProperties(tmp, i);
+	string visibleProp = fieldProps["dataManagerVisbility"];
+	
+	switch (trim(lowerCase(visibleProp))) {
+		case "hidden_by_default":
+		case "hidden":
+			return "HIDDEN_BY_DEFAULT";
+		case "visible_by_default":	
+		case "visible":
+		case null:
+			return "VISIBLE_BY_DEFAULT";
+		case "never_visible":
+		case "always-hidden":
+			return "NEVER_VISIBLE";
+			
+		default:
+			raiseError("Property 'dataManagerVisbility' for field \"" + getFieldName(tmp, i) + "\" has unsupported value \"" + visibleProp + "\".");
+	}
+}
+]]></attr>
+</Node>
+<Node enabled="${_USE_FMT_READER}" guiName="Combine" guiX="520" guiY="0" id="COMBINE" incompleteTuples="true" type="COMBINE">
+<attr name="transform"><![CDATA[//#CTL2
+const string DATASET_NAME = getParamValue("DATA_SET_NAME");
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+
+	if (DATASET_NAME == "metadata:label") {
+		if (isBlank($in.1.__label)) {
+			$out.0.name = $in.1.__name;
+		} else {
+			$out.0.name = $in.1.__label;
+		}
+	}
+	
+	if (DATASET_NAME == "metadata:name") {
+		$out.0.name = $in.1.__name;
+	}
+
+	return ALL;
+}]]></attr>
+</Node>
+<Node guiName="Data set basic" guiX="320" guiY="0" id="DATA_SET_BASIC" recordsNumber="1" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+import metadata "${METADATA_URL}" TARGET_META;
+TARGET_META tmp;
+
+const string DATA_SET_TYPE = getParamValue("DATA_SET_TYPE");
+const boolean IS_REFERENCE_DATA_SET = DATA_SET_TYPE == "ReferenceDataSet";
+const string DATA_SET_NAME = getParamValue("DATA_SET_NAME");
+const string CLOVERDX_USER = getParamValue("CLOVERDX_USER");
+const string EFFECTIVE_DATES = getParamValue("EFFECTIVE_DATES");
+
+function integer generate() {
+	map[string, string] metaProps = getRecordProperties(tmp);
+	
+	if (	isBlank(DATA_SET_NAME)
+		or 	DATA_SET_NAME == "matadata:filename"
+	) {
+		$out.0.name = getFileNameWithoutExtension(getParamValue("METADATA_URL"));
+	} else {
+		$out.0.name = getParamValue("DATA_SET_NAME");;
+	}
+	
+	$out.0.type = DATA_SET_TYPE;
+	$out.0.description = metaProps["description"];
+	
+	if (!IS_REFERENCE_DATA_SET) {
+		$out.0.dataRetentionDays = ${DATA_RETENTION_DAYS};
+	}
+	
+	$out.0.enabled = true;
+	if (not isBlank(getParamValue("ADMINS"))) {
+		$out.0.permissionsAdmin =  split(getParamValue("ADMINS"),",|;");
+	} else {
+		//creating this so the permissions element gets created in JSON
+		$out.0.permissionsAdmin = [];
+	}
+	if (not isBlank(getParamValue("APPROVERS"))) {
+		$out.0.permissionsApprover =  split(getParamValue("APPROVERS"),",|;");
+	}
+	if (not isBlank(getParamValue("EDITORS"))) {
+		$out.0.permissionsEditor =  split(getParamValue("EDITORS"),",|;");
+	}
+	
+	if (not isBlank(getParamValue("READERS")) and IS_REFERENCE_DATA_SET) {
+		$out.0.permissionsEditor =  split(getParamValue("READERS"),",|;");
+	}
+
+	if (containsKey(metaProps, "dataManagerBatchKeyFieldName")) {
+		string batchKey = metaProps["dataManagerBatchKeyFieldName"];
+		if (getFieldIndex(tmp, batchKey) < 0) {
+			raiseError("Metadata property dataManagerBatchKeyFieldName specifies batch key field \"" + batchKey + "\" which does not exist in the metadata.");
+		}
+		$out.0.batchKey = batchKey;
+	}
+	
+	if (IS_REFERENCE_DATA_SET) {
+		$out.0.usesValidity = getEffectiveDatesSetting();
+		
+		string metaKeyFields = metaProps["dataManagerLookupKeyFieldNames"];
+		if (metaKeyFields == null) {
+			raiseError("Lookup keys must be defined for reference data sets. Use dataManagerLookupKeyFieldNames record property - it is a comma-delimited list of fields.");
+		}
+		
+		// Now parse the list and recompose it back. We do this so that we can validate the fields in nicer way.
+		// We do this since the fields must be typed manually which increases the likelyhood of error.
+		string[] keyFieldNames = split(metaKeyFields, "[,;]"); // We allow both comma and semi-colon as delimiters.
+		string[] lookupKeys = [];
+		for (integer i = 0; i < length(keyFieldNames); ++i) {
+			string fieldName = trim(keyFieldNames[i]);
+			if (isBlank(fieldName)) {
+				raiseError("Key field at index " + i + " is empty. Empty key names are not allowed.");
+			}
+			if (getFieldIndex(tmp, fieldName) < 0) {
+				raiseError("Key field \"" + fieldName + "\" at index " + i + " not found in the record.");
+			}
+			
+			push(lookupKeys, fieldName);
+		}
+		
+		// Put it back as comma-separated list.
+		$out.0.lookupKey = join(";", lookupKeys);
+	}
+
+	return ALL;
+}
+
+function boolean getEffectiveDatesSetting() {
+	if (EFFECTIVE_DATES == "FORCE_DISABLED") {
+		return false;
+	}
+	
+	// Either force enabled or autodetect. In either case we must validate validFrom and validTo fields.
+	boolean validFromFieldOk = hasFieldOfType("_valid_from", "date");
+	boolean validToFieldOk = hasFieldOfType("_valid_to", "date");
+	
+	if (EFFECTIVE_DATES == "AUTO") {
+		// If the field is there but does not have the correct type, we create the data set anyway with disabled effective dates.
+		return validFromFieldOk && validToFieldOk;
+	} else if (EFFECTIVE_DATES == "FORCE_ENABLED") {
+		// Force enabled, make sure types match.
+		if (validFromFieldOk && validToFieldOk) {
+			return true;
+		} else {
+			raiseError("Check validFrom and validTo fields in your metadata - both must be present and have type 'date'.");
+		}
+	} else {
+		raiseError("Unknow effective date setting: " + EFFECTIVE_DATES);	
+	}
+}
+
+function boolean hasFieldOfType(string name, string type) {
+	if (getFieldIndex(tmp, name) < 0) {
+		return false;
+	}
+	
+	string typeFound = getFieldType(tmp, name);
+
+	return typeFound != null && typeFound == type;
+}
+]]></attr>
+</Node>
+<Node enabled="${_USE_FMT_READER}" guiName="Dedup" guiX="470" guiY="125" id="DEDUP" type="DEDUP"/>
+<Node enabled="enableWhenOutputPort1IsDisconnected" guiName="Fail" guiX="1770" guiY="475" id="FAIL" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = $in.0.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Filter" guiX="1170" guiY="100" id="FILTER" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.statusCode == 201]]></attr>
+</Node>
+<Node enabled="${_USE_FMT_READER}" guiName="FmtReader" guiX="320" guiY="125" id="FMT_READER" jobURL="${DATA_ANALYTICS_BUNDLE_LIB}/graph/readers/FmtReader.sgrf" type="SUBGRAPH">
+<attr name="__SOURCE_URI"><![CDATA[${METADATA_URL}]]></attr>
+<attr name="guiDescription"><![CDATA[Reads a CloverDX metadata (.fmt) file]]></attr>
+</Node>
+<Node guiName="Format error" guiX="1370" guiY="350" id="FORMAT_ERROR" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.errorMessage = "Unable to create data set: " + getErrorMessage($in.0.content);
+
+	return ALL;
+}
+
+function string getErrorMessage(string response) {
+	try {
+		variant msg = parseJson(response);
+		string messageText = cast(msg["message"], string);
+		if (messageText != null) {
+			return messageText;
+		} else {
+			return "\n" + response;
+		}
+	} catch (CTLException e) {
+		// Cannot parse, return the whole thing.
+		return "\n" + response;
+	}
+}]]></attr>
+</Node>
+<Node guiName="Format error" guiX="1370" guiY="500" id="FORMAT_ERROR1" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = "Unable to create data set: "+ $in.0.errorMessage;
+
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node fileURL="port:$0.requestContent:discrete" guiName="JSONWriter" guiX="745" guiY="75" id="JSONWRITER" recordsPerFile="1" type="JSON_WRITER">
+<attr name="mapping"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<root xmlns:clover="http://www.cloveretl.com/ns/xmlmapping" clover:inPort="0">
+  <clover:element clover:name="@type">$0.type</clover:element>
+  <name>$0.name</name>
+  <enabled>$0.enabled</enabled>
+  <batchKey>$0.batchKey</batchKey>
+  <lookupKey>$0.lookupKey</lookupKey>
+  <usesValidity clover:writeNullElement="false">$0.usesValidity</usesValidity>
+  <dataRetentionDays clover:writeNullElement="false">$0.dataRetentionDays</dataRetentionDays>
+  <description>$0.description</description>
+  <permissions>
+    <clover:collection clover:name="admins">
+      <item>$0.permissionsAdmin</item>
+    </clover:collection>
+    <clover:collection clover:name="approvers">
+      <item>$0.permissionsApprover</item>
+    </clover:collection>
+    <clover:collection clover:name="editors">
+      <item>$0.permissionsEditor</item>
+    </clover:collection>
+    <clover:collection clover:name="readers">
+      <item clover:writeNullElement="false">$0.permissionsReader</item>
+    </clover:collection>
+  </permissions>
+  <layout>
+    <clover:collection clover:name="columns">
+      <item clover:inPort="1">
+        <name>$1.name</name>
+        <internalName>$1.internalName</internalName>
+        <label>$1.label</label>
+        <description>$1.description</description>
+        <type>$1.type</type>
+        <editable>$1.editable</editable>
+        <system>$1.system</system>
+        <visibility>$1.visibility</visibility>
+        <restrictedToLookup>$1.restrictedToLookup</restrictedToLookup>
+      </item>
+    </clover:collection>
+  </layout>
+</root>]]></attr>
+</Node>
+<Node guiName="Parse response" guiX="1470" guiY="100" id="PARSE_RESPONSE" schema="${META_DIR}/post_data_sets_sample_json" sourceUri="port:$0.content:discrete" type="JSON_EXTRACT">
+<attr name="mapping"><![CDATA[<Mappings>
+	<Mapping element="json_object" outPort="0"
+			xmlFields="{}_x0040type"
+			cloverFields="type">
+		<Mapping element="stats" useParentRecord="true"
+				xmlFields="-"
+				cloverFields="stats">
+		</Mapping>
+		<Mapping element="permissions" useParentRecord="true"
+				xmlFields="-"
+				cloverFields="permissions">
+		</Mapping>
+	</Mapping>
+</Mappings>
+]]></attr>
+</Node>
+<Node guiName="POST data-sets" guiX="920" guiY="100" id="POST_DATA_SETS" password="${CLOVERDX_PASS}" requestMethod="POST" type="HTTP_CONNECTOR" url="${API_URL}/data-sets" username="${CLOVERDX_USER}">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.requestContent = $in.0.requestContent;
+
+	return ALL;
+}
+]]></attr>
+<attr name="standardOutputMapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.* = $in.1.*;
+
+	return ALL;
+}
+]]></attr>
+<attr name="headerProperties"><![CDATA[Content-Type=application/json
+]]></attr>
+</Node>
+<Node guiName="SimpleGather" guiX="1570" guiY="350" id="SIMPLE_GATHER" type="SIMPLE_GATHER"/>
+<Node guiName="SubgraphInput" guiX="200" guiY="3" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1995" guiY="3" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+<Port guiY="262" name="2"/>
+<Port guiY="337" name="3"/>
+</Node>
+<Edge fromNode="COLUMNS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 1 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="JSONWRITER:1"/>
+<Edge fromNode="COMBINE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge16" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="JSONWRITER:0"/>
+<Edge fromNode="DATA_SET_BASIC:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="COMBINE:0"/>
+<Edge fromNode="DEDUP:0" guiBendpoints="" guiRouter="Manhattan" id="Edge17" inPort="Port 1 (in)" outPort="Port 0 (unique)" toNode="COMBINE:1"/>
+<Edge fromNode="FILTER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (input)" outPort="Port 0 (accepted)" toNode="PARSE_RESPONSE:0"/>
+<Edge fromNode="FILTER:1" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" outPort="Port 1 (rejected)" toNode="FORMAT_ERROR:0"/>
+<Edge fromNode="FMT_READER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge15" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="DEDUP:0"/>
+<Edge fromNode="FORMAT_ERROR:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="SIMPLE_GATHER:0"/>
+<Edge fromNode="FORMAT_ERROR1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 1 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="SIMPLE_GATHER:1"/>
+<Edge fromNode="JSONWRITER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="POST_DATA_SETS:0"/>
+<Edge fromNode="PARSE_RESPONSE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 0 (in)" metadata="Metadata4" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="PARSE_RESPONSE:1" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 1 (in)" metadata="Metadata0" outPort="Port 1 (out)" toNode="SUBGRAPH_OUTPUT0:1"/>
+<Edge fromNode="POST_DATA_SETS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="FILTER:0"/>
+<Edge fromNode="POST_DATA_SETS:1" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="FORMAT_ERROR1:0"/>
+<Edge fromNode="SIMPLE_GATHER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 2 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:2"/>
+<Edge fromNode="SIMPLE_GATHER:1" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 1 (out)" toNode="FAIL:0"/>
+</Phase>
+</Graph>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Branislav Repcek" created="Mon Oct 09 13:03:56 CEST 2023" guiVersion="6.2.0.14" id="1696890376479" licenseCode="CLCDSCLOVE24765514SP" name="HealthCheck" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="SnowflakeInfo" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="current_version" type="string"/>
+<Field name="current_client" type="string"/>
+<Field name="current_warehouse" type="string"/>
+<Field name="current_database" type="string"/>
+<Field name="current_schema" type="string"/>
+<Field name="current_region" type="string"/>
+<Field name="current_user" type="string"/>
+<Field name="current_role" type="string"/>
+<Field format="yyyy-MM-dd hh:mm:ss.SSS" name="current_timestamp" timeZone="UTC" type="date"/>
+</Record>
+</Metadata>
+<Connection database="SNOWFLAKE" dbURL="jdbc:snowflake://${SNOWFLAKE_ACCOUNT_IDENTIFIER}.${SNOWFLAKE_REGION}.snowflakecomputing.com/?warehouse=${SNOWFLAKE_WAREHOUSE}&amp;db=${SNOWFLAKE_DATABASE}&amp;schema=${SNOWFLAKE_SCHEMA}" id="JDBC0" jdbcSpecific="SNOWFLAKE" name="SnowflakeConnection" password="${SNOWFLAKE_PASSWORD}" type="JDBC" user="${SNOWFLAKE_USERNAME}"/>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<Dictionary>
+<Entry input="false" name="current_version" output="true" type="string"/>
+<Entry input="false" name="current_client" output="true" type="string"/>
+<Entry input="false" name="current_warehouse" output="true" type="string"/>
+<Entry input="false" name="current_database" output="true" type="string"/>
+<Entry input="false" name="current_schema" output="true" type="string"/>
+<Entry input="false" name="current_region" output="true" type="string"/>
+<Entry input="false" name="current_user" output="true" type="string"/>
+<Entry input="false" name="current_timestamp" output="true" type="date"/>
+<Entry input="false" name="current_role" output="true" type="string"/>
+</Dictionary>
+</Global>
+<Phase number="0">
+<Node guiName="SetJobOutput" guiX="483" guiY="138" id="SET_JOB_OUTPUT" type="SET_JOB_OUTPUT">
+<attr name="mapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.current_version = $in.0.current_version;
+	$out.0.current_client = $in.0.current_client;
+	$out.0.current_warehouse = $in.0.current_warehouse;
+	$out.0.current_database = $in.0.current_database;
+	$out.0.current_schema = $in.0.current_schema;
+	$out.0.current_region = $in.0.current_region;
+	$out.0.current_user = $in.0.current_user;
+	$out.0.current_timestamp = $in.0.current_timestamp;
+	$out.0.current_role = $in.0.current_role;
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node dbConnection="JDBC0" guiName="Snowflake info" guiX="212" guiY="138" id="SNOWFLAKE_INFO" printStatements="true" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[select
+	current_version(),
+	current_client(),
+	current_warehouse(),
+	current_database(),
+	current_schema(),
+	current_region(),
+	current_user(),
+	current_role(),
+	current_timestamp()
+]]></attr>
+</Node>
+<Edge fromNode="SNOWFLAKE_INFO:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SET_JOB_OUTPUT:0"/>
+</Phase>
+<Phase number="5">
+<Node dbConnection="JDBC0" guiName="select from dual" guiX="212" guiY="251" id="SELECT_FROM_DUAL" type="DB_EXECUTE">
+<attr name="sqlQuery"><![CDATA[select 1 from dual]]></attr>
+</Node>
+</Phase>
+</Graph>

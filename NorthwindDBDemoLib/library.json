@@ -1,0 +1,103 @@
+{
+  "descriptor" : {
+    "name" : "NorthwindDBDemoLib",
+    "version" : "1.5.1",
+    "description" : "Sample data warehouse with ready-to-use Data Sources for training and demos in CloverDX Wrangler, based on the classic Northwind dataset.",
+    "productVersion" : "6.2.0.14",
+    "minProductVersion" : "6.0",
+    "maxProductVersion" : "",
+    "initializationJob" : "graph/init-db.grf",
+    "lastModificationDate" : "2023-10-03T15:28:49Z",
+    "author" : "CloverDX"
+  },
+  "connections" : {
+    "oauth2Connections" : [ ]
+  },
+  "healthCheck" : {
+    "description" : "",
+    "path" : "graph/HealthCheck.grf"
+  },
+  "publicInterface" : {
+    "metadata" : [ ],
+    "subgraphs" : [ {
+      "icon" : "./icons/icon_16.png",
+      "mediumIcon" : "./icons/icon_32.png",
+      "largeIcon" : "./icons/icon_64.png",
+      "description" : "Customers list",
+      "path" : "graph/subgraph/Customers.sgrf"
+    }, {
+      "icon" : "./icons/icon_16.png",
+      "mediumIcon" : "./icons/icon_32.png",
+      "largeIcon" : "./icons/icon_64.png",
+      "description" : "Employees list",
+      "path" : "graph/subgraph/Employees.sgrf"
+    }, {
+      "icon" : "./icons/icon_16.png",
+      "mediumIcon" : "./icons/icon_32.png",
+      "largeIcon" : "./icons/icon_64.png",
+      "description" : "Total generated revenue by employees",
+      "path" : "graph/subgraph/EmployeesByRevenue.sgrf"
+    }, {
+      "icon" : "./icons/icon_16.png",
+      "mediumIcon" : "./icons/icon_32.png",
+      "largeIcon" : "./icons/icon_64.png",
+      "description" : "Orders with lineitems (denormalized)",
+      "path" : "graph/subgraph/Orders.sgrf"
+    }, {
+      "icon" : "./icons/icon_16.png",
+      "mediumIcon" : "./icons/icon_32.png",
+      "largeIcon" : "./icons/icon_64.png",
+      "description" : "Products list",
+      "path" : "graph/subgraph/Products.sgrf"
+    }, {
+      "icon" : "./icons/icon_16.png",
+      "mediumIcon" : "./icons/icon_32.png",
+      "largeIcon" : "./icons/icon_64.png",
+      "description" : "Customers life time value - by total amount of revenue per customer",
+      "path" : "graph/subgraph/TotalOrdersByCustomers.sgrf"
+    } ],
+    "dataConnectors" : {
+      "sources" : [ {
+        "icon" : "./icons/icon_16.png",
+        "mediumIcon" : "./icons/icon_32.png",
+        "largeIcon" : "./icons/icon_64.png",
+        "description" : "Customers list",
+        "path" : "graph/subgraph/Customers.sgrf"
+      }, {
+        "icon" : "./icons/icon_16.png",
+        "mediumIcon" : "./icons/icon_32.png",
+        "largeIcon" : "./icons/icon_64.png",
+        "description" : "Employees list",
+        "path" : "graph/subgraph/Employees.sgrf"
+      }, {
+        "icon" : "./icons/icon_16.png",
+        "mediumIcon" : "./icons/icon_32.png",
+        "largeIcon" : "./icons/icon_64.png",
+        "description" : "Total generated revenue by employees",
+        "path" : "graph/subgraph/EmployeesByRevenue.sgrf"
+      }, {
+        "icon" : "./icons/icon_16.png",
+        "mediumIcon" : "./icons/icon_32.png",
+        "largeIcon" : "./icons/icon_64.png",
+        "description" : "Orders with lineitems (denormalized)",
+        "path" : "graph/subgraph/Orders.sgrf"
+      }, {
+        "icon" : "./icons/icon_16.png",
+        "mediumIcon" : "./icons/icon_32.png",
+        "largeIcon" : "./icons/icon_64.png",
+        "description" : "Products list",
+        "path" : "graph/subgraph/Products.sgrf"
+      }, {
+        "icon" : "./icons/icon_16.png",
+        "mediumIcon" : "./icons/icon_32.png",
+        "largeIcon" : "./icons/icon_64.png",
+        "description" : "Customers life time value - by total amount of revenue per customer",
+        "path" : "graph/subgraph/TotalOrdersByCustomers.sgrf"
+      } ],
+      "targets" : [ ]
+    },
+    "graphs" : [ ],
+    "jobflows" : [ ],
+    "restJobs" : [ ]
+  }
+}

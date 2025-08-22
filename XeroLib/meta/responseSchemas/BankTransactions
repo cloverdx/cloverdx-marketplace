@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="json_object" type="json_objectType"/>
+  <xs:complexType name="BankAccountType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="AccountID"/>
+      <xs:element type="xs:string" name="Code"/>
+      <xs:element type="xs:string" name="Name"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ContactType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="ContactID"/>
+      <xs:element type="xs:string" name="Name"/>
+      <xs:element type="xs:string" name="HasValidationErrors"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="BankTransactionsType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="BankTransactionID"/>
+      <xs:element type="BankAccountType" name="BankAccount"/>
+      <xs:element type="xs:string" name="Type"/>
+      <xs:element type="xs:string" name="Reference" minOccurs="0"/>
+      <xs:element type="xs:string" name="IsReconciled"/>
+      <xs:element type="xs:string" name="HasAttachments"/>
+      <xs:element type="ContactType" name="Contact"/>
+      <xs:element type="xs:string" name="DateString"/>
+      <xs:element type="xs:string" name="Date"/>
+      <xs:element type="xs:string" name="Status"/>
+      <xs:element type="xs:string" name="LineAmountTypes"/>
+      <xs:element type="xs:string" name="SubTotal"/>
+      <xs:element type="xs:string" name="TotalTax"/>
+      <xs:element type="xs:string" name="Total"/>
+      <xs:element type="xs:string" name="UpdatedDateUTC"/>
+      <xs:element type="xs:string" name="CurrencyCode"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="arrayElem" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="json_objectType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="Id"/>
+      <xs:element type="xs:string" name="Status"/>
+      <xs:element type="xs:string" name="ProviderName"/>
+      <xs:element type="xs:string" name="DateTimeUTC"/>
+      <xs:element type="BankTransactionsType" name="BankTransactions" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Record fieldDelimiter="|" name="responseInfo" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="Id" type="string"/>
+<Field name="Status" type="string"/>
+<Field name="ProviderName" type="string"/>
+<Field name="DateTimeUTC" type="string"/>
+</Record>

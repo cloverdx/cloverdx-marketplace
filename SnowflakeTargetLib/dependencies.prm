@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GraphParameters>
+<GraphParameter name="METADATA_FACTORY_LIB" value="sandbox://MetadataFactoryLib_1.0"/>
+</GraphParameters>

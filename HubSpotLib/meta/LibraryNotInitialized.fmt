@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Record fieldDelimiter="|" name="LibraryNotInitialized" recordDelimiter="\r\n" type="delimited">
+<Field name="LIBRARY_NOT_INITIALIZED" type="string"/>
+</Record>

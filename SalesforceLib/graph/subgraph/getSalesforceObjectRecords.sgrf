@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="readers" created="Sun Dec 11 12:38:18 EST 2022" description="Get all records for selected Salesforce object" guiVersion="6.0.0.21" id="1670787290662" largeIconPath="${PROJECT}/icons/sf64.png" licenseCode="CLCDSCLOVE72646208SP" mediumIconPath="${PROJECT}/icons/sf32.png" name="getObjectRecords" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/sf16.png">
+<Global>
+<outputPorts>
+<singlePort connected="true" name="0"/>
+</outputPorts>
+<Metadata fileURL="${META_DIR}/generated/Account.fmt" id="Metadata1"/>
+<Connection config="${CONN_DIR}/Salesforce.cfg" id="SALESFORCE0" type="SALESFORCE"/>
+<GraphParameters>
+<GraphParameter defaultHint="Source Salesforce Object" label="Source Salesforce Object" name="OBJECT" public="true" required="true" secure="false" value="Account">
+<attr name="description"><![CDATA[What Salesforce object do you require data from.]]></attr>
+</GraphParameter>
+<GraphParameter defaultHint="Requested Fields" label="Requested Fields" name="REQUESTED_FIELDS" public="true" required="true" value="Id, Name">
+<attr name="description"><![CDATA[Name of the Salesforce fields to be requested from the Salesforce object]]></attr>
+</GraphParameter>
+<GraphParameter name="SOQL_QUERY">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	string ret = "SELECT ${REQUESTED_FIELDS} FROM ${OBJECT}";
+	if(getParamValue("NUM_OF_PREVIEW_RECORDS") != null && !isBlank(getParamValue("NUM_OF_PREVIEW_RECORDS")) && isInteger(getParamValue("NUM_OF_PREVIEW_RECORDS")) && str2integer(getParamValue("NUM_OF_PREVIEW_RECORDS"))>0){
+		ret += " LIMIT "+str2integer(getParamValue("NUM_OF_PREVIEW_RECORDS"));
+	}
+	return ret;
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter category="security" defaultHint="Username for Salesforce account&#10;" label="Username for Salesforce account&#10;" name="SF_USERNAME" public="true" required="true">
+<attr name="description"><![CDATA[Username for Salesforce account. If no value is provided, default value from library configuration is going to be used.
+]]></attr>
+</GraphParameter>
+<GraphParameter category="security" defaultHint="Password for Salesforce account&#10;" label="Password for Salesforce account&#10;" name="SF_PASSWORD" public="true" required="true">
+<attr name="description"><![CDATA[Password for Salesforce account. If no value is provided, default value from library configuration is going to be used.
+]]></attr>
+</GraphParameter>
+<GraphParameter category="security" defaultHint="Salesforce security token&#10;" label="Salesforce security token&#10;" name="SF_TOKEN" public="true" required="true">
+<attr name="description"><![CDATA[Salesforce security token for the account. If no value is provided, default value from library configuration is going to be used.
+]]></attr>
+</GraphParameter>
+<GraphParameter name="NUM_OF_PREVIEW_RECORDS"/>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="SalesforceBulkReader" guiX="414" guiY="100" id="SALESFORCE_BULK_READER" sfConnection="SALESFORCE0" type="SALESFORCE_BULK_READER">
+<attr name="soqlQuery"><![CDATA[${SOQL_QUERY}]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="200" guiY="10" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="779" guiY="10" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Node debugOutput="true" guiName="Trash" guiX="920" guiY="100" id="TRASH1" type="TRASH"/>
+<Edge fromNode="SALESFORCE_BULK_READER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="SUBGRAPH_OUTPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="TRASH1:0"/>
+</Phase>
+</Graph>

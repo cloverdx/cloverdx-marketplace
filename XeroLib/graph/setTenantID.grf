@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" created="Wed Nov 16 08:57:06 CET 2022" description="Run after OAuth2 connection URL is set. This graoh will connect to Xero API, get Tenant ID and store it in TenantID parameter in configuration of library." guiVersion="6.0.0.21" id="1668590796240" licenseCode="CLCDSCLOVE72646208SP" name="setTenantID" showComponentDetails="true">
+<Global>
+<Metadata id="HTTPConnector_Response">
+<Record fieldDelimiter="|" name="HTTPConnector_Response" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="content" type="string"/>
+<Field name="contentByte" type="byte"/>
+<Field name="outputFilePath" type="string"/>
+<Field name="statusCode" trim="true" type="integer"/>
+<Field containerType="map" name="header" type="string"/>
+<Field containerType="list" name="rawHeaders" type="string"/>
+<Field name="errorMessage" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="input" recordDelimiter="\n" type="delimited">
+<Field name="enumLine" type="string"/>
+<Field name="firstValue" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record eofAsDelimiter="true" fieldDelimiter="SOMETHING" name="line" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n\\|\n\\|\r\\|\n\r" type="delimited">
+<Field name="line" type="string"/>
+<Field auto_filling="global_row_count" name="order" type="integer"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="tenant" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="id" type="string"/>
+<Field name="authEventId" type="string"/>
+<Field name="tenantId" type="string"/>
+<Field name="tenantType" type="string"/>
+<Field name="tenantName" type="string"/>
+<Field name="createdDateUtc" type="string"/>
+<Field name="updatedDateUtc" type="string"/>
+</Record>
+</Metadata>
+<Connection config="${OAUTH_URL}" id="OAuth2Connection0" type="OAUTH2"/>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="CrossJoin" guiX="1181" guiY="129" id="CROSS_JOIN" type="CROSS_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+
+/*
+<GraphParameter label="Xero Tenant ID" name="TENANT_ID" public="false" required="false" secure="false" value="Set OAuth connection URL first and run setTenantId init graph to get correct values.">
+<attr name="description"><![CDATA[Xero tenant ID. Can be set by running setTenantID graph]]]]><![CDATA[></attr>
+<SingleType allowCustomValues="false" name="simpleEnum" values="Set OAUTH_URL and run setTenantId init graph to get correct values."/>
+</GraphParameter>
+*/
+
+boolean tenantIDParamFlag = false;
+
+function integer transform() {
+	
+	$out.0.* = $in.0.*;
+	
+	if (trim($in.0.line) ~= '.*<GraphParameter.* name="TENANT_ID".*'){
+		tenantIDParamFlag = true;	
+	}
+	
+	if (tenantIDParamFlag){
+		
+		//setup the value for the first time if still default
+		$out.0.line = replace($in.0.line, 'value=".*"', concat('value="', $in.1.firstValue, '"'));
+		
+		//setup enum values
+		if (trim($in.0.line) ~= '<SingleType allowCustomValues="false" name="simpleEnum" values=".*"/>'){
+			$out.0.line = concat('<SingleType allowCustomValues="false" name="simpleEnum" values="', $in.1.enumLine, '"/>');	
+		}
+		
+		if (trim($in.0.line) == '</GraphParameter>'){
+			tenantIDParamFlag = false;
+		}
+	}
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="Denormalizer" guiX="972" guiY="141" id="DENORMALIZER" type="DENORMALIZER">
+<attr name="denormalize"><![CDATA[//#CTL2
+
+/*
+<GraphParameter name="TENANT_ID">
+<attr name="description"><![CDATA[wfwwfd]]]]><![CDATA[></attr>
+<SingleType allowCustomValues="false" name="simpleEnum" values="aaa|name (aaa);bbb|name (bbb)"/>
+</GraphParameter>
+*/
+
+
+string firstValue = null;
+string [] values;
+
+function integer append() {
+	if (firstValue == null){
+		firstValue = concat($in.0.tenantName, " (", $in.0.tenantId, ")");
+		append(values, firstValue);
+	} else {
+		append(values, concat($in.0.tenantName, " (", $in.0.tenantId, ")"));	
+	}
+	
+	return OK;
+}
+
+
+function integer transform() {
+	$out.0.enumLine = join(";", values);
+	$out.0.firstValue = firstValue;
+	
+	return OK;
+}
+]]></attr>
+</Node>
+<Node guiName="Fail" guiX="577" guiY="237" id="FAIL" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = $in.0.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Fail" guiX="775" guiY="237" id="FAIL1" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.errorMessage = "Status code of response: "+$in.0.statusCode;
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="parse response" guiX="775" guiY="141" id="PARSE_RESPONSE" schema="${META_DIR}/responseSchemas/Tenants" sourceUri="port:$0.content:discrete" type="JSON_EXTRACT">
+<attr name="mapping"><![CDATA[<Mappings>
+	<Mapping element="json_array">
+		<Mapping element="json_array" outPort="0"
+				xmlFields="{}authEventId;{}createdDateUtc;{}id;{}tenantId;{}tenantName;{}tenantType;{}updatedDateUtc"
+				cloverFields="authEventId;createdDateUtc;id;tenantId;tenantName;tenantType;updatedDateUtc">
+		</Mapping>
+	</Mapping>
+</Mappings>
+]]></attr>
+</Node>
+<Node fileURL="${PROJECT}/library.prm" guiName="read prm template" guiX="972" guiY="20" id="READ_PRM_TEMPLATE" type="FLAT_FILE_READER"/>
+<Node guiName="status 200 &amp; OK" guiX="577" guiY="141" id="STATUS_200_OK" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.statusCode == 200]]></attr>
+</Node>
+<Node guiName="XERO" guiX="339" guiY="141" id="XERO" oAuth2Connection="OAuth2Connection0" type="HTTP_CONNECTOR" url="https://api.xero.com/connections">
+<attr name="headerProperties"><![CDATA[Accept=application/json\n
+]]></attr>
+</Node>
+<Edge fromNode="CROSS_JOIN:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="UPDATE_PRM_FILE:0"/>
+<Edge fromNode="DENORMALIZER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 1 (slave)" metadata="Metadata2" outPort="Port 0 (out)" toNode="CROSS_JOIN:1"/>
+<Edge fromNode="PARSE_RESPONSE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="DENORMALIZER:0"/>
+<Edge fromNode="READ_PRM_TEMPLATE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (master)" metadata="Metadata1" outPort="Port 0 (output)" toNode="CROSS_JOIN:0"/>
+<Edge fromNode="STATUS_200_OK:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (input)" metadata="HTTPConnector_Response" outPort="Port 0 (accepted)" toNode="PARSE_RESPONSE:0"/>
+<Edge fromNode="STATUS_200_OK:1" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 1 (rejected)" toNode="FAIL1:0"/>
+<Edge fromNode="XERO:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="HTTPConnector_Response" outPort="Port 0 (out)" toNode="STATUS_200_OK:0"/>
+<Edge fromNode="XERO:1" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="FAIL:0"/>
+</Phase>
+<Phase number="5">
+<Node createEmptyFiles="false" excludeFields="order" fileURL="${PROJECT}/library.prm" guiName="update prm file" guiX="1377" guiY="129" id="UPDATE_PRM_FILE" type="FLAT_FILE_WRITER"/>
+</Phase>
+</Graph>

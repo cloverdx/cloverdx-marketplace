@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="readers" created="Sun Nov 13 16:57:36 GMT 2022" description="Provides credit notes data." guiVersion="6.0.0.1547" id="1668366889411" largeIconPath="${PROJECT}/icons/xero_logo_64.png" licenseCode="CLCDSCLOVE72646208SP" mediumIconPath="${PROJECT}/icons/xero_logo_32.png" name="getCreditNotes" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/xero_logo_16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" keepEdge="true" name="0" required="false"/>
+<singlePort connected="false" keepEdge="true" name="1" required="false"/>
+<singlePort connected="false" keepEdge="true" name="2" required="false"/>
+</outputPorts>
+<Metadata fileURL="${META_DIR}/responseInfo.fmt" id="Metadata0"/>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="CreditNote" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="CreditNoteID" type="string"/>
+<Field name="CreditNoteNumber" type="string"/>
+<Field name="SentToContact" type="boolean"/>
+<Field name="ID" type="string"/>
+<Field name="HasErrors" type="boolean"/>
+<Field name="CurrencyRate" type="string"/>
+<Field name="Type" type="string"/>
+<Field name="Reference" type="string"/>
+<Field name="RemainingCredit" type="decimal"/>
+<Field name="HasAttachments" type="boolean"/>
+<Field name="DateString" type="string"/>
+<Field format="${DATE_FORMAT}" name="Date" type="date"/>
+<Field name="BrandingThemeID" type="string"/>
+<Field name="Status" type="string"/>
+<Field name="LineAmountTypes" type="string"/>
+<Field name="SubTotal" type="decimal"/>
+<Field name="TotalTax" type="decimal"/>
+<Field name="Total" type="decimal"/>
+<Field format="${DATE_FORMAT}" name="UpdatedDateUTC" type="date"/>
+<Field name="CurrencyCode" type="string"/>
+<Field name="FullyPaidOnDate" type="string"/>
+<Field name="Allocations_Amount" type="decimal"/>
+<Field name="Allocations_Date" type="string"/>
+<Field name="Allocations_Invoice_InvoiceID" type="string"/>
+<Field name="Allocations_Invoice_InvoiceNumber" type="string"/>
+<Field name="Allocations_Invoice_IsDiscounted" type="boolean"/>
+<Field name="Allocations_Invoice_HasErrors" type="boolean"/>
+<Field name="Contact_ContactID" type="string"/>
+<Field name="Contact_Name" type="string"/>
+<Field name="Contact_HasValidationErrors" type="boolean"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="CreditNoteINPUT" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="CreditNoteID" type="string"/>
+<Field name="CreditNoteNumber" type="string"/>
+<Field name="SentToContact" type="boolean"/>
+<Field name="ID" type="string"/>
+<Field name="HasErrors" type="boolean"/>
+<Field name="CurrencyRate" type="string"/>
+<Field name="Type" type="string"/>
+<Field name="Reference" type="string"/>
+<Field name="RemainingCredit" type="decimal"/>
+<Field name="HasAttachments" type="boolean"/>
+<Field name="DateString" type="string"/>
+<Field name="Date" type="string"/>
+<Field name="BrandingThemeID" type="string"/>
+<Field name="Status" type="string"/>
+<Field name="LineAmountTypes" type="string"/>
+<Field name="SubTotal" type="decimal"/>
+<Field name="TotalTax" type="decimal"/>
+<Field name="Total" type="decimal"/>
+<Field name="UpdatedDateUTC" type="string"/>
+<Field name="CurrencyCode" type="string"/>
+<Field name="FullyPaidOnDate" type="string"/>
+<Field name="Allocations_Amount" type="decimal"/>
+<Field name="Allocations_Date" type="string"/>
+<Field name="Allocations_Invoice_InvoiceID" type="string"/>
+<Field name="Allocations_Invoice_InvoiceNumber" type="string"/>
+<Field name="Allocations_Invoice_IsDiscounted" type="boolean"/>
+<Field name="Allocations_Invoice_HasErrors" type="boolean"/>
+<Field name="Contact_ContactID" type="string"/>
+<Field name="Contact_Name" type="string"/>
+<Field name="Contact_HasValidationErrors" type="boolean"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+<GraphParameterFile fileURL="xeroApi.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="DEF4AB" folded="false" fontSize="medium" height="155" id="Note0" textColor="444444" width="435" x="214" y="286">
+<attr name="text"><![CDATA[h3. Credit Notes
+
+[https://developer.xero.com/documentation/api/accounting/creditnotes]]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="convert" guiX="750" guiY="134" id="CONVERT" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.* = $in.0.*;
+	// /Date(1666259038377+0000)/
+	
+	$out.0.UpdatedDateUTC = long2date(str2long(replace(replace($in.0.UpdatedDateUTC, '\+0000\)/', ""), '/Date\(', "")));
+	$out.0.Date = long2date(str2long(replace(replace($in.0.Date, '\+0000\)/', ""), '/Date\(', "")));
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node enabled="enableWhenOutputPort2IsDisconnected" guiName="Fail" guiX="829" guiY="368" id="FAIL" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = $in.0.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="GET CreditNotes" guiX="214" guiY="134" id="GET_CREDIT_NOTES" jobURL="${XERO_CORE_PAGING_CONNECTOR_URL}" type="SUBGRAPH">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.OAUTH_URL = getParamValue("OAUTH_URL");
+	$out.0.TENANT_ID = getParamValue("TENANT_ID");
+	$out.0.DATE_FORMAT = getParamValue("DATE_FORMAT");
+	$out.0.CALL = "https://api.xero.com/api.xro/2.0/CreditNotes";
+	
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="parse CreditNotes response" guiX="462" guiY="134" id="PARSE_CREDIT_NOTES_RESPONSE" schema="${META_DIR}/responseSchemas/CreditNotes" sourceUri="port:$0.content:discrete" type="JSON_EXTRACT">
+<attr name="mapping"><![CDATA[<Mappings>
+	<Mapping element="json_object" outPort="0">
+		<Mapping element="CreditNotes" outPort="1"
+				xmlFields="{}BrandingThemeID;{}CreditNoteID;{}CreditNoteNumber;{}CurrencyCode;{}CurrencyRate;{}Date;{}DateString;{}FullyPaidOnDate;{}HasAttachments;{}HasErrors;{}ID;{}LineAmountTypes;{}Reference;{}RemainingCredit;{}SentToContact;{}Status;{}SubTotal;{}Total;{}TotalTax;{}Type;{}UpdatedDateUTC"
+				cloverFields="BrandingThemeID;CreditNoteID;CreditNoteNumber;CurrencyCode;CurrencyRate;Date;DateString;FullyPaidOnDate;HasAttachments;HasErrors;ID;LineAmountTypes;Reference;RemainingCredit;SentToContact;Status;SubTotal;Total;TotalTax;Type;UpdatedDateUTC">
+			<Mapping element="Allocations" useParentRecord="true"
+					xmlFields="{}Amount;{}Date"
+					cloverFields="Allocations_Amount;Allocations_Date">
+				<Mapping element="Invoice" useParentRecord="true"
+						xmlFields="{}HasErrors;{}InvoiceID;{}InvoiceNumber;{}IsDiscounted"
+						cloverFields="Allocations_Invoice_HasErrors;Allocations_Invoice_InvoiceID;Allocations_Invoice_InvoiceNumber;Allocations_Invoice_IsDiscounted">
+				</Mapping>
+			</Mapping>
+			<Mapping element="Contact" useParentRecord="true"
+					xmlFields="{}ContactID;{}HasValidationErrors;{}Name"
+					cloverFields="Contact_ContactID;Contact_HasValidationErrors;Contact_Name">
+			</Mapping>
+		</Mapping>
+	</Mapping>
+</Mappings>
+]]></attr>
+</Node>
+<Node guiName="SimpleCopy" guiX="677" guiY="273" id="SIMPLE_COPY" type="SIMPLE_COPY"/>
+<Node guiName="SubgraphInput" guiX="50" guiY="10" id="SUBGRAPH_INPUT" type="SUBGRAPH_INPUT">
+<Port guiY="110" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="986" guiY="10" id="SUBGRAPH_OUTPUT" type="SUBGRAPH_OUTPUT">
+<Port guiY="151" name="0"/>
+<Port guiY="221" name="1"/>
+<Port guiY="291" name="2"/>
+<Port guiY="361" name="3"/>
+</Node>
+<Edge fromNode="CONVERT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:0"/>
+<Edge fromNode="GET_CREDIT_NOTES:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (input)" outPort="Port 0 (out)" toNode="PARSE_CREDIT_NOTES_RESPONSE:0"/>
+<Edge fromNode="GET_CREDIT_NOTES:1" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="SIMPLE_COPY:0"/>
+<Edge fromNode="PARSE_CREDIT_NOTES_RESPONSE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 1 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:1"/>
+<Edge fromNode="PARSE_CREDIT_NOTES_RESPONSE:1" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 1 (out)" toNode="CONVERT:0"/>
+<Edge fromNode="SIMPLE_COPY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 2 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:2"/>
+<Edge fromNode="SIMPLE_COPY:1" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="FAIL:0"/>
+</Phase>
+</Graph>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GraphParameters>
+<GraphParameter category="security" label="OAuth2 connection" name="O_AUTH2_CONNECTION" public="true">
+<attr name="description"><![CDATA[Absolute path to existing OAuth2 configuration file linked from another sandbox. e.g. (sandbox://<Sandbox_name>/conn/OAuth2_connection.cfg)]]></attr>
+</GraphParameter>
+<GraphParameter category="security" label="Tenant ID" name="TENANT_ID" public="true">
+<attr name="description"><![CDATA[Microsoft Azure Tenant ID value.]]></attr>
+<SingleType name="string"/>
+</GraphParameter>
+<GraphParameter category="security" label="Client ID" name="CLIENT_ID" public="true">
+<attr name="description"><![CDATA[Microsoft Azure Enterprise Application ID (Client ID).
+]]></attr>
+</GraphParameter>
+<GraphParameter category="security" label="Client Secret" name="CLIENT_SECRET" public="true" secure="true">
+<attr name="description"><![CDATA[Microsoft Azure Enterprise Application Secret (Client Secret).]]></attr>
+</GraphParameter>
+<GraphParameter category="security" label="Scope" name="SCOPE" public="true" value="https://graph.microsoft.com/.default">
+<attr name="description"><![CDATA[Permissions of the connection (defult value: https://graph.microsoft.com/.default)]]></attr>
+</GraphParameter>
+<GraphParameter category="security" label="Username" name="USERNAME" public="true">
+<attr name="description"><![CDATA[Microsoft Azure user name.]]></attr>
+</GraphParameter>
+<GraphParameter category="security" label="Password" name="PASSWORD" public="true" secure="true">
+<attr name="description"><![CDATA[Microsoft Azure user password.]]></attr>
+</GraphParameter>
+<GraphParameter category="advanced" label="Timeout" name="TIMEOUT" public="true" value="300000">
+<attr name="description"><![CDATA[Timeout for Http request Get method in miliseconds. Used for ListDrives, ListItems, Download.]]></attr>
+</GraphParameter>
+<GraphParameter category="advanced" label="Timeout upload" name="TIMEOUT_UPLOAD" public="true" value="1200000">
+<attr name="description"><![CDATA[Timeout for Http request Put method in miliseconds. Used for Upload.]]></attr>
+</GraphParameter>
+<GraphParameter label="SharePoint Site ID" name="SITE_ID" public="true">
+<attr name="description"><![CDATA[SharePoint Site.]]></attr>
+<SingleType allowCustomValues="true" name="simpleEnum"/>
+</GraphParameter>
+<GraphParameter label="Drive ID" name="DRIVE_ID" public="true">
+<attr name="description"><![CDATA[Document library for a SharePoint Site or Personal OneDrive.]]></attr>
+<SingleType allowCustomValues="true" name="simpleEnum"/>
+</GraphParameter>
+</GraphParameters>

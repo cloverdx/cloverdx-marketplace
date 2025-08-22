@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Record fieldDelimiter="|" name="slackMessagePrefixed" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="slack_channel" type="string"/>
+<Field name="slack_blocks" type="string"/>
+<Field name="slack_text" type="string"/>
+<Field name="slack_attachments" type="string"/>
+<Field name="slack_icon_emoji" type="string"/>
+<Field name="slack_icon_url" type="string"/>
+<Field name="slack_metadata" type="string"/>
+<Field name="slack_mrkdwn" type="boolean"/>
+<Field name="slack_reply_broadcast" type="boolean"/>
+<Field name="slack_thread_ts" type="string"/>
+<Field name="slack_unfurl_links" type="boolean"/>
+<Field name="slack_unfurl_media" type="boolean"/>
+<Field name="slack_username" type="string"/>
+<Field name="slack_token" type="string"/>
+</Record>

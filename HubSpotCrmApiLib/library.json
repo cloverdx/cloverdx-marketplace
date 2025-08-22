@@ -1,0 +1,80 @@
+{
+  "descriptor" : {
+    "name" : "HubSpotCrmApiLib",
+    "version" : "1.2",
+    "description" : "Read HubSpot CRM data. Access Contacts, Companies, Deals, Products, and more via the HubSpot API. Ideal for integrating CRM data into your CloverDX workflows.",
+    "author" : "CloverDX",
+    "lastModificationDate" : "2023-10-03T14:41:54Z",
+    "productVersion" : "6.3.0.1698",
+    "initializationJob" : ""
+  },
+  "healthCheck" : {
+    "description" : "",
+    "path" : "graph/Healthcheck.grf"
+  },
+  "publicInterface" : {
+    "subgraphs" : [ {
+      "icon" : "./icons/HubSpot-16.png",
+      "mediumIcon" : "./icons/HubSpot-32.png",
+      "largeIcon" : "./icons/HubSpot-64.png",
+      "description" : "Returns HubSpot account details along with API rate limits taken from the header",
+      "path" : "graph/AccountDetailsApiV3.sgrf"
+    }, {
+      "icon" : "./icons/HubSpot-16.png",
+      "mediumIcon" : "./icons/HubSpot-32.png",
+      "largeIcon" : "./icons/HubSpot-64.png",
+      "description" : "This subgraph provides several basic operations for manipulating HubSpot CRM objects.\r\n\r\nSupported operations\r\n\r\nList - get all objects\r\nRead - gets data for object by it's ID\r\nUpdate - updates the HubSpot object \r\nArchive - moves the object to trash",
+      "path" : "graph/CrmObjectApiV3.sgrf"
+    }, {
+      "icon" : "./icons/HubSpot-association-16.png",
+      "mediumIcon" : "./icons/HubSpot-association-32.png",
+      "largeIcon" : "./icons/HubSpot-association-64.png",
+      "description" : "This graph enables creating,listing or deleting asociations between *instances* of HubSpot CRM objects. It does not alter the schema - you need another method to list. create or delete asocciations on schema level.",
+      "path" : "graph/CrmObjectAssociationsApiV3.sgrf"
+    }, {
+      "icon" : "./icons/HubSpot-16.png",
+      "mediumIcon" : "./icons/HubSpot-32.png",
+      "largeIcon" : "./icons/HubSpot-64.png",
+      "description" : "This subgraph provides several basic operations for manipulating HubSpot CRM objects.\r\n\r\nSupported operations\r\n\r\nList - get all objects\r\nRead - gets data for object by it's ID\r\nUpdate - updates the HubSpot object \r\nArchive - moves the object to trash",
+      "path" : "graph/CrmObjectPropertiesApiV3.sgrf"
+    }, {
+      "icon" : "./icons/HubSpot-16.png",
+      "mediumIcon" : "./icons/HubSpot-32.png",
+      "largeIcon" : "./icons/HubSpot-64.png",
+      "description" : "This subgraph provides means to read HubSpot owner objects.\r\n\r\nSupported operations\r\n\r\nList - get all objects\r\nRead - gets data for object by it's ID",
+      "path" : "graph/CrmOwnersApiV3.sgrf"
+    }, {
+      "icon" : "",
+      "mediumIcon" : "",
+      "largeIcon" : "",
+      "description" : "Parse associations from input variant field",
+      "path" : "graph/ParseAssociations.sgrf"
+    }, {
+      "icon" : "./icons/HubSpot-search-16.png",
+      "mediumIcon" : "./icons/HubSpot-search-32.png",
+      "largeIcon" : "./icons/HubSpot-search-64.png",
+      "description" : "This subgraph provides several basic operations for manipulating HubSpot CRM objects.\r\n\r\nSupported operations\r\n\r\nList - get all objects\r\nRead - gets data for object by it's ID\r\nUpdate - updates the HubSpot object \r\nArchive - moves the object to trash",
+      "path" : "graph/SearchCrmObjectApiV3.sgrf"
+    },{
+      "icon" : "./icons/HubSpot-16.png",
+      "mediumIcon" : "./icons/HubSpot-32.png",
+      "largeIcon" : "./icons/HubSpot-64.png",
+      "description" : "This subgraph returns HubSpot object details along with fully qualified name (fullyQualifiedName field).\r\n\r\n It also returns properties of those Hubsport objects.",
+      "path" : "graph/CrmListAllObjects.sgrf"
+    } ],
+    "dataConnectors" : {
+      "targets" : [ ],
+      "sources" : [ ]
+    },
+    "graphs" : [ ],
+    "jobflows" : [ ],
+    "restJobs" : [ ],
+    "metadata" : [ ]
+  },
+  "connections" : {
+    "oauth2Connections" : [ {
+      "jobPath" : "graph/subgraph/ApiCall-Oauth2.sgrf",
+      "path" : "conn/dummy_connection.cfg"
+    } ]
+  }
+}

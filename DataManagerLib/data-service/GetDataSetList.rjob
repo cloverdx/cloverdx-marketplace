@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Branislav Repcek" created="Tue Jun 04 13:10:06 CEST 2024" description="List data sets in the Data Manager and their basic properties." guiVersion="7.0.0.15" id="1717600070870" licenseCode="CloverDX-Internal-License" name="GetDataSetList" nature="restJob" showComponentDetails="true">
+<Global>
+<EndpointSettings>
+<UrlPath>/GetDataSetList</UrlPath>
+<Description>Return a list of data sets so that it can be used as an enumeration in a Data App.</Description>
+<Category>DataManagerLib</Category>
+<IconUrl>icons/GetDataSetsOverview.png</IconUrl>
+<RequestMethod name="GET"/>
+</EndpointSettings>
+<RestJobResponseStatus>
+<JobError>
+<reasonPhrase>Job failed</reasonPhrase>
+<statusCode>500</statusCode>
+<ReasonPhrase>Job failed</ReasonPhrase>
+<StatusCode>500</StatusCode>
+</JobError>
+<Success>
+<statusCode>200</statusCode>
+<StatusCode>200</StatusCode>
+</Success>
+<ValidationError>
+<reasonPhrase>Request validation failed</reasonPhrase>
+<statusCode>400</statusCode>
+<ReasonPhrase>Request validation failed</ReasonPhrase>
+<StatusCode>400</StatusCode>
+</ValidationError>
+</RestJobResponseStatus>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="DataSet" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="value" type="string"/>
+<Field name="label" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata2" previewAttachmentCharset="UTF-8">
+<Record fieldDelimiter="|" name="DSOverviewWithKey" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="name" type="string"/>
+<Field name="code" type="string"/>
+<Field name="sortKey" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="requestEcho" recordDelimiter="\r\n" type="delimited">
+<Field name="requestBody" type="string"/>
+<Field name="requestClientIpAddress" type="string"/>
+<Field name="requestContentType" type="string"/>
+<Field name="requestEncoding" type="string"/>
+<Field name="requestHeaders" type="string"/>
+<Field name="requestMethod" type="string"/>
+<Field name="requestParameters" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="FAF6D6" folded="false" fontSize="medium" height="101" id="Note0" textColor="444444" width="725" x="250" y="-200">
+<attr name="text"><![CDATA[h3. Overview
+
+This is an API that is used by some other Data Apps to serve a list of data sets available on the Server.]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="ExtSort" guiX="770" guiY="-50" id="EXT_SORT" sortKey="sortKey(a)" type="EXT_SORT"/>
+<Node guiName="GetDataSetsOverview" guiX="245" guiY="-50" id="GET_DATA_SETS_OVERVIEW1" jobURL="${SUBGRAPH_DIR}/GetDataSetsOverview.sgrf" type="SUBGRAPH"/>
+<Node guiName="Map" guiX="1020" guiY="-50" id="MAP" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.label = $in.0.name;
+	$out.0.value = $in.0.code;
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="Map" guiX="520" guiY="-50" id="MAP1" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.sortKey = lowerCase($in.0.name);
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="Input" guiX="45" guiY="-200" id="RESTJOB_INPUT0" requestFormat="JSON" restJobInput="true" type="RESTJOB_INPUT"/>
+<Node attachment="false" guiName="Output" guiX="1270" guiY="-200" id="RESTJOB_OUTPUT0" metadataName="true" responseFormat="JSON" restJobOutput="true" topLevelArray="true" type="RESTJOB_OUTPUT"/>
+<Edge fromNode="EXT_SORT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="MAP:0"/>
+<Edge fromNode="GET_DATA_SETS_OVERVIEW1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="MAP1:0"/>
+<Edge fromNode="MAP:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="RESTJOB_OUTPUT0:0"/>
+<Edge fromNode="MAP1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="EXT_SORT:0"/>
+</Phase>
+</Graph>

@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="transformers" created="Thu Nov 29 09:40:24 GMT 2018" description="Based on array of coordinates check relation between two objects." guiVersion="5.15.0.15" id="1543485834796" largeIconPath="${GIS_TOOLS_DIR}/graph/subgraph/icons/intersect-64.png" licenseCode="CLP1DJAVLI73959547BY" mediumIconPath="${GIS_TOOLS_DIR}/graph/subgraph/icons/intersect-32.png" name="ShapePosition" nature="subgraph" showComponentDetails="true" smallIconPath="${GIS_TOOLS_DIR}/graph/subgraph/icons/intersect-16.png">
+<Global>
+<inputPorts>
+<singlePort connected="true" name="0"/>
+<singlePort connected="true" name="1"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="false" name="0"/>
+<singlePort connected="false" keepEdge="false" name="1" required="false"/>
+</outputPorts>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="debugInput1" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field containerType="list" name="field1" type="number"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter defaultHint="Fields containing coordinates, only ONE key is allowed" label="Shape key" name="SHAPE_KEY" public="true" required="true" value="$field1=$field1">
+<attr name="description"><![CDATA[Select the fields holding the shape geometry information that should be compared. Format: $field1=$field2]]></attr>
+<ComponentReference referencedComponent="EXT_HASH_JOIN" referencedProperty="joinKey"/>
+</GraphParameter>
+<GraphParameter label="Keep only" name="COMPARE_MODE" public="true" required="false" value="0">
+<attr name="description"><![CDATA[Select comparison condition.]]></attr>
+<SingleType allowCustomValues="false" name="simpleEnum" values="0|Intersecting;1|Contained (IN-1 contains IN-0);2|Intersecting or contained;3|Unrelated"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="Input 0 shape field" name="IN0_SHAPE_FIELD" public="true">
+<attr name="description"><![CDATA[Select the field that holds shape type for input port 0 records.]]></attr>
+<SingleType edge="Edge1" fieldType="string" name="field"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="Input 1 shape field" name="IN1_SHAPE_FIELD" public="true">
+<attr name="description"><![CDATA[Select the field that holds shape type for input port 1 records.]]></attr>
+<SingleType edge="Edge4" fieldType="string" name="field"/>
+</GraphParameter>
+<GraphParameter label="Input 0 shape" name="IN0_SHAPE" public="true">
+<attr name="description"><![CDATA[Provide the default shape type for input port 0 records.]]></attr>
+<SingleType allowCustomValues="false" name="simpleEnum" values="point|Point;polyline|Polyline;polygon|Polygon;multipoint|Multipoint"/>
+</GraphParameter>
+<GraphParameter label="Input 1 shape" name="IN1_SHAPE" public="true">
+<attr name="description"><![CDATA[Provide the default shape type for input port 1 records.]]></attr>
+<SingleType allowCustomValues="false" name="simpleEnum" values="point|Point;polyline|Polyline;polygon|Polygon;multipoint|Multipoint"/>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node debugInput="true" guiName="DebugInput" guiX="30" guiY="100" id="DATA_GENERATOR0" recordsNumber="1" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the generate. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if generate() throws an exception.
+// function integer generateOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="ExtHashJoin" guiX="436" guiY="335" id="EXT_HASH_JOIN" joinKey="${SHAPE_KEY}" type="EXT_HASH_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}]]></attr>
+</Node>
+<Node guiName="GetJobInput" guiX="268" guiY="335" id="GET_JOB_INPUT" type="GET_JOB_INPUT">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="GetJobInput" guiX="268" guiY="423" id="GET_JOB_INPUT1" type="GET_JOB_INPUT">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node CompareMode="${COMPARE_MODE}" MasterField="${IN0_SHAPE_FIELD}" MasterShape="${IN0_SHAPE}" MatchKey="${SHAPE_KEY}" SlaveField="${IN1_SHAPE_FIELD}" SlaveShape="${IN1_SHAPE}" genericTransformClass="com.cloverdx.libraries.geotools.ShapeIntersect" guiName="Shape intersect" guiX="436" guiY="100" id="SHAPE_INTERSECT" type="GENERIC_TRANSFORMER"/>
+<Node guiName="SubgraphInput" guiX="200" guiY="10" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="184" name="1"/>
+<Port guiY="287" name="2"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="800" guiY="10" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+<Port guiY="257" name="2"/>
+</Node>
+<Node guiName="Trash" guiX="607" guiY="335" id="TRASH" type="TRASH"/>
+<Edge fromNode="DATA_GENERATOR0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SUBGRAPH_INPUT0:0"/>
+<Edge fromNode="DATA_GENERATOR0:1" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 1 (in)" metadata="Metadata0" outPort="Port 1 (out)" toNode="SUBGRAPH_INPUT0:1"/>
+<Edge fromNode="EXT_HASH_JOIN:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" metadataRef="#//Edge1" outPort="Port 0 (out)" toNode="TRASH:0"/>
+<Edge fromNode="GET_JOB_INPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (driver)" metadataRef="#//Edge1" outPort="Port 0 (out)" toNode="EXT_HASH_JOIN:0"/>
+<Edge fromNode="GET_JOB_INPUT1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 1 (slave)" metadataRef="#//Edge4" outPort="Port 0 (out)" toNode="EXT_HASH_JOIN:1"/>
+<Edge fromNode="SHAPE_INTERSECT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" metadataRef="#//Edge1" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="SHAPE_INTERSECT:1" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 1 (in)" metadataRef="#//Edge1" outPort="Port 1 (out)" toNode="SUBGRAPH_OUTPUT0:1"/>
+<Edge fromNode="SUBGRAPH_INPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SHAPE_INTERSECT:0"/>
+<Edge fromNode="SUBGRAPH_INPUT0:1" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 1 (in)" outPort="Port 1 (out)" toNode="SHAPE_INTERSECT:1"/>
+</Phase>
+</Graph>

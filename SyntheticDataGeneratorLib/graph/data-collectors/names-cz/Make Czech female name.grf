@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Branislav Repcek" created="Wed Feb 22 17:52:11 CET 2023" guiVersion="6.0.0.1544" id="1677102024375" licenseCode="CLCDSCLOVE85208925SP" name="Make Czech female name" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="," name="Name" recordDelimiter="\r\n" type="delimited">
+<Field name="name" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node charset="UTF-8" fileURL="${DATAIN_DIR}/names/cz/last_name_female.csv" guiName="Female last names" guiX="611" guiY="134" id="FEMALE_LAST_NAMES" type="FLAT_FILE_WRITER"/>
+<Node fileURL="${DATAIN_DIR}/names/CS-CZ/last_name_male.csv" guiName="Male last names" guiX="133" guiY="134" id="MALE_LAST_NAMES" type="FLAT_FILE_READER"/>
+<Node guiName="Map" guiX="353" guiY="134" id="MAP" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// This code implements rules mentioned in [Přechylování příjmení ve veřejné komunikaci](https://prirucka.ujc.cas.cz/?id=700) ("Grammatical gender in public communications").
+// The rules require knowledge of word classes (nouns, adjectives, ...) which this code does not know so the result is only approximate.
+
+function integer transform() {
+	$out.0.name = makeFemaleName($in.0.name);
+
+	return ALL;
+}
+
+function string cutFromRight(string s, integer howMany) {
+	return left(s, length(s) - howMany);
+}
+
+const string SUFFIX_OVA = "OVÁ";
+
+// Expect name to be in uppercase.
+function string makeFemaleName(string name) {
+	// Last names that end in vowels
+	string lastLetter = right(name, 1);
+	switch (lastLetter) {
+		case "A":
+		case "E":
+		case "Í":
+		case "O":
+			return cutFromRight(name, 1) + SUFFIX_OVA;
+			
+		case "Á":
+		case "É":
+		case "I":
+		case "Y":
+		case "Ó":
+			return name + SUFFIX_OVA;
+			
+		case "Ě":
+			return name + "T" + SUFFIX_OVA;
+			
+		case "U":
+		case "Ů":
+			return name;
+			
+		case "Ý":
+			return cutFromRight(name, 1) + "Á";
+	}
+	
+	// If we get here, the last name ends in consonant.
+	string lastTwoLetters = right(name, 2);
+	switch (lastTwoLetters) {
+		case "EK": // Štěpánek -> Štěpánková
+		case "EL": // Havel –> Havlová
+		case "OL": // Karol –> Karlová
+		case "OK": // Krušinok –> Krušinková
+		case "AK": // Dubak –> Dubková
+			return cutFromRight(name, 2) + lastLetter + SUFFIX_OVA;
+	}
+	
+	// If we get here, we simply append OVA to the name
+	return name + SUFFIX_OVA;
+}
+]]></attr>
+</Node>
+<Edge fromNode="MALE_LAST_NAMES:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (output)" toNode="MAP:0"/>
+<Edge fromNode="MAP:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="FEMALE_LAST_NAMES:0"/>
+</Phase>
+</Graph>

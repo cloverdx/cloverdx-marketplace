@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GraphParameters>
+<GraphParameter label="Global random seed" name="GLOBAL_RANDOM_SEED" public="true" required="false" secure="false" value="123456">
+<attr name="description"><![CDATA[Set this to different number to generatye different values in various generator connectors.]]></attr>
+</GraphParameter>
+</GraphParameters>

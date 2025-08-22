@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="json_object" type="json_objectType"/>
+  <xs:complexType name="ContactType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="ContactID"/>
+      <xs:element type="xs:string" name="Name"/>
+      <xs:element type="xs:string" name="HasValidationErrors"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="InvoicesType">
+    <xs:sequence minOccurs="0">
+      <xs:element type="xs:string" name="Type"/>
+      <xs:element type="xs:string" name="InvoiceID"/>
+      <xs:element type="xs:string" name="InvoiceNumber"/>
+      <xs:element type="xs:string" name="Reference"/>
+      <xs:element type="PaymentsType" name="Payments" maxOccurs="unbounded"/>
+      <xs:element type="xs:string" name="AmountDue"/>
+      <xs:element type="xs:string" name="AmountPaid"/>
+      <xs:element type="xs:string" name="AmountCredited"/>
+      <xs:element type="xs:string" name="CurrencyRate"/>
+      <xs:element type="xs:string" name="SentToContact"/>
+      <xs:element type="xs:string" name="IsDiscounted"/>
+      <xs:element type="xs:string" name="HasAttachments"/>
+      <xs:element type="xs:string" name="HasErrors"/>
+      <xs:element type="xs:string" name="RepeatingInvoiceID"/>
+      <xs:element type="ContactType" name="Contact"/>
+      <xs:element type="xs:string" name="DateString"/>
+      <xs:element type="xs:string" name="Date"/>
+      <xs:element type="xs:string" name="DueDateString"/>
+      <xs:element type="xs:string" name="DueDate"/>
+      <xs:element type="xs:string" name="BrandingThemeID"/>
+      <xs:element type="xs:string" name="Status"/>
+      <xs:element type="xs:string" name="LineAmountTypes"/>
+      <xs:element type="xs:string" name="SubTotal"/>
+      <xs:element type="xs:string" name="TotalTax"/>
+      <xs:element type="xs:string" name="Total"/>
+      <xs:element type="xs:string" name="UpdatedDateUTC"/>
+      <xs:element type="xs:string" name="CurrencyCode"/>
+      <xs:element type="xs:string" name="FullyPaidOnDate"/>
+      <xs:element type="CreditNotesType" name="CreditNotes" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="arrayElem" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="PaymentsType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="PaymentID"/>
+      <xs:element type="xs:string" name="BatchPaymentID" minOccurs="0"/>
+      <xs:element type="xs:string" name="Date"/>
+      <xs:element type="xs:string" name="Amount"/>
+      <xs:element type="xs:string" name="Reference" minOccurs="0"/>
+      <xs:element type="xs:string" name="CurrencyRate"/>
+      <xs:element type="xs:string" name="HasAccount"/>
+      <xs:element type="xs:string" name="HasValidationErrors"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="arrayElem" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="CreditNotesType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="CreditNoteID"/>
+      <xs:element type="xs:string" name="CreditNoteNumber"/>
+      <xs:element type="xs:string" name="ID"/>
+      <xs:element type="xs:string" name="HasErrors"/>
+      <xs:element type="xs:string" name="AppliedAmount"/>
+      <xs:element type="xs:string" name="DateString"/>
+      <xs:element type="xs:string" name="Date"/>
+      <xs:element type="xs:string" name="Total"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="arrayElem" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="json_objectType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="Id"/>
+      <xs:element type="xs:string" name="Status"/>
+      <xs:element type="xs:string" name="ProviderName"/>
+      <xs:element type="xs:string" name="DateTimeUTC"/>
+      <xs:element type="InvoicesType" name="Invoices" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

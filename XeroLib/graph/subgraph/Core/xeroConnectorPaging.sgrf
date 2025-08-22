@@ -1,0 +1,465 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="droben" created="Mon Nov 07 20:53:52 GMT 2022" guiVersion="6.6.0.4" id="1667860442439" licenseCode="CLCDSCLOVE72646208SP" name="xeroCoreConnector" nature="subgraph" showComponentDetails="true">
+<Global>
+<inputPorts>
+<singlePort connected="false" keepEdge="true" name="0" required="false"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="false" keepEdge="true" name="0" required="false"/>
+<singlePort connected="false" keepEdge="true" name="1" required="false"/>
+</outputPorts>
+<Metadata id="HTTPConnector_Response">
+<Record fieldDelimiter="|" name="ErrorPort" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="statusCode" trim="true" type="integer"/>
+<Field name="errorMessage" type="string"/>
+<Field name="content" type="string"/>
+<Field name="contentByte" type="byte"/>
+<Field name="outputFilePath" type="string"/>
+<Field containerType="map" name="header" type="string"/>
+<Field containerType="list" name="rawHeaders" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="HTTPConnector_Response1">
+<Record fieldDelimiter="|" name="Loop" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="params" type="string"/>
+<Field name="page" type="integer"/>
+<Field name="URL" type="string"/>
+<Field name="content" type="string"/>
+<Field name="contentByte" type="byte"/>
+<Field name="outputFilePath" type="string"/>
+<Field name="statusCode" trim="true" type="integer"/>
+<Field containerType="map" name="header" type="string"/>
+<Field containerType="list" name="rawHeaders" type="string"/>
+<Field name="errorMessage" type="string"/>
+<Field name="retryAfter" type="long"/>
+</Record>
+</Metadata>
+<Metadata id="HTTPConnector_Response2">
+<Record fieldDelimiter="|" name="OutputPort" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="content" type="string"/>
+<Field name="contentByte" type="byte"/>
+<Field name="outputFilePath" type="string"/>
+<Field name="statusCode" trim="true" type="integer"/>
+<Field containerType="map" name="header" type="string"/>
+<Field containerType="list" name="rawHeaders" type="string"/>
+<Field name="errorMessage" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="XeroConnectorInputParams" recordDelimiter="\n" type="delimited">
+<Field name="params" type="string"/>
+</Record>
+</Metadata>
+<Connection config="${OAUTH_URL}" id="OAuth2Connection0" type="OAUTH2"/>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="xeroApi.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="DEF4AB" folded="false" fontSize="medium" height="155" id="Note0" textColor="444444" width="429" x="214" y="-37">
+<attr name="text"><![CDATA[h3. Xero Connector
+
+[https://developer.xero.com/documentation/getting-started-guide/]
+[https://developer.xero.com/documentation/guides/oauth2/limits/]
+[https://developer.xero.com/documentation/api/accounting/overview]]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="Combine" guiX="18" guiY="146" id="COMBINE" incompleteTuples="true" type="COMBINE">
+<attr name="transform"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.params = $in.1.params;
+	$out.0.page = 1;
+	
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="evaluate next page" guiX="290" guiY="354" id="EVALUATE_NEXT_PAGE" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+integer NUM_OF_PREVIEW_RECORDS = null;
+integer NUM_RECORDS_PER_PAGE = null;
+integer MAX_NUMBER_OF_RETRIES = 25;
+integer MAX_WAIT_TIME = 360;
+integer numOfRetries = 0;
+
+function void init(){
+	
+	if (getParamValue("NUM_OF_PREVIEW_RECORDS") != null and trim(getParamValue("NUM_OF_PREVIEW_RECORDS")) != ""){
+		if (isInteger(getParamValue("NUM_OF_PREVIEW_RECORDS"))){
+			NUM_OF_PREVIEW_RECORDS = str2integer(getParamValue("NUM_OF_PREVIEW_RECORDS"));
+		}else{
+			raiseError(concat('Parameter for number of records in preview (NUM_OF_PREVIEW_RECORDS) is expected to be the whole number. Not "', getParamValue("NUM_OF_PREVIEW_RECORDS"), '"'));
+		}	
+	}
+	
+	if (getParamValue("NUM_RECORDS_PER_PAGE") != null and trim(getParamValue("NUM_RECORDS_PER_PAGE")) != ""){
+		if (isInteger(getParamValue("NUM_RECORDS_PER_PAGE"))){
+			NUM_RECORDS_PER_PAGE = str2integer(getParamValue("NUM_RECORDS_PER_PAGE"));
+		}else{
+			raiseError(concat('Internal parameter for number of records prt page (NUM_RECORDS_PER_PAGE) is expected to be the whole number. Not "', getParamValue("NUM_RECORDS_PER_PAGE"), '"'));
+		}	
+	}
+	
+	
+	if (getParamValue("MAX_NUMBER_OF_RETRIES") != null and trim(getParamValue("MAX_NUMBER_OF_RETRIES")) != ""){
+		if (isInteger(getParamValue("MAX_NUMBER_OF_RETRIES"))){
+			MAX_NUMBER_OF_RETRIES = str2integer(getParamValue("MAX_NUMBER_OF_RETRIES"));
+		}else{
+			raiseError(concat('Parameter for number of max retries (MAX_NUMBER_OF_RETRIES) is expected to be the whole number. Not "', getParamValue("MAX_NUMBER_OF_RETRIES"), '"'));
+		}	
+	}
+	
+	if (getParamValue("MAX_WAIT_TIME") != null and trim(getParamValue("MAX_WAIT_TIME")) != ""){
+		if (isInteger(getParamValue("MAX_WAIT_TIME"))){
+			MAX_WAIT_TIME = str2integer(getParamValue("MAX_WAIT_TIME"));
+		}else{
+			raiseError(concat('Parameter for max API waiting time (MAX_WAIT_TIME) is expected to be the whole number. Not "', getParamValue("MAX_WAIT_TIME"), '"'));
+		}	
+	}
+	
+}
+
+function integer transform() {
+	$out.0.* = $in.0.*;
+	
+	if ($in.0.statusCode != 200){
+		
+		// handle Too many requests from API
+		if($in.0.statusCode == 429){
+			// getting information from the request
+			integer minLimit = str2integer($in.0.header["X-MinLimit-Remaining"]) : null;
+			integer dayLimit = str2integer($in.0.header["X-DayLimit-Remaining"]) : null;
+			integer appMinLimit = str2integer($in.0.header["X-AppMinLimit-Remaining"]) : null;
+			string rateLimitProblem = $in.0.header["X-Rate-Limit-Problem"] : null;
+			long retryAfter= str2long($in.0.header["Retry-After"]) : 5;
+			
+			printLog(info,"API LIMIT has been exceeded. Type of limit: "+ rateLimitProblem+". Current values of remaining limits:\nminute limit: "+minLimit+"\nday limit: "+dayLimit+"\napp limit: "+appMinLimit+"\nRetry after: "+retryAfter+"s");
+			
+			// mainly for the minute limit exceeding, try to wait
+			// maxium waiting time is limited by MAX_WAIT_TIME
+			if(rateLimitProblem == "minute" || rateLimitProblem == "day"){
+				// try to wait
+				numOfRetries++;
+				
+				if(numOfRetries>MAX_NUMBER_OF_RETRIES){
+					// limit max number of retries
+					$out.0.page = -1;
+					$out.1.* = $in.0.*;
+					$out.1.errorMessage = "Rate Limit Exceeded. Type of limit: "+ rateLimitProblem+". Library tried to wait and repeat the request for "+numOfRetries+" times, which is higher than max wait limit: "+MAX_NUMBER_OF_RETRIES+". You can increase the limit by setting the MAX_NUMBER_OF_RETRIES parameter or run your request again later. Current values of the limits:\nminute limit: "+minLimit+"\nday limit: "+dayLimit+"\napp limit: "+appMinLimit+"\nRetry after: "+retryAfter+"s";
+					
+					return ALL;	
+				}
+				else{
+					// set retryAfter sleep before the next try
+					if(retryAfter <= MAX_WAIT_TIME){
+						$out.0.page = $in.0.page;
+						$out.0.retryAfter = retryAfter; 
+						return OK;
+					}
+					else{
+						// retry after is too long
+						$out.0.page = -1;
+						$out.1.* = $in.0.*;
+						$out.1.errorMessage = "Rate Limit Exceeded. Type of limit: "+ rateLimitProblem+". It was suggested to wait "+retryAfter+" secods, which is higher than max wait limit: "+MAX_WAIT_TIME+" seconds. You can increase the limit by setting the MAX_WAIT_TIME parameter or run your request later. Current values of the limits:\nminute limit: "+minLimit+"\nday limit: "+dayLimit+"\napp limit: "+appMinLimit+"\nRetry after: "+retryAfter+"s";
+						return ALL;
+					}
+				}
+				
+			}
+			else{
+				// for now react only on minute limits
+				$out.0.page = -1;
+				$out.1.* = $in.0.*;
+				$out.1.errorMessage = "Rate Limit Exceeded. Type of limit: "+ rateLimitProblem+". Please repeat your request later. Current values of the limits:\nminute limit: "+minLimit+"\nday limit: "+dayLimit+"\napp limit: "+appMinLimit+"\nRetry after: "+retryAfter+"s";
+				
+				return ALL;	
+			}
+		}
+		else{
+			$out.0.page = -1;
+			$out.1.* = $in.0.*;
+			return ALL;
+		}
+	}
+	
+	if (str2integer($in.0.header["Content-Length"]) >= 200){
+		
+		
+		variant responseObject = parseJson($in.0.content);
+		variant pagination = {};
+		numOfRetries = 0;
+			
+		integer paginationPage = -1;	
+		integer paginationPageSize = -1;
+		integer paginationPageCount = -1;
+		integer paginationitemCount = -1;
+		integer returnDataCount = -1;
+		
+		if ( responseObject != null && responseObject typeof map ){
+			 if(containsKey(responseObject, "pagination")){
+			 	pagination = responseObject["pagination"];
+			 	
+			 	paginationPage = (pagination.containsKey("page")?cast(pagination["page"], integer):-1);
+			 	paginationPageSize = (pagination.containsKey("pageSize")?cast(pagination["pageSize"], integer):-1);
+			 	paginationPageCount = (pagination.containsKey("pageCount")?cast(pagination["pageCount"], integer):-1);
+			 	paginationitemCount = (pagination.containsKey("itemCount")?cast(pagination["itemCount"], integer):-1);
+			 	
+			 }
+			 
+		}
+		else{
+			// check if there are items in the response, if it is empty, just stop processing
+			if(containsKey(responseObject, getParamValue("OUTPUT_ENTITY"))){
+				variant respData = responseObject[ getParamValue("OUTPUT_ENTITY")];
+				if(respData != null && respData typeof map){
+					returnDataCount = length(respData);
+				}
+			}
+			
+			if(returnDataCount != -1 && returnDataCount == 0){
+				$out.0.page = -1;
+			}
+			
+		}
+		 
+		
+		// Accounts do not have paging, afer first page, just finish pagination
+		if(getParamValue("OUTPUT_ENTITY")=="Accounts" || getParamValue("OUTPUT_ENTITY")=="Journals"){
+			$out.0.page = -1;
+		} 
+		// finished all the available items
+		else if(paginationitemCount != -1 && paginationitemCount == 0){
+			$out.0.page = -1;
+		}
+		// page count is at the end
+		else if(paginationPageCount != -1 && $in.0.page==paginationPageCount){
+			$out.0.page = -1;
+		}
+		// continue with the next page
+		else{
+			$out.0.page++;
+		}
+		
+	}else{
+		$out.0.page = -1;
+		return OK;
+	}
+	
+	if (NUM_OF_PREVIEW_RECORDS != null and $in.0.page * NUM_RECORDS_PER_PAGE >= NUM_OF_PREVIEW_RECORDS){
+		$out.0.page = -1;
+	}
+	
+	$out.1.* = $in.0.*;
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="Format HTTP Request error" guiX="269" guiY="504" id="FORMAT_HTTP_REQUEST_ERROR" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = "Unable to contact the Xero API. The API returned the following error: "+ $in.0.errorMessage;
+	$out.1.page = -1;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="get trigger token" guiX="-153" guiY="37" id="GET_TRIGGER_TOKEN" type="GET_JOB_INPUT">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Loop" guiX="220" guiY="146" id="LOOP" type="LOOP">
+<attr name="whileCondition"><![CDATA[//#CTL2
+$in.0.page > 0]]></attr>
+</Node>
+<Node guiName="SimpleGather" guiX="1022" guiY="482" id="SIMPLE_GATHER" type="SIMPLE_GATHER"/>
+<Node guiName="SimpleGather" guiX="506" guiY="354" id="SIMPLE_GATHER1" type="SIMPLE_GATHER"/>
+<Node guiName="Sleep if is necessary" guiX="724" guiY="354" id="SLEEP_IF_IS_NECESSARY" type="SLEEP">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	
+	if($in.0.retryAfter != null && $in.0.retryAfter >0){
+		$out.0.delay = $in.0.retryAfter+"s";
+	}
+	else{
+		$out.0.delayMillis = 100;
+	}
+
+	return ALL;
+}]]></attr>
+</Node>
+<Node guiName="status 200 &amp; OK" guiX="708" guiY="440" id="STATUS_200_OK1" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	
+	if ($in.0.statusCode == 200 and contains($in.0.content, '"Status": "OK",')){
+		$out.0.* = $in.0.*;
+		return OK;
+	}
+	
+	$out.1.* = $in.0.*;
+	// if there is a error message prepared, just use the message
+	if($in.0.errorMessage!= null && length($in.0.errorMessage)>0){
+		$out.1.errorMessage = $in.0.errorMessage;
+	}
+	else{
+		$out.1.errorMessage = getErrorMessageFromStatusCode($in.0.statusCode);
+	}
+		
+	return 1;
+}
+
+
+function string getErrorMessageFromStatusCode(integer statusCode){
+	// default error message
+	string errorMessage = "Xero API Error (status code: "+statusCode+")";
+	
+	//https://developer.xero.com/documentation/api/accounting/responsecodes
+	switch(statusCode){
+		case 400 : errorMessage = "Bad Request - A validation exception has occurred."; break;
+		case 401 : errorMessage = "Unauthorized - Invalid authorization credentials."; break;	
+		case 403 : errorMessage = "Not Permitted	 - User doesn't have permission to access the resource."; break;	
+		case 404 : errorMessage = "Not Found - 	The resource you have specified cannot be found."; break;	
+		case 412 : errorMessage = "Precondition Failed - One or more conditions given in the request header fields were invalid."; break;	
+		case 429 : errorMessage = "Rate Limit Exceeded - The API rate limit for your organisation/application pairing has been exceeded."; break;	
+		case 500 : errorMessage = "Internal Error - An unhandled error with the Xero API. Contact the Xero API team if problems persist."; break;
+		case 501 : errorMessage = "Not Implemented - The method you have called has not been implemented."; break;	
+		case 503 : errorMessage = "Not Available - 	API is currently unavailable – typically due to a scheduled outage – try again soon."; break;	 
+	}
+	
+	return errorMessage;
+}]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="-236" guiY="-32" id="SUBGRAPH_INPUT" type="SUBGRAPH_INPUT">
+<Port guiY="177" name="0"/>
+<Port guiY="230" name="1"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1211" guiY="-32" id="SUBGRAPH_OUTPUT" type="SUBGRAPH_OUTPUT">
+<Port guiY="435" name="0"/>
+<Port guiY="455" name="1"/>
+<Port guiY="525" name="2"/>
+</Node>
+<Node guiName="Success" guiX="425" guiY="146" id="SUCCESS" type="SUCCESS"/>
+<Node guiName="XERO" guiX="91" guiY="354" id="XERO" oAuth2Connection="OAuth2Connection0" type="HTTP_CONNECTOR" url="${CALL}">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	if ($in.0.params != null){
+		$out.0.URL = concat(getParamValue("CALL"), $in.0.params, "&page=", num2str($in.0.page));
+	}else{
+		if (indexOf(getParamValue("CALL"),"?") == -1){
+			$out.0.URL = concat(getParamValue("CALL"), "?page=", num2str($in.0.page));
+		}else{
+			$out.0.URL = concat(getParamValue("CALL"), "&page=", num2str($in.0.page));
+		}
+		
+	}
+
+	return ALL;
+}
+]]></attr>
+<attr name="standardOutputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.params = $in.0.params;
+	$out.0.page = $in.0.page;
+	$out.0.* = $in.1.*;
+	$out.0.URL = $in.2.URL;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+<attr name="headerProperties"><![CDATA[Accept=application/json\n
+xero-tenant-id=${REAL_TENANT_ID}
+]]></attr>
+</Node>
+<Edge fromNode="COMBINE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (input token)" metadata="HTTPConnector_Response1" outPort="Port 0 (out)" toNode="LOOP:0"/>
+<Edge debugMode="all" fromNode="EVALUATE_NEXT_PAGE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 0 (in)" metadata="HTTPConnector_Response1" outPort="Port 0 (out)" toNode="SIMPLE_GATHER1:0"/>
+<Edge fromNode="EVALUATE_NEXT_PAGE:1" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="HTTPConnector_Response1" outPort="Port 1 (out)" toNode="STATUS_200_OK1:0"/>
+<Edge fromNode="FORMAT_HTTP_REQUEST_ERROR:0" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 1 (in)" metadata="HTTPConnector_Response" outPort="Port 0 (out)" toNode="SIMPLE_GATHER:1"/>
+<Edge fromNode="FORMAT_HTTP_REQUEST_ERROR:1" guiBendpoints="" guiRouter="Manhattan" id="Edge17" inPort="Port 1 (in)" outPort="Port 1 (out)" toNode="SIMPLE_GATHER1:1"/>
+<Edge fromNode="GET_TRIGGER_TOKEN:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="COMBINE:0"/>
+<Edge fromNode="LOOP:0" guiBendpoints="" guiRouter="Manhattan" id="Edge13" inPort="Port 0 (in)" outPort="Port 0 (end of loop)" toNode="SUCCESS:0"/>
+<Edge fromNode="LOOP:1" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 1 (continue loop)" toNode="XERO:0"/>
+<Edge fromNode="SIMPLE_GATHER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:1"/>
+<Edge debugMode="all" fromNode="SIMPLE_GATHER1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge14" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SLEEP_IF_IS_NECESSARY:0"/>
+<Edge fromNode="SLEEP_IF_IS_NECESSARY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 1 (back from loop)" outPort="Port 0 (out)" toNode="LOOP:1"/>
+<Edge fromNode="STATUS_200_OK1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" metadata="HTTPConnector_Response2" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:0"/>
+<Edge fromNode="STATUS_200_OK1:1" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" metadata="HTTPConnector_Response" outPort="Port 1 (out)" toNode="SIMPLE_GATHER:0"/>
+<Edge fromNode="SUBGRAPH_INPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 1 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="COMBINE:1"/>
+<Edge debugMode="all" fromNode="XERO:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" metadata="HTTPConnector_Response1" outPort="Port 0 (out)" toNode="EVALUATE_NEXT_PAGE:0"/>
+<Edge edgeType="directFastPropagate" fromNode="XERO:1" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="FORMAT_HTTP_REQUEST_ERROR:0"/>
+</Phase>
+</Graph>

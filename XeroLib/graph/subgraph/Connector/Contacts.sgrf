@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="readers" created="Tue Nov 08 20:16:54 GMT 2022" description="Get contacts with optional filter conditions." guiVersion="6.0.0.21" id="1667940816355" largeIconPath="${PROJECT}/icons/xero_logo_64.png" licenseCode="CLCDSCLOVE72646208SP" mediumIconPath="${PROJECT}/icons/xero_logo_32.png" name="getContacts" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/xero_logo_16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" name="0" required="true"/>
+</outputPorts>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="Address" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="ContactID" type="string"/>
+<Field name="AddressType" type="string"/>
+<Field name="AddressLine1" type="string"/>
+<Field name="AddressLine2" type="string"/>
+<Field name="AddressLine3" type="string"/>
+<Field name="AddressLine4" type="string"/>
+<Field name="City" type="string"/>
+<Field name="Region" type="string"/>
+<Field name="PostalCode" type="string"/>
+<Field name="Country" type="string"/>
+<Field name="AttentionTo" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata4">
+<Record fieldDelimiter="|" name="Contact" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="ContactID" type="string"/>
+<Field name="ContactNumber" type="string"/>
+<Field name="AccountNumber" type="string"/>
+<Field name="ContactStatus" type="string"/>
+<Field name="Name" type="string"/>
+<Field name="FirstName" type="string"/>
+<Field name="LastName" type="string"/>
+<Field name="EmailAddress" type="string"/>
+<Field name="BankAccountDetails" type="string"/>
+<Field name="TaxNumber" type="string"/>
+<Field name="AccountsReceivableTaxType" type="string"/>
+<Field name="AccountsPayableTaxType" type="string"/>
+<Field format="${DATE_FORMAT}" name="UpdatedDateUTC" type="date"/>
+<Field name="IsSupplier" type="boolean"/>
+<Field name="IsCustomer" type="boolean"/>
+<Field name="DefaultCurrency" type="string"/>
+<Field name="HasAttachments" type="boolean"/>
+<Field name="HasValidationErrors" type="boolean"/>
+<Field name="BatchPayments_BankAccountNumber" type="string"/>
+<Field name="BatchPayments_BankAccountName" type="string"/>
+<Field name="BatchPayments_Details" type="string"/>
+<Field name="BatchPayments_Code" type="string"/>
+<Field name="BatchPayments_Reference" type="string"/>
+<Field name="Balances_AccountsReceivable_Outstanding" type="decimal"/>
+<Field name="Balances_AccountsReceivable_Overdue" type="decimal"/>
+<Field name="Balances_AccountsPayable_Outstanding" type="decimal"/>
+<Field name="Balances_AccountsPayable_Overdue" type="decimal"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="ContactINPUT" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="ContactID" type="string"/>
+<Field name="ContactNumber" type="string"/>
+<Field name="AccountNumber" type="string"/>
+<Field name="ContactStatus" type="string"/>
+<Field name="Name" type="string"/>
+<Field name="FirstName" type="string"/>
+<Field name="LastName" type="string"/>
+<Field name="EmailAddress" type="string"/>
+<Field name="BankAccountDetails" type="string"/>
+<Field name="TaxNumber" type="string"/>
+<Field name="AccountsReceivableTaxType" type="string"/>
+<Field name="AccountsPayableTaxType" type="string"/>
+<Field name="UpdatedDateUTC" type="string"/>
+<Field name="IsSupplier" type="boolean"/>
+<Field name="IsCustomer" type="boolean"/>
+<Field name="DefaultCurrency" type="string"/>
+<Field name="HasAttachments" type="boolean"/>
+<Field name="HasValidationErrors" type="boolean"/>
+<Field name="BrandingTheme_BrandingThemeID" type="string"/>
+<Field name="BrandingTheme_Name" type="string"/>
+<Field name="BatchPayments_BankAccountNumber" type="string"/>
+<Field name="BatchPayments_BankAccountName" type="string"/>
+<Field name="BatchPayments_Details" type="string"/>
+<Field name="BatchPayments_Code" type="string"/>
+<Field name="BatchPayments_Reference" type="string"/>
+<Field name="Balances_AccountsReceivable_Outstanding" type="decimal"/>
+<Field name="Balances_AccountsReceivable_Overdue" type="decimal"/>
+<Field name="Balances_AccountsPayable_Outstanding" type="decimal"/>
+<Field name="Balances_AccountsPayable_Overdue" type="decimal"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0" previewAttachmentCharset="UTF-8">
+<Record fieldDelimiter="|" name="ContactOUT" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="ContactID" type="string">
+<attr name="description"><![CDATA[Xero identifier (unique within organisations)]]></attr>
+</Field>
+<Field name="ContactNumber" type="string">
+<attr name="description"><![CDATA[This field is read only in the Xero UI, used to identify contacts in external systems. It is displayed as Contact Code in the Contacts UI in Xero.]]></attr>
+</Field>
+<Field name="AccountNumber" type="string"/>
+<Field name="ContactStatus" type="string">
+<attr name="description"><![CDATA[Current status of a contact]]></attr>
+</Field>
+<Field name="Name" type="string">
+<attr name="description"><![CDATA[Full name of contact/organisation]]></attr>
+</Field>
+<Field name="FirstName" type="string">
+<attr name="description"><![CDATA[First name of contact person]]></attr>
+</Field>
+<Field name="LastName" type="string">
+<attr name="description"><![CDATA[Last name of contact person]]></attr>
+</Field>
+<Field name="EmailAddress" type="string">
+<attr name="description"><![CDATA[Email address of contact person]]></attr>
+</Field>
+<Field name="BankAccountDetails" type="string">
+<attr name="description"><![CDATA[Bank account number of contact]]></attr>
+</Field>
+<Field name="TaxNumber" type="string">
+<attr name="description"><![CDATA[Tax number of contact - this is also known as the ABN (Australia), GST Number (New Zealand), VAT Number (UK) or Tax ID Number (US and global) in the Xero UI depending on which regionalized version of Xero you are using]]></attr>
+</Field>
+<Field name="AccountsReceivableTaxType" type="string">
+<attr name="description"><![CDATA[Default tax type used for contact on AR invoices]]></attr>
+</Field>
+<Field name="AccountsPayableTaxType" type="string">
+<attr name="description"><![CDATA[Default tax type used for contact on AP invoices]]></attr>
+</Field>
+<Field format="yyyy-MM-dd HH:mm" name="UpdatedDateUTC" trim="true" type="date">
+<attr name="description"><![CDATA[UTC timestamp of last update to contact]]></attr>
+</Field>
+<Field name="IsSupplier" trim="true" type="boolean">
+<attr name="description"><![CDATA[Boolean that describes if a contact that has any AP invoices entered against them]]></attr>
+</Field>
+<Field name="IsCustomer" trim="true" type="boolean">
+<attr name="description"><![CDATA[Boolean that describes if a contact has any AR invoices entered against them]]></attr>
+</Field>
+<Field name="DefaultCurrency" type="string">
+<attr name="description"><![CDATA[Default currency for raising invoices against contact]]></attr>
+</Field>
+<Field name="HasAttachments" trim="true" type="boolean">
+<attr name="description"><![CDATA[A boolean to indicate if a contact has an attachment]]></attr>
+</Field>
+<Field name="HasValidationErrors" trim="true" type="boolean"/>
+<Field name="BatchPayments_BankAccountNumber" type="string"/>
+<Field name="BatchPayments_BankAccountName" type="string"/>
+<Field name="BatchPayments_Details" type="string"/>
+<Field name="BatchPayments_Code" type="string"/>
+<Field name="BatchPayments_Reference" type="string"/>
+<Field length="12" name="Balances_AccountsReceivable_Outstanding" scale="2" trim="true" type="decimal"/>
+<Field length="12" name="Balances_AccountsReceivable_Overdue" scale="2" trim="true" type="decimal"/>
+<Field length="12" name="Balances_AccountsPayable_Outstanding" scale="2" trim="true" type="decimal"/>
+<Field length="12" name="Balances_AccountsPayable_Overdue" scale="2" trim="true" type="decimal"/>
+<Field name="AddressType" type="string">
+<attr name="description"><![CDATA[Store certain address types for a contact]]></attr>
+</Field>
+<Field name="AddressLine1" type="string"/>
+<Field name="AddressLine2" type="string"/>
+<Field name="AddressLine3" type="string"/>
+<Field name="AddressLine4" type="string"/>
+<Field name="City" type="string"/>
+<Field name="Region" type="string"/>
+<Field name="PostalCode" type="string"/>
+<Field name="Country" type="string"/>
+<Field name="AttentionTo" type="string"/>
+<Field name="PhoneType" type="string">
+<attr name="description"><![CDATA[Store certain phone types for a contact]]></attr>
+</Field>
+<Field name="PhoneNumber" type="string"/>
+<Field name="PhoneAreaCode" type="string"/>
+<Field name="PhoneCountryCode" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata3">
+<Record fieldDelimiter="|" name="Phone" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="ContactID" type="string"/>
+<Field name="PhoneType" type="string"/>
+<Field name="PhoneNumber" type="string"/>
+<Field name="PhoneAreaCode" type="string"/>
+<Field name="PhoneCountryCode" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter defaultHint="Optional filter by contact name" label="Name" name="NAME" public="true"/>
+<GraphParameter defaultHint="Optional filter by email" label="Email Address" name="EMAIL_ADDRESS" public="true"/>
+<GraphParameter name="PARAMS">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	string [] paramList;
+	
+	if (getParamValue("NAME") != null and trim(getParamValue("NAME")) != ""){
+		append(paramList, escapeUrlFragment(concat('Name="', getParamValue("NAME"), '"')));
+	}
+	if (getParamValue("EMAIL_ADDRESS") != null and trim(getParamValue("EMAIL_ADDRESS")) != ""){
+		append(paramList, escapeUrlFragment(concat('EmailAddress="', getParamValue("EMAIL_ADDRESS"), '"')));
+	}
+	
+	if (length(paramList) > 0){
+		return concat("?where=", join("+AND+", paramList));	
+	}
+	
+	return "";
+}
+]]></attr>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+<GraphParameterFile fileURL="xeroApi.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="DEF4AB" folded="false" fontSize="medium" height="155" id="Note0" textColor="444444" width="411" x="214" y="326">
+<attr name="text"><![CDATA[h3. Contacts
+
+[https://developer.xero.com/documentation/api/accounting/contacts]]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="convert and handle preview" guiX="761" guiY="134" id="CONVERT_AND_HANDLE_PREVIEW" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+integer NUM_OF_PREVIEW_RECORDS = null;
+integer count = 0;
+
+function void init(){
+	
+	if (getParamValue("NUM_OF_PREVIEW_RECORDS") != null and trim(getParamValue("NUM_OF_PREVIEW_RECORDS")) != ""){
+		if (isInteger(getParamValue("NUM_OF_PREVIEW_RECORDS"))){
+			NUM_OF_PREVIEW_RECORDS = str2integer(getParamValue("NUM_OF_PREVIEW_RECORDS"));
+		}else{
+			raiseError(concat('Parameter for number of records in preview (NUM_OF_PREVIEW_RECORDS) is expected to be the whole number. Not "', getParamValue("NUM_OF_PREVIEW_RECORDS"), '"'));
+		}	
+	}
+	
+}
+
+
+function integer transform() {
+	//handling preview driven by NUM_OF_PREVIEW_RECORDS parameter
+	if (NUM_OF_PREVIEW_RECORDS != null and count >= NUM_OF_PREVIEW_RECORDS){
+		return SKIP;
+	}
+	count++;
+	
+	$out.0.* = $in.0.*;
+	// /Date(1666259038377+0000)/
+	
+	$out.0.UpdatedDateUTC = long2date(str2long(replace(replace($in.0.UpdatedDateUTC, '\+0000\)/', ""), '/Date\(', "")));
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="ExtHashJoin" guiX="1020" guiY="134" id="EXT_HASH_JOIN" joinKey="$ContactID=$ContactID#$ContactID=$ContactID" joinType="leftOuter" slaveDuplicates="true" type="EXT_HASH_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.AddressType = $in.1.AddressType;
+	$out.0.AddressLine1 = $in.1.AddressLine1;
+	$out.0.AddressLine2 = $in.1.AddressLine2;
+	$out.0.AddressLine3 = $in.1.AddressLine3;
+	$out.0.AddressLine4 = $in.1.AddressLine4;
+	$out.0.City = $in.1.City;
+	$out.0.Region = $in.1.Region;
+	$out.0.PostalCode = $in.1.PostalCode;
+	$out.0.Country = $in.1.Country;
+	$out.0.AttentionTo = $in.1.AttentionTo;
+	$out.0.PhoneType = $in.2.PhoneType;
+	$out.0.PhoneNumber = $in.2.PhoneNumber;
+	$out.0.PhoneAreaCode = $in.2.PhoneAreaCode;
+	$out.0.PhoneCountryCode = $in.2.PhoneCountryCode;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Fail" guiX="463" guiY="234" id="FAIL1" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = $in.0.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="GET Contacts" guiX="214" guiY="134" id="GET_CONTACTS1" jobURL="${XERO_CORE_PAGING_CONNECTOR_URL}" type="SUBGRAPH">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.OAUTH_URL = getParamValue("OAUTH_URL");
+	$out.0.TENANT_ID = getParamValue("TENANT_ID");
+	$out.0.DATE_FORMAT = getParamValue("DATE_FORMAT");
+	$out.0.NUM_OF_PREVIEW_RECORDS = getParamValue("NUM_OF_PREVIEW_RECORDS");
+	$out.0.CALL = concat("https://api.xero.com/api.xro/2.0/Contacts", getParamValue("PARAMS"));
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="keep just DEFAULT/primary" guiX="761" guiY="308" id="KEEP_JUST_DEFAULT_PRIMARY" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.PhoneType == "DEFAULT"]]></attr>
+</Node>
+<Node guiName="keep just POBOX/default address" guiX="761" guiY="222" id="KEEP_JUST_POBOX_DEFAULT_ADDRESS" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+//POBOX	The default mailing address for invoices
+$in.0.AddressType == "POBOX"]]></attr>
+</Node>
+<Node guiName="parse Contacts response" guiX="463" guiY="134" id="PARSE_CONTACTS_RESPONSE" schema="${META_DIR}/responseSchemas/Contacts" sourceUri="port:$0.content:discrete" type="JSON_EXTRACT">
+<attr name="mapping"><![CDATA[<Mappings>
+		<Mapping element="Contacts" outPort="0"
+				xmlFields="{}AccountNumber;{}AccountsPayableTaxType;{}AccountsReceivableTaxType;{}BankAccountDetails;{}ContactID;{}ContactNumber;{}ContactStatus;{}DefaultCurrency;{}EmailAddress;{}FirstName;{}HasAttachments;{}HasValidationErrors;{}IsCustomer;{}IsSupplier;{}LastName;{}Name;{}TaxNumber;{}UpdatedDateUTC"
+				cloverFields="AccountNumber;AccountsPayableTaxType;AccountsReceivableTaxType;BankAccountDetails;ContactID;ContactNumber;ContactStatus;DefaultCurrency;EmailAddress;FirstName;HasAttachments;HasValidationErrors;IsCustomer;IsSupplier;LastName;Name;TaxNumber;UpdatedDateUTC">
+			<Mapping element="Addresses" outPort="1"
+					xmlFields="../{}ContactID;{}AddressLine1;{}AddressLine2;{}AddressLine3;{}AddressLine4;{}AddressType;{}AttentionTo;{}City;{}Country;{}PostalCode;{}Region"
+					cloverFields="ContactID;AddressLine1;AddressLine2;AddressLine3;AddressLine4;AddressType;AttentionTo;City;Country;PostalCode;Region">
+			</Mapping>
+			<Mapping element="Phones" outPort="2"
+					xmlFields="../{}ContactID;{}PhoneAreaCode;{}PhoneCountryCode;{}PhoneNumber;{}PhoneType"
+					cloverFields="ContactID;PhoneAreaCode;PhoneCountryCode;PhoneNumber;PhoneType">
+			</Mapping>
+			<Mapping element="BrandingTheme" useParentRecord="true"
+					xmlFields="{}BrandingThemeID;{}Name"
+					cloverFields="BrandingTheme_BrandingThemeID;BrandingTheme_Name">
+			</Mapping>
+			<Mapping element="BatchPayments" useParentRecord="true"
+					xmlFields="{}BankAccountName;{}BankAccountNumber;{}Code;{}Details;{}Reference"
+					cloverFields="BatchPayments_BankAccountName;BatchPayments_BankAccountNumber;BatchPayments_Code;BatchPayments_Details;BatchPayments_Reference">
+			</Mapping>
+			<Mapping element="Balances">
+				<Mapping element="AccountsReceivable" useParentRecord="true"
+						xmlFields="{}Outstanding;{}Overdue"
+						cloverFields="Balances_AccountsReceivable_Outstanding;Balances_AccountsReceivable_Overdue">
+				</Mapping>
+				<Mapping element="AccountsPayable" useParentRecord="true"
+						xmlFields="{}Outstanding;{}Overdue"
+						cloverFields="Balances_AccountsPayable_Outstanding;Balances_AccountsPayable_Overdue">
+				</Mapping>
+			</Mapping>
+		</Mapping>
+</Mappings>
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="50" guiY="10" id="SUBGRAPH_INPUT" type="SUBGRAPH_INPUT">
+<Port guiY="110" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1250" guiY="10" id="SUBGRAPH_OUTPUT" type="SUBGRAPH_OUTPUT">
+<Port guiY="151" name="0"/>
+<Port guiY="221" name="1"/>
+</Node>
+<Edge fromNode="CONVERT_AND_HANDLE_PREVIEW:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (driver)" metadata="Metadata4" outPort="Port 0 (out)" toNode="EXT_HASH_JOIN:0"/>
+<Edge fromNode="EXT_HASH_JOIN:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:0"/>
+<Edge fromNode="GET_CONTACTS1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (input)" outPort="Port 0 (out)" toNode="PARSE_CONTACTS_RESPONSE:0"/>
+<Edge fromNode="GET_CONTACTS1:1" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="FAIL1:0"/>
+<Edge fromNode="KEEP_JUST_DEFAULT_PRIMARY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 2 (slave)" outPort="Port 0 (accepted)" toNode="EXT_HASH_JOIN:2"/>
+<Edge fromNode="KEEP_JUST_POBOX_DEFAULT_ADDRESS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 1 (slave)" outPort="Port 0 (accepted)" toNode="EXT_HASH_JOIN:1"/>
+<Edge fromNode="PARSE_CONTACTS_RESPONSE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="CONVERT_AND_HANDLE_PREVIEW:0"/>
+<Edge fromNode="PARSE_CONTACTS_RESPONSE:1" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 1 (out)" toNode="KEEP_JUST_POBOX_DEFAULT_ADDRESS:0"/>
+<Edge fromNode="PARSE_CONTACTS_RESPONSE:2" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 2 (out)" toNode="KEEP_JUST_DEFAULT_PRIMARY:0"/>
+</Phase>
+</Graph>

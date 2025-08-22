@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="antoninsteskal" created="Fri Mar 17 10:51:05 CET 2023" guiVersion="5.17.0.3" id="1679056700318" licenseCode="CLCDSCLOVE72646208SP" name="addMetaLabels" showComponentDetails="true">
+<Global>
+<Metadata fileURL="${META_DIR}/lookup.fmt" id="Metadata2"/>
+<Metadata fileURL="${META_DIR}/lookup.fmt" id="Metadata3"/>
+<Metadata fileURL="${META_DIR}/lookup.fmt" id="Metadata4"/>
+<Metadata fileURL="${META_DIR}/lookup.fmt" id="Metadata5"/>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="fieldNode" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="label" type="string"/>
+<Field name="name" type="string"/>
+<Field name="salesforce_field_type" type="string"/>
+<Field name="type" type="string"/>
+<Field name="trim" type="string"/>
+<Field name="length" type="string"/>
+<Field name="scale" type="string"/>
+<Field name="format" type="string"/>
+<Field name="timeZone" type="string"/>
+<Field name="attr" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="recordNode" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="fieldDelimiter" type="string"/>
+<Field name="label" type="string"/>
+<Field name="name" type="string"/>
+<Field name="recordDelimiter" type="string"/>
+<Field name="type" type="string"/>
+<Field name="attr" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter name="OBJECT" public="true" required="true" value="account"/>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<LookupTable id="LookupTable0" lookupConfig="${LOOKUP_DIR}/accountLookup.cfg"/>
+<LookupTable id="LookupTable1" lookupConfig="${LOOKUP_DIR}/campaignLookup.cfg"/>
+<LookupTable id="LookupTable2" lookupConfig="${LOOKUP_DIR}/leadLookup.cfg"/>
+<LookupTable id="LookupTable3" lookupConfig="${LOOKUP_DIR}/opportunityLookup.cfg"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="LookupJoin Account" guiX="815" guiY="343" id="LOOKUP_JOIN_ACCOUNT" joinKey="name" leftOuterJoin="true" lookupTable="LookupTable0" type="LOOKUP_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.label = $in.1.fieldDescription;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="LookupJoin Campaigns" guiX="815" guiY="428" id="LOOKUP_JOIN_CAMPAIGNS" joinKey="name" lookupTable="LookupTable1" type="LOOKUP_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.label = $in.1.fieldDescription;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="LookupJoin Lead" guiX="815" guiY="513" id="LOOKUP_JOIN_LEAD" joinKey="name" lookupTable="LookupTable2" type="LOOKUP_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.label = $in.1.fieldDescription;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="LookupJoin Opportunity" guiX="815" guiY="601" id="LOOKUP_JOIN_OPPORTUNITY" joinKey="name" leftOuterJoin="false" lookupTable="LookupTable3" type="LOOKUP_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.label = $in.1.fieldDescription;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Map" guiX="600" guiY="169" id="MAP" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	
+	$out.0.* = $in.0.*;
+	
+	switch(upperCase(getParamValue("OBJECT"))){
+		case "ACCOUNT":
+		case "ACCOUNTS":
+			$out.0.label = "Accounts";
+			break;
+		case "CAMPAIGN":
+		case "CAMPAIGNS":
+			$out.0.label = "Campaigns";
+			break;
+		case "LEAD":
+		case "LEADS":
+			$out.0.label = "Leads";
+			break;
+		case "OPPORTUNITY":
+		case "OPPORTUNITIES":
+			$out.0.label = "Opportunities";
+			break;
+		default:
+			break;
+	}
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Partition" guiX="396" guiY="269" id="PARTITION" type="PARTITION">
+<attr name="partitionSource"><![CDATA[//#CTL2
+// This transformation partitions input records into multiple output ports.
+
+// Returns the number of the output port where the input record will be sent.
+function integer getOutputPort() {
+  switch(upperCase(getParamValue("OBJECT"))){
+		case "ACCOUNT":
+		case "ACCOUNTS":
+			return 1;
+		case "CAMPAIGN":
+		case "CAMPAIGNS":
+			return 2;
+		case "LEAD":
+		case "LEADS":
+			return 3;
+		case "OPPORTUNITY":
+		case "OPPORTUNITIES":
+			return 4;
+		default:
+			return 0;
+	}
+}
+
+// Called during component initialization, partitionCount is the number of output ports.
+// function void init(integer partitionCount) {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources.
+// All resources allocated within this method should be released by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if getOutputPort() throws an exception.
+// function integer getOutputPortOnError(string errorMessage, string stackTrace) {
+// }
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="SimpleGather" guiX="1089" guiY="410" id="SIMPLE_GATHER" type="SIMPLE_GATHER"/>
+<Node guiName="Trash" guiX="815" guiY="269" id="TRASH1" type="TRASH"/>
+<Node guiName="XMLExtract" guiX="101" guiY="169" id="XMLEXTRACT" schema="${META_DIR}/Record.xsd" sourceUri="${META_DIR}/generated/${OBJECT}.fmt" type="XML_EXTRACT">
+<attr name="mapping"><![CDATA[<Mappings>
+	<Mapping element="Record" outPort="0"
+			xmlFields="{}attr;{}fieldDelimiter;{}label;{}name;{}recordDelimiter;{}type"
+			cloverFields="attr;fieldDelimiter;label;name;recordDelimiter;type">
+		<Mapping element="Field" outPort="1"
+				xmlFields="{}attr;{}format;{}label;{}length;{}name;{}salesforce_field_type;{}scale;{}timeZone;{}trim;{}type"
+				cloverFields="attr;format;label;length;name;salesforce_field_type;scale;timeZone;trim;type">
+		</Mapping>
+	</Mapping>
+</Mappings>
+]]></attr>
+</Node>
+<Edge fromNode="LOOKUP_JOIN_ACCOUNT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" metadataRef="#//Edge1" outPort="Port 0 (joined records)" toNode="SIMPLE_GATHER:0"/>
+<Edge fromNode="LOOKUP_JOIN_CAMPAIGNS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 1 (in)" outPort="Port 0 (joined records)" toNode="SIMPLE_GATHER:1"/>
+<Edge fromNode="LOOKUP_JOIN_LEAD:0" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 2 (in)" outPort="Port 0 (joined records)" toNode="SIMPLE_GATHER:2"/>
+<Edge fromNode="LOOKUP_JOIN_OPPORTUNITY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 3 (in)" outPort="Port 0 (joined records)" toNode="SIMPLE_GATHER:3"/>
+<Edge fromNode="MAP:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="XMLWRITER:0"/>
+<Edge fromNode="PARTITION:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="TRASH1:0"/>
+<Edge fromNode="PARTITION:1" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="LOOKUP_JOIN_ACCOUNT:0"/>
+<Edge fromNode="PARTITION:2" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" outPort="Port 2 (out)" toNode="LOOKUP_JOIN_CAMPAIGNS:0"/>
+<Edge fromNode="PARTITION:3" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" outPort="Port 3 (out)" toNode="LOOKUP_JOIN_LEAD:0"/>
+<Edge fromNode="PARTITION:4" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" outPort="Port 4 (out)" toNode="LOOKUP_JOIN_OPPORTUNITY:0"/>
+<Edge fromNode="SIMPLE_GATHER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="XMLWRITER:1"/>
+<Edge fromNode="XMLEXTRACT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="MAP:0"/>
+<Edge fromNode="XMLEXTRACT:1" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 1 (out)" toNode="PARTITION:0"/>
+</Phase>
+<Phase number="10">
+<Node fileURL="${META_DIR}/generated/${OBJECT}.fmt" guiName="XMLWriter" guiX="1343" guiY="169" id="XMLWRITER" type="EXT_XML_WRITER">
+<attr name="mapping"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<Record xmlns:clover="http://www.cloveretl.com/ns/xmlmapping" fieldDelimiter="$0.fieldDelimiter" name="$0.name" recordDelimiter="$0.recordDelimiter" type="$0.type" label="$0.label" clover:inPort="0">
+  <Field name="$1.name" label="$1.label" type="$1.type" trim="$1.trim" length="$1.length" scale="$1.scale" format="$1.format" timeZone="$1.timeZone" salesforce_field_type="$1.salesforce_field_type" clover:inPort="1"/>
+</Record>]]></attr>
+</Node>
+</Phase>
+</Graph>

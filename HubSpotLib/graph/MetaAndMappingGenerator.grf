@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Martin" created="Thu Sep 22 10:59:50 CEST 2022" guiVersion="5.17.0.3" id="1663927950295" licenseCode="CLP1DCLOVE28718064BY" name="new-graph" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata2">
+<Record fieldDelimiter=":" name="Mapping" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="hubspot_name" type="string"/>
+<Field name="clover_field" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="|" name="MetadataField" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\r\n" type="delimited">
+<Field name="__name" type="string"/>
+<Field name="__label" type="string"/>
+<Field name="__fieldDelimiter" type="string"/>
+<Field name="__skipSourceRows" trim="true" type="integer"/>
+<Field name="__quoteChar" type="string"/>
+<Field name="name" type="string"/>
+<Field name="label" type="string"/>
+<Field default="string" name="type" type="string"/>
+<Field name="containerType" type="string"/>
+<Field name="delimiter" type="string"/>
+<Field name="size" trim="true" type="integer"/>
+<Field name="format" type="string"/>
+<Field name="locale" type="string"/>
+<Field name="timezone" type="string"/>
+<Field name="nullValue" type="string"/>
+<Field name="default" type="string"/>
+<Field name="description" type="string"/>
+<Field name="nullable" trim="true" type="boolean"/>
+<Field name="shift" type="string"/>
+<Field name="trim" type="string"/>
+<Field name="autofilling" type="string"/>
+<Field name="length" trim="true" type="integer"/>
+<Field name="scale" trim="true" type="integer"/>
+<Field name="hubspotObject" type="string"/>
+<Field name="hubspotProperty" type="string"/>
+<Field name="hubspotPropertyGroup" type="string"/>
+<Field name="hubspotType" type="string"/>
+<Field name="hubspotSubtype" type="string">
+<attr name="description"><![CDATA[fieldType]]></attr>
+</Field>
+<Field name="options" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="SelectProperty" recordDelimiter="\r\n" type="delimited">
+<Field name="select_property" type="boolean"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter label="HS object name" name="OBJECT" public="true" required="false" value="deals">
+<ComponentReference referencedComponent="CRM_OBJECT_PROPERTIES_API_V3" referencedProperty="__OBJECT"/>
+</GraphParameter>
+<GraphParameter name="METADATA_NAME"/>
+<GraphParameter name="EFFECTIVE_METADATA_NAME">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return isBlank("${METADATA_NAME}")?"${OBJECT}":"${METADATA_NAME}";
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter name="ABSOLUTE_META_PATH">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return toAbsolutePath("${META_DIR}/generated/"+ (isBlank("${METADATA_NAME}")?"${OBJECT}":"${METADATA_NAME}"));
+}
+]]></attr>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="libraries.prm"/>
+<GraphParameter category="advanced" defaultHint="Optional - object name plus id suffix will be used automatically" label="Object ID field name" name="OBJECT_ID_FIELD_NAME" public="false" secure="false">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+import "${TRANS_DIR}/Utils.ctl";
+
+function string getValue() {
+	return lowerCase(singular(getParamValue("OBJECT")))+"_id";
+}
+]]></attr>
+<attr name="description"><![CDATA[Clover field name mapped to the HubSpot ID. Optional, if no value provided, field name will be generated as lowercase singular object name + _id suffix.]]></attr>
+<SingleType name="string"/>
+</GraphParameter>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="DEF4AB" folded="false" fontSize="medium" height="378" id="Note0" textColor="444444" width="337" x="120" y="27">
+<attr name="text"><![CDATA[h3. Get object attributes from HubSpot]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="FAF6D6" folded="false" fontSize="medium" height="382" id="Note1" textColor="444444" width="760" x="456" y="25">
+<attr name="text"><![CDATA[h3. Create metadata and mappings]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="Add id field" guiX="785" guiY="173" id="ADD_ID_FIELD" type="CONCATENATE"/>
+<Node __OBJECT="${OBJECT}" __OPERATION="List" __O_AUTH2_CONNECTION="${HUBSPOT_OAUTH2_CONNECTION}" __PRIVATE_APP_TOKEN="${HUBSPOT_PRIVATE_APP_TOKEN}" guiName="CrmObjectPropertiesApiV3" guiX="206" guiY="226" id="CRM_OBJECT_PROPERTIES_API_V3" jobURL="${HUB_SPOT_CRM_API_LIB}/graph/CrmObjectPropertiesApiV3.sgrf" type="SUBGRAPH"/>
+<Node guiName="Generate Id field" guiX="529" guiY="127" id="GENERATE_ID_FIELD" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+	$out.0.name = getParamValue("OBJECT_ID_FIELD_NAME");
+	$out.0.type = "string";
+	$out.0.description = "The unique ID for this record in HubSpot.";
+	return ALL;
+}]]></attr>
+</Node>
+<Node guiName="Map to Clover metadata" guiX="477" guiY="226" id="MAP_TO_CLOVER_METADATA" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+import "${TRANS_DIR}/Utils.ctl";
+
+boolean limitFields = false;
+string[] fields = [];
+string paramName = upperCase(getParamValue("OBJECT"))+"_FIELDS";
+
+if(getParamValue(paramName) != null && length(getParamValue(paramName))>0 && 
+length(split(getParamValue(paramName),","))>0){
+	limitFields = true;
+	fields = split(getParamValue(paramName),",");
+}
+
+
+// Transforms input record into output record.
+function integer transform() {
+	
+	if(limitFields==true && !in($in.0.name,fields)){
+		return SKIP;
+	}
+		
+	$out.0.name = $in.0.name;
+	$out.0.hubspotProperty = $in.0.name;
+	$out.0.hubspotObject = lowerCase(singular(getParamValue("OBJECT")));
+	$out.0.label = $in.0.label;
+	$out.0.hubspotPropertyGroup = $in.0.groupName;
+	$out.0.description = $in.0.description;
+	$out.0.options = writeJson($in.0.options);
+	//https://knowledge.hubspot.com/account/property-field-types-in-hubspot
+	$out.0.hubspotType = $in.0.type;
+	$out.0.hubspotSubtype = $in.0.fieldType;
+	switch($out.0.hubspotType){
+		case "number":
+			//hubspot seems to store the numeric values a double number 
+			//but I only came to this conclusion through experimentation
+			//the precision behaves as one expect - decreasing the further
+			//from zero the number is, this is also consitent with the
+			//hubspot documentation which states intgers of the length 15-16
+			//can be stored which alignes with the range of integers that can
+			//be represented by double number precisely (9,007,199,254,740,992)
+			//https://en.wikipedia.org/wiki/Double-precision_floating-point_format
+			$out.0.type = "number";
+			break;
+		case "datetime":
+		case "date":
+			$out.0.type = "date";
+			break;
+		case "enumeration":
+			$out.0.type = "string";
+			switch($out.0.hubspotSubtype){
+				//only one option
+				case "select":
+				case "radio":
+					break;
+				//fill format string
+				case "booleancheckbox":
+					booleanCheckbox();
+					break;
+				//multiple options can be selected
+				case "checkbox":
+					//reader does not support this yet
+					//$out.0.containerType = "list";
+					break;
+			}
+			break;
+		default:
+			$out.0.type = "string";
+	}
+	
+	$out.1.hubspot_name = $in.0.name;
+	
+	return ALL;
+}
+
+function void booleanCheckbox(){
+	string yes = null;
+	string no = null;
+	foreach(variant option : $in.0.options){
+		if(	option["hidden"]=="false" 
+			and 
+			lowerCase(cast(option["value"],string)) ~= 'true|yes|ja|si|ano|y|t'
+		){
+			yes = cast(option["value"],string);
+		}
+		if(	option["hidden"]=="false" 
+			and 
+			lowerCase(cast(option["value"],string)) ~= 'false|no|nein|ne|n|f'
+		){
+			no = cast(option["value"],string);
+		}
+	}
+	if(not isBlank(yes) and not isBlank(no)){
+		$out.0.type = "boolean";
+		$out.0.format = "/"+yes+"/"+no+"/";
+	}else{
+		$out.0.type = "string";
+	}
+}]]></attr>
+</Node>
+<Node guiName="null record name" guiX="549" guiY="448" id="NULL_RECORD_NAME" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.__name = null;
+	$out.0.__fieldDelimiter = null;
+	return ALL;
+}]]></attr>
+</Node>
+<Node __SOURCE_URI="${META_DIR}/handpicked/excerptCompanies.fmt" __USE_DEFAULT_METADATA="false" guiName="Read excerpt metadata" guiX="371" guiY="448" id="READ_EXCERPT_METADATA" jobURL="${DATA_ANALYTICS_BUNDLE_LIB}/graph/readers/FmtReader.sgrf" type="SUBGRAPH"/>
+<Node guiName="Select excerpts" guiX="217" guiY="448" id="SELECT_EXCERPTS" recordsNumber="-1" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+import "${TRANS_DIR}/Utils.ctl"; 
+
+
+variant excerpts_conf = {
+	"deal" -> [
+		"${META_DIR}/handpicked/excerptCompanies.fmt",
+		"${META_DIR}/handpicked/excerptOwners.fmt"
+	]
+};
+
+integer index = 0;
+list[string] urls = null;
+// Generates output record.
+function integer generate() {
+	
+	if(index == 0){
+		urls = 	cast(excerpts_conf[singular(lowerCase("${OBJECT}"))], list, string);
+		if(urls == null or isEmpty(urls)){
+			return STOP;
+		}
+	}
+	
+	if(index < length(urls)){
+		$out.0.url = toAbsolutePath(urls[index]);
+	}else{
+		return STOP;	
+	}
+	index++;
+	return ALL;
+}
+]]></attr>
+</Node>
+<Edge fromNode="ADD_ID_FIELD:0" guiBendpoints="" guiRouter="Manhattan" id="Edge14" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="CREATE_METADA:0"/>
+<Edge fromNode="CRM_OBJECT_PROPERTIES_API_V3:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="MAP_TO_CLOVER_METADATA:0"/>
+<Edge fromNode="GENERATE_ID_FIELD:0" guiBendpoints="" guiRouter="Manhattan" id="Edge13" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="ADD_ID_FIELD:0"/>
+<Edge fromNode="MAP_TO_CLOVER_METADATA:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 1 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="ADD_ID_FIELD:1"/>
+<Edge fromNode="MAP_TO_CLOVER_METADATA:1" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 1 (out)" toNode="CREATE_MAPPING_FILE:0"/>
+<Edge fromNode="NULL_RECORD_NAME:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 2 (in)" outPort="Port 0 (out)" toNode="ADD_ID_FIELD:2"/>
+<Edge fromNode="READ_EXCERPT_METADATA:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="NULL_RECORD_NAME:0"/>
+<Edge fromNode="SELECT_EXCERPTS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="READ_EXCERPT_METADATA:0"/>
+</Phase>
+<Phase number="1">
+<Node fileURL="${ABSOLUTE_META_PATH}.map" guiName="Create mapping file" guiX="956" guiY="297" id="CREATE_MAPPING_FILE" makeDirs="true" type="FLAT_FILE_WRITER"/>
+<Node __CUSTOM_METADATA="true" __FILE_URL="${ABSOLUTE_META_PATH}.fmt" __METADATA_NAME="${EFFECTIVE_METADATA_NAME}" guiName="Create metada" guiX="956" guiY="173" id="CREATE_METADA" jobURL="${DATA_ANALYTICS_BUNDLE_LIB}/graph/formatter/FmtFormatter.sgrf" type="SUBGRAPH">
+<attr name="guiDescription"><![CDATA[Implementation of a workflow that creates .fmt file used for CloverDX metadata.]]></attr>
+</Node>
+</Phase>
+</Graph>
