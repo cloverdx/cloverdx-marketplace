@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Martin" category="others" created="Tue Oct 03 13:56:07 CEST 2023" description="Returns HubSpot account details along with API rate limits taken from the header" guiVersion="6.7.1.5" id="1696334794281" largeIconPath="${PROJECT}/icons/HubSpot-64.png" licenseCode="CLCDSCLOVE24765514SP" mediumIconPath="${PROJECT}/icons/HubSpot-32.png" name="ApiUsage" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/HubSpot-16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" name="0"/>
+</outputPorts>
+<Metadata id="Metadata1" previewAttachmentCharset="UTF-8">
+<Record fieldDelimiter="|" name="AccountDetails" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="portalId" type="string"/>
+<Field name="accountType" type="string"/>
+<Field name="timeZone" type="string"/>
+<Field name="companyCurrency" type="string"/>
+<Field containerType="list" name="additionalCurrencies" type="string"/>
+<Field name="utcOffset" type="string"/>
+<Field name="uiDomain" type="string"/>
+<Field name="dataHostingLocation" type="string"/>
+<Field name="rateLimitDaily" type="integer"/>
+<Field name="rateLimitDailyRemaining" type="integer"/>
+<Field name="rateLimitIntervalMilliseconds" type="integer"/>
+<Field name="rateLimitMax" type="integer"/>
+<Field name="rateLimitRemaining" type="integer"/>
+<Field name="rateLimitSecondly" type="integer"/>
+<Field name="rateLimitSecondlyRemaining" type="integer"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="debugInput1" recordDelimiter="\r\n" type="delimited">
+<Field name="field1" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+<GraphParameter name="API_CALL_SUBGRAPH">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	string api_call_subgraph;
+	
+	if (not isBlank(getParamValue("PRIVATE_APP_TOKEN"))){
+		api_call_subgraph = "${SUBGRAPH_DIR}/ApiCall-PrivateApp.sgrf";
+	} else {
+		api_call_subgraph = "${SUBGRAPH_DIR}/ApiCall-Oauth2.sgrf";
+	}
+	return api_call_subgraph;
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter label="REQUEST_METHOD" name="REQUEST_METHOD" public="false" required="false" value="GET"/>
+<GraphParameter label="DESIRED_RESPONSE_STATUS" name="DESIRED_RESPONSE_STATUS" public="false" required="false" value="200"/>
+</GraphParameters>
+<RichTextNote backgroundColor="DAD8C9" folded="false" fontSize="medium" height="139" id="Note0" textColor="444444" width="564" x="260" y="256">
+<attr name="text"><![CDATA[h3. Get HubSpot account details
+
+Returns HubSpot account details along with API rate limits taken from the header.
+
+Might require the "oauth" scope.]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node __HTTP_CALL_RETRY_COUNT="${HTTP_CALL_RETRY_COUNT}" __HTTP_CALL_RETRY_DELAY="${HTTP_CALL_RETRY_DELAY}" __HTTP_CALL_SUCCESS_STATUS_CODE="${DESIRED_RESPONSE_STATUS}" __HTTP_CALL_TIMEOUT="${HTTP_CALL_TIMEOUT}" __O_AUTH2_CONNECTION="${O_AUTH2_CONNECTION}" __PRIVATE_APP_TOKEN="${PRIVATE_APP_TOKEN}" guiName="Call HubSpot API" guiX="477" guiY="100" id="CALL_HUB_SPOT_API" jobURL="${API_CALL_SUBGRAPH}" skipCheckConfig="false" type="SUBGRAPH"/>
+<Node guiName="Fail" guiX="926" guiY="190" id="FAIL" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = "HubSpot API call failed. \n Status: " + num2str($in.0.httpResponseStatusCode)
+		+ "\n Error message: " +$in.0.httpResponseErrorMessage
+		+ "\n Response body: " +$in.0.httpResponseBody
+	;
+	return ALL;
+}]]></attr>
+</Node>
+<Node guiName="Genrate request" guiX="260" guiY="100" id="GENRATE_REQUEST" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+	$out.0.httpRequestUrl =  "https://api.hubapi.com/account-info/v3/details";
+	$out.0.httpRequestCharset = "UTF-8";
+	
+	$out.0.httpRequestMethod = getParamValue("REQUEST_METHOD");
+	
+	return ALL;
+}]]></attr>
+</Node>
+<Node guiName="Is response ok?" guiX="696" guiY="100" id="IS_RESPONSE_OK" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.httpResponseStatusCode == ${DESIRED_RESPONSE_STATUS}]]></attr>
+</Node>
+<Node guiName="Map to output" guiX="926" guiY="100" id="MAP_TO_OUTPUT" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+import "${TRANS_DIR}/Utils.ctl";
+
+
+// Transforms input record into output record.
+function integer transform() {
+	
+	
+	$out.0.rateLimitDaily 			= 		str2integer(get_field_case_insensitive($in.0.httpResponseHeaders,"X-HubSpot-RateLimit-Daily"));
+	$out.0.rateLimitDailyRemaining 	= 		str2integer(get_field_case_insensitive($in.0.httpResponseHeaders,"X-HubSpot-RateLimit-Daily-Remaining"));
+	$out.0.rateLimitIntervalMilliseconds = 	str2integer(get_field_case_insensitive($in.0.httpResponseHeaders,"X-HubSpot-RateLimit-Interval-Milliseconds"));
+	$out.0.rateLimitMax				= 		str2integer(get_field_case_insensitive($in.0.httpResponseHeaders,"X-HubSpot-RateLimit-Max"));
+	$out.0.rateLimitRemaining		= 		str2integer(get_field_case_insensitive($in.0.httpResponseHeaders,"X-HubSpot-RateLimit-Remaining"));
+	$out.0.rateLimitSecondly		= 		str2integer(get_field_case_insensitive($in.0.httpResponseHeaders,"X-HubSpot-RateLimit-Secondly"));
+	$out.0.rateLimitSecondlyRemaining = 	str2integer(get_field_case_insensitive($in.0.httpResponseHeaders,"X-HubSpot-RateLimit-Secondly-Remaining"));
+	
+	variant data = parseJson($in.0.httpResponseBody);
+	
+	$out.0.portalId = toString(data["portalId"]);
+	$out.0.accountType = cast(data["accountType"], string);
+	$out.0.timeZone = cast(data["timeZone"], string);
+	$out.0.companyCurrency = cast(data["companyCurrency"], string);
+	$out.0.additionalCurrencies = cast(data["additionalCurrencies"], list, string);
+	$out.0.utcOffset = cast(data["utcOffset"], string);
+	$out.0.uiDomain = cast(data["uiDomain"], string);
+	$out.0.dataHostingLocation = cast(data["dataHostingLocation"], string);
+	return ALL;
+}
+
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="200" guiY="10" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1137" guiY="10" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Edge fromNode="CALL_HUB_SPOT_API:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="IS_RESPONSE_OK:0"/>
+<Edge fromNode="GENRATE_REQUEST:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="CALL_HUB_SPOT_API:0"/>
+<Edge fromNode="IS_RESPONSE_OK:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 0 (accepted)" toNode="MAP_TO_OUTPUT:0"/>
+<Edge fromNode="IS_RESPONSE_OK:1" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" outPort="Port 1 (rejected)" toNode="FAIL:0"/>
+<Edge fromNode="MAP_TO_OUTPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+</Phase>
+</Graph>

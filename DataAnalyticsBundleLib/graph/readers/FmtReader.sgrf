@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Martin" category="readers" created="Fri Apr 14 12:59:00 CEST 2023" description="Reads a CloverDX metadata (.fmt) file" guiVersion="7.0.1.7" id="1681728625144" largeIconPath="${DATA_ANALYTICS_DIR}/ico/fmtr-fmt-64.png" licenseCode="CLCDSCLOVE72646208SP" mediumIconPath="${DATA_ANALYTICS_DIR}/ico/fmtr-fmt-32.png" name="FmtReader" nature="subgraph" showComponentDetails="true" smallIconPath="${DATA_ANALYTICS_DIR}/ico/fmtr-fmt-16.png">
+<Global>
+<inputPorts>
+<singlePort connected="false" keepEdge="false" name="0" required="false"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="true" name="0"/>
+</outputPorts>
+<Metadata fileURL="${META_DIR}/MetadataField.fmt" id="Metadata0"/>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="Attribute" recordDelimiter="\r\n" type="delimited">
+<Field name="recordName" type="string"/>
+<Field name="fieldName" type="string"/>
+<Field name="attributeName" type="string"/>
+<Field name="value" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata3">
+<Record fieldDelimiter="|" name="FmtFileUrl" recordDelimiter="\r\n" type="delimited">
+<Field name="url" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="Order" recordDelimiter="\r\n" type="delimited">
+<Field name="__order" type="long"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter label="Use default metadata" name="USE_DEFAULT_METADATA" public="true" value="true">
+<attr name="description"><![CDATA[When set to false, user is expected to provide metadata via port 0. These metadata should be derived from the default metada, extended with custom fields.]]></attr>
+<SingleType name="bool"/>
+</GraphParameter>
+<GraphParameter label="Fmt file URL" name="SOURCE_URI" public="true" required="true">
+<attr name="description"><![CDATA[Location of the file to read.]]></attr>
+<SingleType fileExtension="*.fmt" multiple="false" name="file" selectionMode="file_only"/>
+</GraphParameter>
+<GraphParameter name="EFFECTIVE_URL">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return isSubgraphInputPortConnected(0)?"port:$0.url:source":"${SOURCE_URI}";
+}
+]]></attr>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="DAD8C9" folded="false" fontSize="medium" height="250" id="Note0" textColor="444444" width="575" x="450" y="575">
+<attr name="text"><![CDATA[h3. Read a fmt file
+
+Default metadata match other graphs from the library.
+
+Use custom output metadata to read custom properties.]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node equalNULL="true" guiName="apply attributes" guiX="945" guiY="375" id="APPLY_ATTRIBUTES" key="recordName(a);fieldName(a)" type="DENORMALIZER">
+<attr name="denormalize"><![CDATA[//#CTL2
+// This transformation defines the way in which multiple input records 
+// (with the same key) are denormalized into one output record. 
+
+// This function is called for each input record from a group of records
+// with the same key.
+function integer append() {	
+	setValue($out.0,$in.0.attributeName,$in.0.value);
+	return OK;
+}
+
+// This function is called once after the append() function was called for all records
+// of a group of input records defined by the key.
+// It creates a single output record for the whole group.
+function integer transform() {
+	$out.0.name = $in.0.fieldName;
+	$out.0.__name = $in.0.recordName;
+	return OK;
+}]]></attr>
+</Node>
+<Node debugOutput="true" guiName="DebugOutput" guiX="2045" guiY="275" id="DEBUG_OUTPUT" type="TRASH"/>
+<Node enabled="${USE_DEFAULT_METADATA}" guiName="Default meta provider" guiX="1420" guiY="525" id="DEFAULT_META_PROVIDER" recordsNumber="0" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+// Generates output record.
+function integer generate() {
+	return ALL;
+}]]></attr>
+</Node>
+<Node guiName="Extract fields from metadata" guiX="420" guiY="250" id="EXTRACT_FIELDS_FROM_METADATA" schema="${META_DIR}/Record.xsd" sourceUri="${EFFECTIVE_URL}" type="XML_EXTRACT" useNestedNodes="false">
+<attr name="mapping"><![CDATA[<Mappings>
+	<Mapping element="Record">
+		<Mapping element="Field" outPort="0"
+				xmlFields="../{}label;../{}quoteChar;../{}skipSourceRows;../{}fieldDelimiter;../{}name"
+				cloverFields="__label;__quoteChar;__skipSourceRows;__fieldDelimiter;__name">
+			<Mapping element="attr" outPort="1"
+					xmlFields=".;../../{}name;../{}name;{}name"
+					cloverFields="value;recordName;fieldName;attributeName">
+			</Mapping>
+		</Mapping>
+	</Mapping>
+</Mappings>
+]]></attr>
+</Node>
+<Node guiName="ExtHashJoin" guiX="1245" guiY="250" id="EXT_HASH_JOIN" joinKey="$__name=$__name;$name=$name" joinType="leftOuter" slaveDuplicates="true" type="EXT_HASH_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	if(not isnull($in.1.name)){
+		for(integer index = 0; index < length($out.0); index++){
+			if(not isnull(getValue($in.1,index))){
+				setValue($out.0,index,getValue($in.1,index));
+			}
+		}
+	}
+	return ALL;
+}]]></attr>
+</Node>
+<Node guiName="SimpleGather" guiX="1520" guiY="250" id="SIMPLE_GATHER" type="SIMPLE_GATHER"/>
+<Node guiName="Sort by field" guiX="720" guiY="375" id="SORT_BY_FIELD" sortKey="recordName(a);fieldName(a)" type="EXT_SORT"/>
+<Node guiName="SubgraphInput" guiX="320" guiY="-2" id="SUBGRAPH_INPUT" type="SUBGRAPH_INPUT">
+<Port guiY="110" name="0"/>
+<Port guiY="180" name="1"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1895" guiY="15" id="SUBGRAPH_OUTPUT" type="SUBGRAPH_OUTPUT">
+<Port guiY="155" name="0"/>
+<Port guiY="225" name="1"/>
+</Node>
+<Edge fromNode="APPLY_ATTRIBUTES:0" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 1 (slave)" metadataRef="#//Edge4" outPort="Port 0 (out)" toNode="EXT_HASH_JOIN:1"/>
+<Edge fromNode="DEFAULT_META_PROVIDER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 1 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SIMPLE_GATHER:1"/>
+<Edge fromNode="EXTRACT_FIELDS_FROM_METADATA:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (driver)" metadataRef="#//Edge4" outPort="Port 0 (out)" toNode="EXT_HASH_JOIN:0"/>
+<Edge fromNode="EXTRACT_FIELDS_FROM_METADATA:1" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 1 (out)" toNode="SORT_BY_FIELD:0"/>
+<Edge fromNode="EXT_HASH_JOIN:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SIMPLE_GATHER:0"/>
+<Edge fromNode="SIMPLE_GATHER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:0"/>
+<Edge fromNode="SORT_BY_FIELD:0" guiBendpoints="" guiRouter="Manhattan" id="Edge13" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="APPLY_ATTRIBUTES:0"/>
+<Edge fromNode="SUBGRAPH_INPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (input)" metadata="Metadata3" outPort="Port 0 (out)" toNode="EXTRACT_FIELDS_FROM_METADATA:0"/>
+<Edge fromNode="SUBGRAPH_OUTPUT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="DEBUG_OUTPUT:0"/>
+</Phase>
+</Graph>

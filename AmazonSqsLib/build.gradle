@@ -1,0 +1,17 @@
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation platform('com.amazonaws:aws-java-sdk-bom:1.11.1009')
+    implementation 'com.amazonaws:aws-java-sdk-sqs'
+}
+
+configurations.implementation.setCanBeResolved(true)
+
+task lib(type: Copy) {
+    into "lib"
+    from configurations.implementation
+}

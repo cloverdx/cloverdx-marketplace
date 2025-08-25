@@ -1,0 +1,37 @@
+{
+  "descriptor" : {
+    "version" : "1.1",
+    "name" : "ICSReaderLib",
+    "description" : "Extract and parse events and calendar details from .ics files used by Google Calendar, Outlook, and other platforms.",
+    "productVersion" : "6.6.0.4",
+    "maxProductVersion" : "",
+    "minProductVersion" : "6.0",
+    "lastModificationDate" : "2024-10-14T12:56:09Z",
+    "initializationJob" : "",
+    "author" : "CloverDX"
+  },
+  "connections" : {
+    "oauth2Connections" : [ ]
+  },
+  "publicInterface" : {
+    "subgraphs" : [ {
+      "mediumIcon" : "./graph/subgraph/icons/ics-reader-32.png",
+      "largeIcon" : "./graph/subgraph/icons/ics-reader-64.png",
+      "icon" : "./graph/subgraph/icons/ics-reader-16.png",
+      "description" : "Reader capable parsing ICS files containing calendar information.",
+      "path" : "graph/subgraph/ICSReader.sgrf"
+    } ],
+    "metadata" : [ ],
+    "restJobs" : [ ],
+    "dataConnectors" : {
+      "sources" : [ ],
+      "targets" : [ ]
+    },
+    "jobflows" : [ ],
+    "graphs" : [ ]
+  },
+  "healthCheck" : {
+    "description" : "",
+    "path" : ""
+  }
+}

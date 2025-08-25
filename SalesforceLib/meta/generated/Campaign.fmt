@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Record fieldDelimiter="," name="Query_Result" recordDelimiter="\n" type="delimited">
+   <Field name="Id" salesforce_field_type="id" type="string"/>
+   <Field name="IsDeleted" salesforce_field_type="_boolean" trim="true" type="boolean"/>
+   <Field name="Name" salesforce_field_type="string" type="string"/>
+   <Field name="ParentId" salesforce_field_type="reference" type="string"/>
+   <Field name="Type" salesforce_field_type="picklist" type="string"/>
+   <Field name="Status" salesforce_field_type="picklist" type="string"/>
+   <Field format="yyyy-MM-dd" name="StartDate" salesforce_field_type="date"
+          timeZone="UTC"
+          trim="true"
+          type="date"/>
+   <Field format="yyyy-MM-dd" name="EndDate" salesforce_field_type="date" timeZone="UTC"
+          trim="true"
+          type="date"/>
+   <Field length="18" name="ExpectedRevenue" salesforce_field_type="currency" scale="0"
+          trim="true"
+          type="decimal"/>
+   <Field length="18" name="BudgetedCost" salesforce_field_type="currency" scale="0"
+          trim="true"
+          type="decimal"/>
+   <Field length="18" name="ActualCost" salesforce_field_type="currency" scale="0"
+          trim="true"
+          type="decimal"/>
+   <Field length="10" name="ExpectedResponse" salesforce_field_type="percent" scale="2"
+          trim="true"
+          type="decimal"/>
+   <Field length="18" name="NumberSent" salesforce_field_type="_double" scale="0"
+          trim="true"
+          type="decimal"/>
+   <Field name="IsActive" salesforce_field_type="_boolean" trim="true" type="boolean"/>
+   <Field name="Description" salesforce_field_type="textarea" type="string"/>
+   <Field name="NumberOfLeads" salesforce_field_type="_int" trim="true" type="integer"/>
+   <Field name="NumberOfConvertedLeads" salesforce_field_type="_int" trim="true"
+          type="integer"/>
+   <Field name="NumberOfContacts" salesforce_field_type="_int" trim="true" type="integer"/>
+   <Field name="NumberOfResponses" salesforce_field_type="_int" trim="true"
+          type="integer"/>
+   <Field name="NumberOfOpportunities" salesforce_field_type="_int" trim="true"
+          type="integer"/>
+   <Field name="NumberOfWonOpportunities" salesforce_field_type="_int" trim="true"
+          type="integer"/>
+   <Field length="18" name="AmountAllOpportunities" salesforce_field_type="currency"
+          scale="0"
+          trim="true"
+          type="decimal"/>
+   <Field length="18" name="AmountWonOpportunities" salesforce_field_type="currency"
+          scale="0"
+          trim="true"
+          type="decimal"/>
+   <Field name="OwnerId" salesforce_field_type="reference" type="string"/>
+   <Field format="yyyy-MM-dd'T'HH:mm:ss.SSSXX" name="CreatedDate"
+          salesforce_field_type="datetime"
+          timeZone="UTC"
+          trim="true"
+          type="date"/>
+   <Field name="CreatedById" salesforce_field_type="reference" type="string"/>
+   <Field format="yyyy-MM-dd'T'HH:mm:ss.SSSXX" name="LastModifiedDate"
+          salesforce_field_type="datetime"
+          timeZone="UTC"
+          trim="true"
+          type="date"/>
+   <Field name="LastModifiedById" salesforce_field_type="reference" type="string"/>
+   <Field format="yyyy-MM-dd'T'HH:mm:ss.SSSXX" name="SystemModstamp"
+          salesforce_field_type="datetime"
+          timeZone="UTC"
+          trim="true"
+          type="date"/>
+   <Field format="yyyy-MM-dd" name="LastActivityDate" salesforce_field_type="date"
+          timeZone="UTC"
+          trim="true"
+          type="date"/>
+   <Field format="yyyy-MM-dd'T'HH:mm:ss.SSSXX" name="LastViewedDate"
+          salesforce_field_type="datetime"
+          timeZone="UTC"
+          trim="true"
+          type="date"/>
+   <Field format="yyyy-MM-dd'T'HH:mm:ss.SSSXX" name="LastReferencedDate"
+          salesforce_field_type="datetime"
+          timeZone="UTC"
+          trim="true"
+          type="date"/>
+   <Field name="CampaignMemberRecordTypeId" salesforce_field_type="reference"
+          type="string"/>
+</Record>

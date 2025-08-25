@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GraphParameters>
+<GraphParameter name="SF_USERNAME" public="true" required="true"/>
+<GraphParameter name="SF_PASSWORD" public="true" required="true" secure="true"/>
+<GraphParameter name="SF_TOKEN" public="true" required="true" secure="true"/>
+</GraphParameters>

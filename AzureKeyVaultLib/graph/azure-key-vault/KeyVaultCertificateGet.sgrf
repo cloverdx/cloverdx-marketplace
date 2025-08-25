@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="readers" created="Thu Aug 02 10:40:41 CEST 2018" description="Query a certificate from Azure Key Vault. Gets information about a specific certificate. This operation requires the certificates/get permission." guiVersion="6.3.0.1747" id="1533217385607" largeIconPath="${GRAPH_DIR}/azure-key-vault/azure-key-vault-64.png" licenseCode="CLP1DJAVLI69475596BY" mediumIconPath="${GRAPH_DIR}/azure-key-vault/azure-key-vault-32.png" name="KeyVaultCertificateGet" nature="subgraph" showComponentDetails="true" smallIconPath="${GRAPH_DIR}/azure-key-vault/azure-key-vault-16.png">
+<Global>
+<outputPorts>
+<singlePort connected="false" name="0"/>
+<singlePort connected="false" keepEdge="true" name="1" required="false"/>
+</outputPorts>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="CertificateContent" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field format="yyyy-MM-dd HH:mm:ss" label="CER contents of x509 certificate" name="cer" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="KeyVaultCertificate" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field label="The certificate id" name="id" type="string"/>
+<Field label="The key id" name="kid" type="string"/>
+<Field label="The secret id" name="sid" type="string"/>
+<Field format="yyyy-MM-dd HH:mm:ss" label="Thumbprint of the certificate" name="x5t" type="string"/>
+<Field format="yyyy-MM-dd HH:mm:ss" label="CER contents of x509 certificate" name="cer" type="string"/>
+<Field label="Creation time in UTC" name="created" type="date"/>
+<Field label="Expiry date in UTC" name="exp" type="date"/>
+<Field label="Not before date in UTC" name="nbf" type="date"/>
+<Field label="Determines whether the object is enabled" name="enabled" type="boolean"/>
+<Field label="Last updated time in UTC" name="updated" type="date"/>
+<Field label="softDelete data retention days. Value should be &gt;=7 and &lt;=90 when softDelete enabled, otherwise 0" name="recoverableDays" type="string"/>
+<Field label="Reflects the deletion recovery level currently in effect for certificates in the current vault. If it contains 'Purgeable', the certificate can be permanently deleted by a privileged user; otherwise, only the system can purge the certificate, at the end of the retention interval." name="recoveryLevel" type="string"/>
+<Field label="The type of key pair to be used for the certificate." name="key_kty" type="string"/>
+<Field label="The key size in bits. For example: 2048, 3072, or 4096 for RSA" name="key_size" type="integer"/>
+<Field label="Elliptic curve name" name="key_crv" type="string"/>
+<Field label="Indicates if the private key can be exported. Release policy must be provided when creating the first version of an exportable key" name="key_exportable" type="boolean"/>
+<Field label="Indicates if the same key pair will be used on certificate renewal" name="key_reuse" type="boolean"/>
+<Field label="The media type (MIME type)" name="secret_content_type" type="string"/>
+<Field label="The subject name. Should be a valid X509 distinguished Name" name="X509_subject" type="string"/>
+<Field containerType="list" label="The enhanced key usage" name="X509_ekus" type="string"/>
+<Field containerType="list" label="Defines how the certificate's key may be used" name="X509_key_usage" type="string"/>
+<Field containerType="list" label="SubjectAlternativeNames - Domain names" name="X509_sans_dns_names" type="string"/>
+<Field containerType="list" label="SubjectAlternativeNames - Email addresses" name="X509_sans_emails" type="string"/>
+<Field containerType="list" label="SubjectAlternativeNames - User principal names" name="X509_sans_upns" type="string"/>
+<Field label="Indicates if the certificates generated under this policy should be published to certificate transparency logs" name="issuer_cert_transparency" type="boolean"/>
+<Field label="Certificate type as supported by the provider (optional); for example 'OV-SSL', 'EV-SSL'" name="issuer_cty" type="string"/>
+<Field label="Name of the referenced issuer object or reserved names; for example, 'Self' or 'Unknown'" name="issuer_name" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="KeyVaultError" recordDelimiter="\r\n" type="delimited">
+<Field name="errorMessage" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata3">
+<Record fieldDelimiter="|" name="QueryParams" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="queryURL" type="string"/>
+</Record>
+</Metadata>
+<Connection config="${OAUTH2_CONNECTION_URL}" id="OAUTH20" type="OAUTH2"/>
+<GraphParameters>
+<GraphParameter label="Key Vault name" name="KEY_VAULT_NAME" public="true" required="true">
+<attr name="description"><![CDATA[Name of the Key Vault instance to work with. Instance must exist and must be writable by user configured in the OAuth2 connection below.
+]]></attr>
+</GraphParameter>
+<GraphParameter label="Certificate name" name="CERTIFICATE_NAME" public="true" required="true">
+<attr name="description"><![CDATA[The name of the certificate in the given vault.]]></attr>
+</GraphParameter>
+<GraphParameter label="Certificate version" name="CERTIFICATE_VERSION" public="true" required="false">
+<attr name="description"><![CDATA[This parameter is optional. If not specified, the latest version of the certificate is returned.]]></attr>
+</GraphParameter>
+<GraphParameter label="Certificate target file URL" name="CERTIFICATE_OUTPUT_FILE" public="true">
+<attr name="description"><![CDATA[File URL where to save certificate. If empty, certificate will be sent only to the output port.]]></attr>
+<SingleType multiple="true" name="file" selectionMode="file_or_directory"/>
+</GraphParameter>
+<GraphParameter name="API_VERSION" value="7.4">
+<attr name="description"><![CDATA[Client API version]]></attr>
+</GraphParameter>
+<GraphParameter name="ENABLE_FILE_OUTPUT">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	if(!isBlank(getParamValue("CERTIFICATE_OUTPUT_FILE"))){
+		return "enabled";
+	}
+	return "trash";
+}]]></attr>
+</GraphParameter>
+<GraphParameterFile fileURL="library.prm"/>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="Check errors and parse" guiX="792" guiY="112" id="CHECK_ERRORS_AND_PARSE" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+function integer transform() {
+	if ($in.0.statusCode == 200) {
+		variant response = parseJson($in.0.content);
+		
+		printLog(info, $in.0.content);
+		
+		$out.0.id = cast(response["id"], string):null;
+		$out.0.kid = cast(response["kid"], string):null;
+		$out.0.sid = cast(response["sid"], string):null;
+		$out.0.x5t = cast(response["x5t"], string):null;
+		$out.0.cer = cast(response["cer"], string):null;
+		$out.0.enabled = cast(response["attributes"]["enabled"], boolean):null;
+		$out.0.nbf =  long2date(cast(response["attributes"]["nbf"], long)):null;
+		$out.0.exp =  long2date(cast(response["attributes"]["exp"], long)):null;
+		$out.0.created = long2date(cast(response["attributes"]["created"], long)):null;
+		$out.0.updated = long2date(cast(response["attributes"]["updated"], long)):null;
+		$out.0.recoveryLevel = cast(response["recoveryLevel"], string):null;
+		$out.0.key_kty = cast(response["policy"]["key_props"]["kty"], string):null;
+		$out.0.key_size = cast(response["policy"]["key_props"]["size"], integer):null;
+		$out.0.key_crv = cast(response["policy"]["key_props"]["crv"], string):null;
+		$out.0.key_exportable = cast(response["policy"]["key_props"]["exportable"], boolean):null;
+		$out.0.key_reuse = cast(response["policy"]["key_props"]["reuse"], boolean):null;
+		$out.0.secret_content_type = cast(response["policy"]["secret_props"]["contentType"], string):null;
+		$out.0.X509_subject = cast(response["policy"]["x509_props"]["subject"], string):null;	
+		$out.0.X509_ekus = cast(response["policy"]["x509_props"]["ekus"], list, string):null;	
+		$out.0.X509_key_usage = cast(response["policy"]["x509_props"]["key_usage"], list, string):null;	
+		$out.0.X509_sans_dns_names = cast(response["policy"]["x509_props"]["sans"]["dns_names"], list, string):null;
+		$out.0.X509_sans_emails = cast(response["policy"]["x509_props"]["sans"]["emails"], list, string):null;		
+		$out.0.X509_sans_upns = cast(response["policy"]["x509_props"]["sans"]["upns"], list, string):null;		
+		$out.0.issuer_cert_transparency = cast(response["policy"]["issuer"]["cert_transparency"], boolean):null;	
+		$out.0.issuer_cty = cast(response["policy"]["issuer"]["cty"], string):null;	
+		$out.0.issuer_name = cast(response["policy"]["issuer"]["name"], string):null;	
+		
+		return 0;
+	} else {
+		variant errorResponse = parseJson($in.0.content);
+		if(!isBlank(cast(errorResponse["error"]["code"], string)) && 
+		   !isBlank(cast(errorResponse["error"]["message"], string))){
+		   
+			$out.1.errorMessage = cast(errorResponse["error"]["message"], string)+" Error code: "+ cast(errorResponse["error"]["code"], string);
+		
+		}
+		return 1;
+	}
+}
+]]></attr>
+</Node>
+<Node enabled="trash" guiName="Collect errors" guiX="1027" guiY="214" id="COLLECT_ERRORS" type="SIMPLE_GATHER"/>
+<Node enabled="enableWhenOutputPort1IsDisconnected" guiName="Fail in case the error port is not connected" guiX="1273" guiY="335" id="FAIL_IN_CASE_THE_ERROR_PORT_IS_NOT_CONNECTED" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = $in.0.errorMessage;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Get certificate" guiX="546" guiY="112" id="GET_CERTIFICATE" oAuth2Connection="OAUTH20" requestMethod="GET" type="HTTP_CONNECTOR">
+<attr name="errorOutputMapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.1.errorMessage = "Error querying Azure Key Vault REST API: " + $in.1.errorMessage;
+
+	return ALL;
+}
+]]></attr>
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.URL = $in.0.queryURL;
+	return ALL;
+}
+]]></attr>
+<attr name="standardOutputMapping"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.* = $in.1.*;
+
+	return ALL;
+}
+]]></attr>
+<attr name="headerProperties"><![CDATA[Content-Type=application/json
+]]></attr>
+</Node>
+<Node enabled="${ENABLE_FILE_OUTPUT}" guiName="Get only the certificate content" guiX="1216" guiY="112" id="GET_ONLY_THE_CERTIFICATE_CONTENT" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Prepare URL" guiX="316" guiY="112" id="PREPARE_URL" recordsNumber="1" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+string[] paramsToTest = ["KEY_VAULT_NAME", "CERTIFICATE_NAME", "API_VERSION"];
+string[] errors = [];
+
+function integer generate() {
+	
+	foreach(string param: paramsToTest){
+		if(isBlank(getParamValue(param))){
+			errors.push(param);
+		}
+	}
+
+	if(length(errors)>0){
+		$out.1.errorMessage = "Configuration error, missing the following param"+(length(errors)>1?"s":"")+": "+join(", ", errors)+".";
+		return 1;
+	}
+	
+	$out.0.queryURL = "https://${KEY_VAULT_NAME}.vault.azure.net/certificates/${CERTIFICATE_NAME}"+(!isBlank(getParamValue("CERTIFICATE_VERSION"))?"/${CERTIFICATE_VERSION}":"")+"?api-version=${API_VERSION}";
+	return 0;
+
+}]]></attr>
+</Node>
+<Node guiName="SimpleCopy" guiX="1027" guiY="2" id="SIMPLE_COPY" type="SIMPLE_COPY"/>
+<Node guiName="SubgraphInput" guiX="228" guiY="-76" id="SUBGRAPH_INPUT" type="SUBGRAPH_INPUT">
+<Port guiY="162" name="0"/>
+</Node>
+<Node createEmptyFiles="false" enabled="${ENABLE_FILE_OUTPUT}" fileURL="${CERTIFICATE_OUTPUT_FILE}" guiName="Write to the output file" guiX="1458" guiY="112" id="WRITE_TO_THE_OUTPUT_FILE" makeDirs="true" skipLastRecordDelimiter="true" type="FLAT_FILE_WRITER"/>
+<Edge fromNode="CHECK_ERRORS_AND_PARSE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="SIMPLE_COPY:0"/>
+<Edge fromNode="CHECK_ERRORS_AND_PARSE:1" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 1 (out)" toNode="COLLECT_ERRORS:0"/>
+<Edge fromNode="COLLECT_ERRORS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:1"/>
+<Edge fromNode="COLLECT_ERRORS:1" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="FAIL_IN_CASE_THE_ERROR_PORT_IS_NOT_CONNECTED:0"/>
+<Edge fromNode="GET_CERTIFICATE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="CHECK_ERRORS_AND_PARSE:0"/>
+<Edge fromNode="GET_CERTIFICATE:1" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 1 (in)" metadata="Metadata0" outPort="Port 1 (out)" toNode="COLLECT_ERRORS:1"/>
+<Edge fromNode="GET_ONLY_THE_CERTIFICATE_CONTENT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge18" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="WRITE_TO_THE_OUTPUT_FILE:0"/>
+<Edge fromNode="PREPARE_URL:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="GET_CERTIFICATE:0"/>
+<Edge fromNode="PREPARE_URL:1" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 2 (in)" metadata="Metadata0" outPort="Port 1 (out)" toNode="COLLECT_ERRORS:2"/>
+<Edge fromNode="SIMPLE_COPY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge16" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT:0"/>
+<Edge fromNode="SIMPLE_COPY:1" guiBendpoints="" guiRouter="Manhattan" id="Edge17" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="GET_ONLY_THE_CERTIFICATE_CONTENT:0"/>
+</Phase>
+<Phase number="1">
+<Node guiName="SubgraphOutput" guiX="1660" guiY="-81" id="SUBGRAPH_OUTPUT" type="SUBGRAPH_OUTPUT">
+<Port guiY="19" name="0"/>
+<Port guiY="232" name="1"/>
+<Port guiY="302" name="2"/>
+</Node>
+</Phase>
+</Graph>

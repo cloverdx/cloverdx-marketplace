@@ -1,0 +1,50 @@
+{
+  "descriptor" : {
+    "name" : "AzureKeyVaultLib",
+    "version" : "1.1",
+    "lastModificationDate" : "2023-12-20T10:40:31Z",
+    "initializationJob" : "",
+    "productVersion" : "6.3.0.1747",
+    "description" : "Access and manage secrets and certificates in Azure Key Vault. Easily read, write, and retrieve credentials using CloverDX.",
+    "author" : "CloverDX"
+  },
+  "publicInterface" : {
+    "dataConnectors" : {
+      "sources" : [ ],
+      "targets" : [ ]
+    },
+    "jobflows" : [ ],
+    "restJobs" : [ ],
+    "subgraphs" : [ {
+      "mediumIcon" : "./graph/azure-key-vault/azure-key-vault-32.png",
+      "largeIcon" : "./graph/azure-key-vault/azure-key-vault-64.png",
+      "icon" : "./graph/azure-key-vault/azure-key-vault-16.png",
+      "description" : "Query a certificate from Azure Key Vault. Gets information about a specific certificate. This operation requires the certificates/get permission.",
+      "path" : "graph/azure-key-vault/KeyVaultCertificateGet.sgrf"
+    }, {
+      "mediumIcon" : "./graph/azure-key-vault/azure-key-vault-32.png",
+      "largeIcon" : "./graph/azure-key-vault/azure-key-vault-64.png",
+      "icon" : "./graph/azure-key-vault/azure-key-vault-16.png",
+      "description" : "Query secret from Azure Key Vault including past secret version if any are available.",
+      "path" : "graph/azure-key-vault/KeyVaultSecretGet.sgrf"
+    }, {
+      "mediumIcon" : "./graph/azure-key-vault/azure-key-vault-32.png",
+      "largeIcon" : "./graph/azure-key-vault/azure-key-vault-64.png",
+      "icon" : "./graph/azure-key-vault/azure-key-vault-16.png",
+      "description" : "Write new secret value into Azure Key Vault secret. If the secret does not exist, it is automatically created. Secrets are created based on data coming into the component via input port to allow for sending new values generated based on any algorithm.",
+      "path" : "graph/azure-key-vault/KeyVaultSecretSet.sgrf"
+    } ],
+    "metadata" : [ ],
+    "graphs" : [ ]
+  },
+  "healthCheck" : {
+    "description" : "",
+    "path" : ""
+  },
+  "connections" : {
+    "oauth2Connections" : [ {
+      "jobPath" : "graph/azure-key-vault/KeyVaultSecretGet.sgrf",
+      "path" : "conn/oauth2-azure.cfg"
+    } ]
+  }
+}

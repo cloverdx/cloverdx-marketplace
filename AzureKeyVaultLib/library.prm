@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GraphParameters>
+<GraphParameter label="OAuth2 connection URL" name="OAUTH2_CONNECTION_URL" public="true" required="true" value="${CONN_DIR}/oauth2-azure.cfg">
+<attr name="description"><![CDATA[URL of the OAuth2 connection that allows read/write access to the Key Vault configured in previous attribute. Connection must be properly authorized.
+]]></attr>
+<SingleType fileExtension="*.cfg" multiple="false" name="file" selectionMode="file_only"/>
+</GraphParameter>
+</GraphParameters>

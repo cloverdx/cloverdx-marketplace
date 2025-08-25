@@ -1,0 +1,24 @@
+{
+  "descriptor" : {
+    "author" : "CloveDX",
+    "name" : "AmazonSqsLib",
+    "version" : "1.0",
+    "productVersion" : "5.15.0.15",
+    "description" : "Read, write, and delete messages in Amazon SQS queues. Includes support for attributes, message status checks, and queue metadata."
+  },
+  "publicInterface" : {
+    "subgraphs" : [ {
+      "path" : "graph/AmazonSqsReader.sgrf",
+      "description" : "Read messages from an SQS queue.",
+      "icon" : "./icons/amazon-sqs-logo16.png"
+    }, {
+      "path" : "graph/AmazonSqsWriter.sgrf",
+      "description" : "Write messages to a SQS queue.",
+      "icon" : "./icons/amazon-sqs-logo16.png"
+    }, {
+      "path" : "graph/AmazonSqsDeleter.sgrf",
+      "description" : "Delete messages form a SQS queue using it's receipt hadle.",
+      "icon" : "./icons/amazon-sqs-deleter16.png"
+    } ]
+  }
+}

@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" created="Mon Sep 12 15:31:42 CEST 2022" description="Lists files saved on Google Drive" guiVersion="5.15.0.15" id="1663013375549" largeIconPath="${SUBGRAPH_DIR}/icons/google-drive-64.png" licenseCode="CLP1DCLOVE28718064BY" mediumIconPath="${SUBGRAPH_DIR}/icons/google-drive-32.png" name="GoogleDriveListFiles" nature="subgraph" showComponentDetails="true" smallIconPath="${SUBGRAPH_DIR}/icons/google-drive-16.png">
+<Global>
+<outputPorts>
+<singlePort connected="true" name="0"/>
+</outputPorts>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="GoogleDriveListFilesOutput" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="name" type="string"/>
+<Field name="mimeType" type="string"/>
+<Field name="id" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="paging" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="more" type="boolean"/>
+<Field name="nextPageToken" type="string"/>
+</Record>
+</Metadata>
+<Connection config="${CONNECTION_URL}" id="OAuth2Connection1" type="OAUTH2"/>
+<GraphParameters>
+<GraphParameter name="CONNECTION_URL" public="true" required="true" value="${CONN_DIR}/OAuth2/google-oauth.cfg">
+<attr name="description"><![CDATA[Path to the OAUTH2 connection file.]]></attr>
+<SingleType multiple="true" name="file" selectionMode="file_or_directory"/>
+</GraphParameter>
+<GraphParameter name="API_URL" value="https://www.googleapis.com/drive/v3/files"/>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="check loop condition" guiX="93" guiY="225" id="CHECK_LOOP_CONDITION" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.nextPageToken = $in.0.nextPageToken;
+	if(!isnull($in.0.nextPageToken)){
+		$out.0.more = true;
+	} else {
+		$out.0.more = false;
+	}
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="List Files" guiX="483" guiY="100" id="LIST_FILES1" oAuth2Connection="OAuth2Connection1" requestMethod="GET" type="HTTP_CONNECTOR" url="${API_URL}">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	
+	list[string] query = [ 'trashed=false'];
+	
+	map[string, string] parameters = {
+		'pageToken' -> $in.0.nextPageToken,
+		'q' -> join('AND', query)
+	};
+	
+	$out.0.requestParameters = parameters;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+<attr name="headerProperties"><![CDATA[Authorization=
+Content-Type=application/json
+]]></attr>
+<attr name="guiDescription"><![CDATA[by name]]></attr>
+</Node>
+<Node guiName="Loop" guiX="286" guiY="86" id="LOOP" type="LOOP">
+<attr name="whileCondition"><![CDATA[//#CTL2
+$in.0.more]]></attr>
+</Node>
+<Node guiName="parse data" guiX="722" guiY="100" id="PARSE_DATA" schema="${META_DIR}/GoogleApiResponse/googleDriveOut_json" sourceUri="port:$0.content:discrete" type="JSON_EXTRACT">
+<attr name="mapping"><![CDATA[<Mappings>
+	<Mapping element="json_object" outPort="1">
+		<Mapping element="nextPageToken" useParentRecord="true"
+				xmlFields="../{}nextPageToken"
+				cloverFields="nextPageToken">
+		</Mapping>
+		<Mapping element="files" outPort="0"
+				xmlFields="{}id;{}mimeType;{}name"
+				cloverFields="id;mimeType;name">
+		</Mapping>
+	</Mapping>
+</Mappings>
+]]></attr>
+</Node>
+<Node guiName="start workflow" guiX="82" guiY="86" id="START_WORKFLOW" type="GET_JOB_INPUT">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.more = true;
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="stop loop" guiX="469" guiY="-40" id="STOP_LOOP" type="TRASH"/>
+<Node guiName="SubgraphInput" guiX="2" guiY="-38" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1077" guiY="-38" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Node debugOutput="true" guiName="Trash" guiX="1384" guiY="100" id="TRASH" type="TRASH"/>
+<Edge fromNode="CHECK_LOOP_CONDITION:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 1 (back from loop)" metadata="Metadata2" outPort="Port 0 (out)" toNode="LOOP:1"/>
+<Edge fromNode="LIST_FILES1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (input)" outPort="Port 0 (out)" toNode="PARSE_DATA:0"/>
+<Edge fromNode="LOOP:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" outPort="Port 0 (end of loop)" toNode="STOP_LOOP:0"/>
+<Edge fromNode="LOOP:1" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" outPort="Port 1 (continue loop)" toNode="LIST_FILES1:0"/>
+<Edge fromNode="PARSE_DATA:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="PARSE_DATA:1" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 1 (out)" toNode="CHECK_LOOP_CONDITION:0"/>
+<Edge fromNode="START_WORKFLOW:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (input token)" outPort="Port 0 (out)" toNode="LOOP:0"/>
+<Edge fromNode="SUBGRAPH_OUTPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="TRASH:0"/>
+</Phase>
+</Graph>

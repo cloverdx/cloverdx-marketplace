@@ -1,0 +1,53 @@
+{
+  "descriptor" : {
+    "description" : "Build custom data source connectors for Wrangler. Extend CloverDX with API, database, or file-based integrations using ready-made templates.",
+    "author" : "CloverDX",
+    "productVersion" : "6.2.0.8",
+    "initializationJob" : "",
+    "lastModificationDate" : "2023-10-03T14:56:11Z",
+    "version" : "1.1",
+    "name" : "TemplateConnectorLib"
+  },
+  "connections" : {
+    "oauth2Connections" : [ ]
+  },
+  "publicInterface" : {
+    "metadata" : [ ],
+    "subgraphs" : [ {
+      "icon" : "./icons/icon_16.png",
+      "largeIcon" : "./icons/icon_64.png",
+      "mediumIcon" : "./icons/icon_32.png",
+      "description" : "Write description here.",
+      "path" : "graph/subgraph/DataSource.sgrf"
+    }, {
+      "icon" : "./icons/icon_16.png",
+      "largeIcon" : "./icons/icon_64.png",
+      "mediumIcon" : "./icons/icon_32.png",
+      "description" : "Write description here.",
+      "path" : "graph/subgraph/DataTarget.sgrf"
+    } ],
+    "graphs" : [ ],
+    "dataConnectors" : {
+      "targets" : [ {
+        "icon" : "./icons/icon_16.png",
+        "largeIcon" : "./icons/icon_64.png",
+        "mediumIcon" : "./icons/icon_32.png",
+        "description" : "Write description here.",
+        "path" : "graph/subgraph/DataTarget.sgrf"
+      } ],
+      "sources" : [ {
+        "icon" : "./icons/icon_16.png",
+        "largeIcon" : "./icons/icon_64.png",
+        "mediumIcon" : "./icons/icon_32.png",
+        "description" : "Write description here.",
+        "path" : "graph/subgraph/DataSource.sgrf"
+      } ]
+    },
+    "jobflows" : [ ],
+    "restJobs" : [ ]
+  },
+  "healthCheck" : {
+    "description" : "",
+    "path" : ""
+  }
+}

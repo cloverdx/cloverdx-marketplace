@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="com.cloveretl.gui.CLOVER_ENGINE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="trans"/>
+	<classpathentry kind="lib" path="lib/commons-codec-1.17.0.jar"/>
+	<classpathentry kind="lib" path="lib/commons-lang3-3.14.0.jar"/>
+	<classpathentry kind="lib" path="lib/ical4j-4.0.4.jar"/>
+	<classpathentry kind="lib" path="lib/slf4j-api-2.0.12.jar"/>
+	<classpathentry kind="lib" path="lib/threeten-extra-1.8.0.jar"/>
+	<classpathentry kind="output" path="trans"/>
+</classpath>

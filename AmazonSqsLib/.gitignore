@@ -1,0 +1,9 @@
+/bin/
+/data-out/*
+!/data-out/keep.me
+/data-tmp/*
+!/data-tmp/keep.me
+/data-in/*
+!/data-in/keep.me
+.settings
+.gradle

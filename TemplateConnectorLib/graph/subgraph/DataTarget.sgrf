@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="writers" created="Tue Sep 19 10:21:56 BST 2023" description="Write description here." guiVersion="6.2.0.1684" id="1695115443175" largeIconPath="${PROJECT}/icons/icon_64.png" licenseCode="CLCDSCLOVE24765514SP" mediumIconPath="${PROJECT}/icons/icon_32.png" name="DataTarget" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/icon_16.png">
+<Global>
+<inputPorts>
+<singlePort connected="true" name="0"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="false" name="0"/>
+</outputPorts>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="\t" name="Customers" previewAttachment="${DATAIN_DIR}/Customers.csv" previewAttachmentCharset="UTF-8" quoteChar="both" quotedStrings="false" recordDelimiter="\n" skipSourceRows="1" type="delimited">
+<Field name="id" type="long"/>
+<Field name="fullName" type="string"/>
+<Field name="streetAddress" type="string"/>
+<Field name="city" type="string"/>
+<Field name="postalCode" type="long"/>
+<Field name="state" type="string"/>
+<Field name="country" type="string"/>
+<Field name="email" type="string"/>
+<Field name="phone" type="string"/>
+<Field format="yyyy-MM-dd" name="accountCreated" type="date"/>
+<Field eofAsDelimiter="true" name="isActive" type="boolean"/>
+<Field name="wranglerId" type="long"/>
+</Record>
+</Metadata>
+<Metadata id="ConnectorTarget_Rejects">
+<Record fieldDelimiter="|" name="SubgraphOutput_ConnectorTarget_Rejects" recordDelimiter="\n" type="delimited">
+<Field name="wranglerId" type="long"/>
+<Field name="rejectReasonFieldName" type="string"/>
+<Field name="rejectReasonMessage" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="ConnectorTarget_Rejects1">
+<Record fieldDelimiter="|" name="SubgraphOutput_ConnectorTarget_Rejects" recordDelimiter="\n" type="delimited">
+<Field name="wranglerId" type="long"/>
+<Field name="rejectReasonFieldName" type="string"/>
+<Field name="rejectReasonMessage" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="FAF6D6" folded="false" fontSize="medium" height="209" id="Note2" textColor="444444" width="503" x="452" y="340">
+<attr name="text"><![CDATA[h3. Reject handling
+
+
+- Handles rejected records, which are mapped via wranglerId to original data and displayed in Rejected file]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="DEF4AB" folded="false" fontSize="medium" height="446" id="Note1" textColor="444444" width="723" x="232" y="-121">
+<attr name="text"><![CDATA[h3. Replace this part with writing data
+
+Please replace Filter and FlatFileWriter with your own implementation of writing data. Records will arrive on the input edge, and in case of any issue, there is a mechanism for rejected records on the output port.
+
+* Subgraph name must be unique within the library; i.e., its name in the graph properties must not exist in a different subgraph (see Data sources section above for a screenshot).
+* Subgraph must have exactly 1 input port.
+* Input port metadata is optional. Providing metadata on input port enables mapping in Wrangler. If metadata is specified on input port, it must contain a field called ‘wranglerId’ of type long. This field is used to link your transformation data to errors reported by the target when generating the reject file.
+* Input metadata can only contain fields of types: string, long, date, boolean, and decimal (with length=32, scale=10).
+* Subgraph may have 1 output port which will be used as a “reject” port to collect errors raised by the connector itself.
+* If a reject port is used, it must use metadata created from the edge template called ConnectorTarget_Rejects (right-click on your edge and navigate to New Metadata From Template > ConnectorTarget_Rejects). This metadata must not be modified.]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="FAF6D6" folded="false" fontSize="medium" height="443" id="Note0" textColor="444444" width="322" x="-131" y="-118">
+<attr name="text"><![CDATA[h3. Debug area
+
+* Can be used to generate test data when developing and testing logic.
+* Components in debug input section will be automatically disabled when a connector is executed from a parent graph, this is visualized by graying out these components.]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="FAF6D6" folded="false" fontSize="medium" height="99" id="Note3" textColor="444444" width="723" x="232" y="-260">
+<attr name="text"><![CDATA[h3. Data target template
+
+This template points out all requirements needed for the development of a Data Target. Data Target Connectors are special subgraphs designed to be used as data targets data targets in the Data Catalog in CloverDX Wrangler.]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="@example.co.uk validation" guiX="316" guiY="102" id="EXAMPLE_CO_UK_VALIDATION" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+!endsWith($in.0.email, "@example.co.uk")]]></attr>
+</Node>
+<Node debugInput="true" fileURL="${DATAIN_DIR}/Customers.csv" guiName="FlatFileReader" guiX="-57" guiY="102" id="FLAT_FILE_READER" type="FLAT_FILE_READER"/>
+<Node guiName="Handle rejects" guiX="623" guiY="449" id="HANDLE_REJECTS" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+function integer transform() {
+	$out.0.wranglerId = $in.0.wranglerId;
+	$out.0.rejectReasonFieldName = "email";
+	$out.0.rejectReasonMessage = "Email contains example.co.uk domain, which is not allowed.";
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="200" guiY="-257" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="119" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="961" guiY="-257" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="466" name="0"/>
+<Port guiY="486" name="1"/>
+</Node>
+<Node enabled="trash" fileURL="${DATAOUT_DIR}/customers.csv" guiName="Write results" guiX="630" guiY="102" id="WRITE_RESULTS1" type="FLAT_FILE_WRITER"/>
+<Edge fromNode="EXAMPLE_CO_UK_VALIDATION:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" outPort="Port 0 (accepted)" toNode="WRITE_RESULTS1:0"/>
+<Edge fromNode="EXAMPLE_CO_UK_VALIDATION:1" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" outPort="Port 1 (rejected)" toNode="HANDLE_REJECTS:0"/>
+<Edge fromNode="FLAT_FILE_READER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" outPort="Port 0 (output)" toNode="SUBGRAPH_INPUT0:0"/>
+<Edge fromNode="HANDLE_REJECTS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" metadata="ConnectorTarget_Rejects1" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="SUBGRAPH_INPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="EXAMPLE_CO_UK_VALIDATION:0"/>
+</Phase>
+</Graph>

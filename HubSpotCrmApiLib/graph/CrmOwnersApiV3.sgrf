@@ -1,0 +1,733 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Martin" category="others" created="Sat Jan 09 19:55:05 CET 2021" description="This subgraph provides means to read HubSpot owner objects.&#13;&#10;&#13;&#10;Supported operations&#13;&#10;&#13;&#10;List - get all objects&#13;&#10;Read - gets data for object by it's ID" guiVersion="6.7.1.5" id="1610452798055" largeIconPath="${PROJECT}/icons/HubSpot-64.png" licenseCode="CLP1DCLOVE28718064BY" mediumIconPath="${PROJECT}/icons/HubSpot-32.png" name="getAssociatedObjectIds(APIv3)" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/HubSpot-16.png">
+<Global>
+<inputPorts>
+<singlePort connected="true" keepEdge="false" name="0" required="false"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="true" keepEdge="true" name="0" required="false"/>
+<singlePort connected="true" keepEdge="true" name="1" required="false"/>
+</outputPorts>
+<Metadata id="Metadata4">
+<Record fieldDelimiter="|" name="Dummy" recordDelimiter="\r\n" type="delimited">
+<Field name="Debug" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata5">
+<Record fieldDelimiter="|" name="Error" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="status_code" trim="true" type="integer"/>
+<Field name="response_body" type="string"/>
+<Field name="error_message" type="string"/>
+<Field name="object_id" type="string"/>
+<Field name="request_id" trim="true" type="long"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata3">
+<Record fieldDelimiter="|" name="Object_ID_And_HTTPConnector_Request" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="Object_ID" type="string"/>
+<Field name="URL" type="string"/>
+<Field name="requestContent" type="string"/>
+<Field name="errorMessage" type="string"/>
+<Field containerType="map" name="AdditinalHTTPHeaders" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="HTTPConnector_Response">
+<Record fieldDelimiter="|" name="Object_ID_And_HTTPConnector_Response" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="Object_ID" type="string"/>
+<Field name="content" type="string"/>
+<Field name="statusCode" trim="true" type="integer"/>
+<Field name="errorMessage" type="string"/>
+<Field name="reqestContent" type="string"/>
+<Field name="URL" type="string"/>
+<Field containerType="map" name="AdditinalHTTPHeaders" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata6">
+<Record fieldDelimiter="|" name="Owners" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="owner_id" type="string"/>
+<Field name="email" type="string"/>
+<Field name="first_name" type="string"/>
+<Field name="last_name" type="string"/>
+<Field name="user_id" type="string"/>
+<Field name="created_at" type="date"/>
+<Field name="archived" type="string"/>
+<Field name="teams" type="variant"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="ParsedResponseResult" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="object_id" type="string"/>
+<Field name="request_id" type="long"/>
+<Field name="parsed_result" type="variant"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="RequestId" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="_request_id" type="long"/>
+<Field name="_processing_error" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter="|" name="test" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="deal_id" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameter label="HS object name" name="OBJECT" public="false" required="false" value="owners">
+<attr name="description"><![CDATA[Use one of the provided values or provide your own for a custom object.]]></attr>
+<SingleType allowCustomValues="false" name="simpleEnum" values="owners"/>
+</GraphParameter>
+<GraphParameter label="HS properties to metadata mapping" name="FIELD_MAPPING" public="true" required="false">
+<attr name="description"><![CDATA[Provide mapping between HubSpot property names and Clover metadata field names, in the .properties file format. Left side represents HubSpot names, right side represents Clover names. Clover names are optional, if blank the HubSpot name will be used.]]></attr>
+<attr name="value"><![CDATA[email=
+firstName=first_name
+lastName=last_name
+userId=user_id
+createdAt=created_at
+archived=
+teams=
+]]></attr>
+<SingleType name="properties"/>
+</GraphParameter>
+<GraphParameter label="REQUEST_METHOD" name="REQUEST_METHOD" public="false" required="false">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	switch("${OPERATION}"){
+		case "Read":
+			return "GET";
+		case "Create":
+			return "POST";
+		case "Update":
+			return "PATCH";
+		case "Archive":
+			return "DELETE";
+		case "List":
+			return "GET";
+		default: 
+			raiseError("Unknown operation parameter value when derriving request method");
+	}
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter label="Operation" name="OPERATION" public="true" required="true" value="Read">
+<attr name="description"><![CDATA[Select one of the operations: List, Read.]]></attr>
+<SingleType allowCustomValues="false" name="simpleEnum" values="Read;List"/>
+</GraphParameter>
+<GraphParameter label="DESIRED_RESPONSE_STATUS" name="DESIRED_RESPONSE_STATUS" public="false" required="false">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	switch("${OPERATION}"){
+		case "Read":
+			return "200";
+		case "Create":
+			return "201";
+		case "Update":
+			return "200";
+		case "Archive":
+			return "204";
+		case "List":
+			return "200";
+		default: 
+			raiseError("Unknown operation parameter value when derriving sucess response status");
+	}
+}
+
+]]></attr>
+</GraphParameter>
+<GraphParameter category="advanced" defaultHint="Optional - object name plus id suffix will be used automatically" label="Object ID field name" name="OBJECT_ID_FIELD_NAME" public="true" secure="false">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+function string getValue() {
+	return lowerCase(singular(getParamValue("OBJECT")))+"_id";
+}
+
+function string singular(string noun){
+	if(endsWith(noun,'ies')){
+		return left(noun, length(noun)-3) + "y";
+	}else if(endsWith(noun,'s')){
+		return left(noun, length(noun)-1);
+	}else{
+		return noun;
+	}
+}
+]]></attr>
+<attr name="description"><![CDATA[Clover field name mapped to the HubSpot ID. Optional, if no value provided, field name will be generated as lowercase singular object name + _id suffix.]]></attr>
+<SingleType edge="Edge6" fieldType="string" name="field"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="Look in archived records?" name="ARCHIVED" public="true" value="false">
+<attr name="description"><![CDATA[Switches between working on regular or archived records (in trash).]]></attr>
+<SingleType name="bool"/>
+</GraphParameter>
+<GraphParameter name="IS_LIST_OPERATION">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return getParamValue("OPERATION") == "List"? "true" : "false";
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter name="NOT_IS_LIST_OPERATION">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return getParamValue("IS_LIST_OPERATION")=="true"?"false":"true";
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter name="TRASHIFY_WHEN_ARCHIVE_OPERATION">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return "${OPERATION}" == "Archive"? "trash":"true";
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter name="IS_ARCHIVE_OPERATION">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return getParamValue("OPERATION") == "Archive"? "true" : "false";;
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter name="NOT_IS_ARCHIVE_OPERATION">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return getParamValue("OPERATION") == "Archive"? "false" : "true";
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter name="API_CALL_SUBGRAPH">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	string api_call_subgraph;
+	
+	if (not isBlank(getParamValue("PRIVATE_APP_TOKEN"))){
+		api_call_subgraph = "${SUBGRAPH_DIR}/ApiCall-PrivateApp.sgrf";
+	} else {
+		api_call_subgraph = "${SUBGRAPH_DIR}/ApiCall-Oauth2.sgrf";
+	}
+	return api_call_subgraph;
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter label="Use default metadata" name="PROVIDE_DEFAULT_METADA" public="true" required="true" value="true">
+<attr name="description"><![CDATA[If enabled premade owner metadata is propagated to the output port.]]></attr>
+<SingleType name="bool"/>
+</GraphParameter>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="DAD8C9" folded="false" fontSize="medium" height="483" id="Note0" textColor="444444" width="689" x="-371" y="-435">
+<attr name="text"><![CDATA[h1. HubSpot CRM Owners API V3
+
+This subgraph implements reading of HubSpot CRM owner records. This is realised via the V3 API. 
+
+This section of HubSpot API documetation can be acessed here:
+https://developers.hubspot.com/docs/api/crm/owners
+
+The subgraph supports two authorization methods accepted by HubSpot:
+* Private apps
+* OAuth2 - pass in URL of the .cfg file for CloverDX OAuth2 HubSpot connection
+
+If Private App token is not provided OAuth2 method is used.
+
+*Metadata:*
+Input:
+* _request_id and _processing_error are reserved field names
+* must contain a field (string) with the id of the object. The name of the field can be set by a parameter. Defaults to the object type name plus _id suffix , e.g. deal_id. Attempts a conversion of the name to singular.
+* the component provides default metadata if enabled through parameter
+Output:
+* a copy by name operation is applied from the input, before merging with the result of the request so you can pass additional fields through.
+
+*Rate limit*
+The connector should be able to adapt to the API rate limit, however this is not properly tested yet.]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="FAF6D6" folded="false" fontSize="medium" height="483" id="Note1" textColor="444444" width="807" x="334" y="-435">
+<attr name="text"><![CDATA[h3. Operations
+
+* *List* - gets all objects
+* *Read* - gets data for object by its ID
+
+h3. Other options
+
+* *Archived* - whether to read archived objects (moved to trash). Defaults to false.
+
+h3. Hubspot properties and metadata field mapping
+
+The properties that are retrieved/set are selected using the _FIELD_MAPPING_ . Expected format is .properties (key:value pairs). The key represents the HubSpot property name, value is the name of the metadata field it should be mapped to. Only the keys are required, if value is ommited the names are assumed to be identical.
+
+This components provides a default mapping comaptible with the default metadat.
+
+A proper conversion is attempted based on the type of field in metadata, but it may fail, especially for integers as HubSpot only has a decimal type.
+
+h3. Errors
+The component has an error port, in case it is connected record level errors will be passed there instead of throwing an exception.]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="FAF6D6" folded="false" fontSize="medium" height="346" id="Note2" textColor="444444" width="559" x="150" y="151">
+<attr name="text"><![CDATA[h3. Main loop (Paging)]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="F9EB81" folded="false" fontSize="medium" height="238" id="Note3" textColor="444444" width="329" x="-772" y="-267">
+<attr name="text"><![CDATA[h3. TODO
+
+* check config
+** correct ports connected based on operation?
+** exactly one auth method provided
+* associations
+* option to use metadata as implicit mapping]]></attr>
+</RichTextNote>
+<Dictionary>
+<Entry input="false" name="JSON_MAPPING" output="false" type="string"/>
+</Dictionary>
+</Global>
+<Phase number="0">
+<Node __HTTP_CALL_RETRY_COUNT="${HTTP_CALL_RETRY_COUNT}" __HTTP_CALL_RETRY_DELAY="${HTTP_CALL_RETRY_DELAY}" __HTTP_CALL_SUCCESS_STATUS_CODE="${DESIRED_RESPONSE_STATUS}" __HTTP_CALL_TIMEOUT="${HTTP_CALL_TIMEOUT}" __O_AUTH2_CONNECTION="${O_AUTH2_CONNECTION}" __PRIVATE_APP_TOKEN="${PRIVATE_APP_TOKEN}" guiName="Call HubSpot API" guiX="366" guiY="378" id="CALL_HUB_SPOT_API" jobURL="${API_CALL_SUBGRAPH}" skipCheckConfig="false" type="SUBGRAPH"/>
+<Node debugInput="true" guiName="DataGenerator" guiX="-990" guiY="80" id="DATA_GENERATOR" type="DATA_GENERATOR"/>
+<Node debugOutput="true" guiName="Data port" guiX="2265" guiY="66" id="DATA_PORT" type="TRASH"/>
+<Node enabled="${PROVIDE_DEFAULT_METADA}" guiName="Dummy deafault metadata provider" guiX="1593" guiY="-59" id="DUMMY_DEAFAULT_METADATA_PROVIDER" recordsNumber="0" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+	return ALL;
+}]]></attr>
+</Node>
+<Node enabled="${NOT_IS_LIST_OPERATION}" guiName="Dummy metadata provider" guiX="-487" guiY="195" id="DUMMY_METADATA_PROVIDER" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+	return ALL;
+}]]></attr>
+</Node>
+<Node enabled="${NOT_IS_ARCHIVE_OPERATION}" guiName="Dummy metadata provider" guiX="1354" guiY="195" id="DUMMY_METADATA_PROVIDER1" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+	return ALL;
+}]]></attr>
+</Node>
+<Node enabled="${NOT_IS_LIST_OPERATION}" guiName="Enrich meta" guiX="-461" guiY="80" id="ENRICH_META" type="CROSS_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+long request_id = 0;
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0._request_id = request_id++;
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node enabled="${NOT_IS_ARCHIVE_OPERATION}" guiName="Enrich meta" guiX="1695" guiY="195" id="ENRICH_META1" type="CROSS_JOIN"/>
+<Node debugOutput="true" guiName="Error port" guiX="2265" guiY="326" id="ERROR_PORT" type="TRASH"/>
+<Node guiName="Extract paging" guiX="550" guiY="378" id="EXTRACT_PAGING" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+integer DESIRED_RESPONSE_STATUS = str2integer(getParamValue("DESIRED_RESPONSE_STATUS"));
+string OPERATION = getParamValue("OPERATION");
+
+// Transforms input record into output record.
+function integer transform() {
+	
+	$out.0.* = $in.0.*;
+	
+	if( not isBlank($in.0.httpResponseErrorMessage)
+			or
+		$in.0.httpResponseStatusCode != DESIRED_RESPONSE_STATUS
+	){
+		$out.0.* = $in.0.*;
+		$out.0.is_error = true;
+		return 0;
+	}
+	
+	variant parsedResponseBody ;
+	
+	try{
+		parsedResponseBody = parseJson($in.0.httpResponseBody);
+	}catch (CTLException ex){
+		$out.0.is_error = true;
+		$out.0.httpResponseErrorMessage = "Parsing response failed with following error:" + ex.message;
+	}
+	
+	//this should not happen unless there is an error on HubSpot side	
+	if( (isnull(parsedResponseBody) or isEmpty(parsedResponseBody))
+			and 
+		$in.0.httpResponseStatusCode != 204) //204 = no content
+	{ 
+		$out.0.is_error = true;
+		$out.0.httpResponseErrorMessage = "Parsing response failed - no content";
+	}
+	
+	
+	
+	//=======PAGING==========
+	
+	if(OPERATION == "List"){
+	
+		/* Is there a next page? Parse the section of document that coul look like this
+		 * "paging": {
+		 *    "next": {
+		 *       "after": "...",
+		 *       "link": "..." <- this contains the whole url with all the parametermeters necessary to get next page
+		 */
+		if(	containsKey(parsedResponseBody,"paging")
+				and
+			containsKey(parsedResponseBody["paging"],"next")
+		){
+			$out.0.has_next = true;
+			//set url for next request to next page
+			$out.0.httpRequestUrl = cast(parsedResponseBody["paging"]["next"]["link"],string);
+		}else{
+			$out.0.has_next = false;
+		}
+	}else{
+		$out.0.has_next = false;
+	}
+	
+	//pass out result
+	
+	$out.1.object_id = $in.0.object_id;
+	$out.1.request_id = $in.0.request_id;
+	$out.1.parsed_result = parsedResponseBody;
+	
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node enabled="${IS_LIST_OPERATION}" guiName="Generate List operation token" guiX="-760" guiY="195" id="GENERATE_LIST_OPERATION_TOKEN" type="DATA_GENERATOR">
+<attr name="generate"><![CDATA[//#CTL2
+
+// Generates output record.
+function integer generate() {
+	$out.0._request_id = 0;
+	return ALL;
+}]]></attr>
+</Node>
+<Node enabled="${TRASHIFY_WHEN_ARCHIVE_OPERATION}" guiName="Join with orig record" guiX="1189" guiY="66" id="JOIN_WITH_ORIG_RECORD1" joinKey="$_request_id=$_request_id" slaveDuplicates="false" type="EXT_MERGE_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+
+//==============>INIT<======================
+map[string,string] mapping = parseProperties(getParamValue("FIELD_MAPPING"));
+string[] hubspot_property_names = getKeys(mapping);
+string[] clover_field_names;
+string ASSOCIATIONS_FIELD_NAME = getParamValue("ASSOCIATIONS_FIELD_NAME");
+	
+foreach(string hubspot_property_name: hubspot_property_names){
+	string clover_field_name = mapping[hubspot_property_name];
+	if(not isBlank(clover_field_name)){
+		append(clover_field_names, clover_field_name);
+	}else{
+		//apply default clover field name = hubspot property name
+		append(clover_field_names, hubspot_property_name);
+	}
+}
+
+//===========>TRANSFORMATION<================
+
+// Transforms input record into output record.
+function integer transform() {
+	//copy pass throught values
+	$out.0.* = $in.1.*;
+	//overwrite new values
+	if("${OPERATION}".in(["Read","List"])){
+		foreach(string field_name : clover_field_names){
+			setValue($out.0,field_name,getValue($in.0,field_name));
+		}
+		// set associations value
+		if(not isEmpty(ASSOCIATIONS_FIELD_NAME)) {
+			setValue($out.0,ASSOCIATIONS_FIELD_NAME,getValue($in.0,ASSOCIATIONS_FIELD_NAME));
+		}
+	//Get the ID of newly created object / listed objects	
+	}
+	if("${OPERATION}".in(["Create", "List"]) ){
+		setStringValue($out.0,"${OBJECT_ID_FIELD_NAME}",getStringValue($in.0,"${OBJECT_ID_FIELD_NAME}"));
+	}
+	
+	return ALL;
+}]]></attr>
+</Node>
+<Node guiName="Loop" guiX="184" guiY="237" id="LOOP" loggingLevel="off" type="LOOP">
+<attr name="whileCondition"><![CDATA[//#CTL2
+$in.0.has_next and not $in.0.is_error]]></attr>
+</Node>
+<Node enabled="${NOT_IS_ARCHIVE_OPERATION}" guiName="Parse to records" guiX="802" guiY="392" id="PARSE_TO_RECORDS" type="NORMALIZER">
+<attr name="normalize"><![CDATA[//#CTL2
+
+import "${TRANS_DIR}/Utils.ctl";
+
+//INIT
+boolean runtime_init_complete = false;
+map[string,string] MAPPING = parseProperties(getParamValue("FIELD_MAPPING"));
+
+string OPERATION = getParamValue("OPERATION");
+string OBJECT_ID_FIELD_NAME = getParamValue("OBJECT_ID_FIELD_NAME");
+
+variant results_list;
+
+function void runtimeInit() {
+	if(getFieldIndex($out.0,OBJECT_ID_FIELD_NAME) == -1){
+		raiseError("[Configuration error] Output metadata does not contain field named: " + OBJECT_ID_FIELD_NAME);
+	}
+	runtime_init_complete = true;
+}
+
+// This function is called for all input records.
+// It parses each single input record and returns the number of records
+// that should be created from such input record.
+function integer count() {
+
+	if(OPERATION == "List"){
+		results_list = $in.0.parsed_result["results"];
+		return length(results_list);	
+	}
+	return 1;
+}
+
+// This function creates new records for the output, based on single input record
+// that has been parsed by the count() function.
+// It is called count() times for each input record.
+// The idx argument specifies which output record is being created,
+// its values range is from 0 to count() - 1.
+function integer transform(integer idx) {
+	
+	if(not runtime_init_complete){
+		runtimeInit();	
+	}
+	
+	$out.0._request_id = $in.0.request_id;
+	try{
+		if(OPERATION == "List"){
+			parse_object(results_list[idx]);
+			
+		}else{
+			parse_object($in.0.parsed_result);	
+		}
+	}catch (CTLException ex){
+		if(contains(ex.message,"[Parsing error]")){
+			$out.0._processing_error = ex.message;
+		}else{
+			raiseError(ex.message);
+		}
+	}
+	return OK;
+}
+
+function void parse_object(variant json){
+	string id = null;
+	
+	if(OPERATION.in(["List","Create"])){
+		id = cast(json["id"],string);
+	}else{
+		id = $in.0.object_id;
+	}
+	
+	setStringValue(
+			$out.0,
+			OBJECT_ID_FIELD_NAME,
+			id
+	);
+	
+	foreach( string hubspot_property_name : MAPPING.getKeys()){
+		
+		variant field_variant_value;
+		
+		try{
+			field_variant_value = json[hubspot_property_name];
+		}catch(CTLException ex){
+			printLog(error, ex);
+			raiseError("[Configuration error] Property " + hubspot_property_name + " not found in the response - it probably doesn't exist, and has been ignored by HubSpot API");
+		}
+		set_output_field_from_hubspot_value(
+			field_variant_value,
+			hubspot_property_name,
+			MAPPING.lookup_mapping_to_clover(hubspot_property_name),
+			id
+		);
+	}
+}]]></attr>
+</Node>
+<Node guiName="Prepare payload and URL" guiX="-65" guiY="237" id="PREPARE_PAYLOAD_AND_URL" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+
+//==============>INIT<======================
+map[string,string] mapping = parseProperties(getParamValue("FIELD_MAPPING"));
+string[] hubspot_property_names = getKeys(mapping);
+string[] clover_field_names;
+string properties = join(",",hubspot_property_names);
+	
+foreach(string hubspot_property_name: hubspot_property_names){
+	string clover_field_name = mapping[hubspot_property_name];
+	if(not isBlank(clover_field_name)){
+		append(clover_field_names, clover_field_name);
+	}else{
+		//apply default clover field name = hubspot property name
+		append(clover_field_names, hubspot_property_name);
+	}
+}
+
+string OBJECT_ID_FIELD_NAME = getParamValue("OBJECT_ID_FIELD_NAME");
+string OPERATION = getParamValue("OPERATION");
+string REQUEST_METHOD = getParamValue("REQUEST_METHOD");
+string LIMIT = getParamValue("LIMIT"); 
+string ARCHIVED = getParamValue("ARCHIVED");
+string base_api_url = "https://api.hubapi.com/crm/v3/owners/";
+
+//=============>TRANSFORMATION<=============
+
+function integer transform() {
+	
+	$out.0.request_id = $in.0._request_id;
+	$out.0.httpRequestCharset = "UTF-8";
+	$out.0.has_next = true;
+	$out.0.is_error = false;
+	$out.0.httpRequestMethod = REQUEST_METHOD;
+	
+	string id;
+	
+	switch (OPERATION){
+		case "List":
+			$out.0.httpRequestUrl = concat(
+				base_api_url,
+				"?limit=", LIMIT, 
+				(ARCHIVED == "true" ? "&archived=true": "")
+			);
+			break;
+			
+		case "Read":
+			id = getStringValue($in.0,OBJECT_ID_FIELD_NAME);
+			$out.0.object_id = id;
+			if(isBlank(id)){
+				$out.0.is_error = true;
+				$out.0.httpResponseErrorMessage = "Object id cannot be blank.";
+				return ALL;
+			}
+			
+			$out.0.httpRequestUrl = concat(
+				base_api_url,
+				id,
+				(ARCHIVED == "true" ? "?archived=true": "")
+			);
+			break;
+	}
+	return ALL;
+}
+
+function string buildRequestBody(){
+	variant properties = {};
+	
+	for(integer index = 0; index < length(hubspot_property_names); index++){
+		properties[hubspot_property_names[index]] = getValue($in.0,clover_field_names[index]);
+	}
+	return writeJson({"properties" -> properties});
+}]]></attr>
+</Node>
+<Node enabled="${NOT_IS_ARCHIVE_OPERATION}" guiName="Raise error" guiX="1038" guiY="392" id="RAISE_ERROR" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+string OBJECT_ID_FIELD_NAME = getParamValue("OBJECT_ID_FIELD_NAME");
+// Transforms input record into output record.
+function integer transform() {
+	
+	if(isBlank($in.0._processing_error)){
+		$out.0.* = $in.0.*;
+		return 0;
+	}else{
+		if(isSubgraphOutputPortConnected(1)){
+			$out.1.error_message = $in.0._processing_error;
+			$out.1.object_id = getStringValue($in.0, OBJECT_ID_FIELD_NAME);
+			$out.1.request_id = $in.0._request_id;
+			return 1;
+		}
+		raiseError( "Processing response failed on object: " 
+			+ getStringValue($in.0, OBJECT_ID_FIELD_NAME) 
+			+ " with message: " 
+			+ $in.0._processing_error
+		);
+	}
+}
+]]></attr>
+</Node>
+<Node guiName="Raise error or send to port" guiX="1646" guiY="326" id="RAISE_ERROR_OR_SEND_TO_PORT" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	if(not $in.0.is_error){
+		return SKIP;
+	}
+	
+	if(isSubgraphOutputPortConnected(1)){
+		$out.0.status_code = $in.0.httpResponseStatusCode;
+		$out.0.response_body = $in.0.httpResponseBody;
+		$out.0.error_message = $in.0.httpResponseErrorMessage;
+		$out.0.object_id = $in.0.object_id;
+		$out.0.request_id = $in.0.request_id;
+		return 0;
+	}	
+	raiseError( "HubSpot API call failed. \n Status: " + num2str($in.0.httpResponseStatusCode)
+		+ "\n Error message: " +$in.0.httpResponseErrorMessage
+		+ "\n Response body: " +$in.0.httpResponseBody
+	);
+}
+
+]]></attr>
+</Node>
+<Node guiName="Remove request id from meta" guiX="1624" guiY="66" id="REMOVE_REQUEST_ID_FROM_META" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="SimpleCopy" guiX="-230" guiY="80" id="SIMPLE_COPY" type="SIMPLE_COPY"/>
+<Node guiName="SimpleGather" guiX="1947" guiY="66" id="SIMPLE_GATHER" type="SIMPLE_GATHER"/>
+<Node guiName="SimpleGather" guiX="1947" guiY="326" id="SIMPLE_GATHER1" type="SIMPLE_GATHER"/>
+<Node guiName="SimpleGather" guiX="-717" guiY="80" id="SIMPLE_GATHER2" type="SIMPLE_GATHER"/>
+<Node guiName="SubgraphInput" guiX="-824" guiY="-427" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="97" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="2164" guiY="-427" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="83" name="0"/>
+<Port guiY="343" name="1"/>
+<Port guiY="496" name="2"/>
+</Node>
+<Node enabled="${NOT_IS_ARCHIVE_OPERATION}" guiName="Trash" guiX="1947" guiY="195" id="TRASH" type="TRASH"/>
+<Edge fromNode="CALL_HUB_SPOT_API:0" guiBendpoints="" guiRouter="Manhattan" id="Edge13" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="EXTRACT_PAGING:0"/>
+<Edge fromNode="DATA_GENERATOR:0" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="SUBGRAPH_INPUT0:0"/>
+<Edge fromNode="DUMMY_DEAFAULT_METADATA_PROVIDER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 1 (in)" metadata="Metadata6" outPort="Port 0 (out)" toNode="SIMPLE_GATHER:1"/>
+<Edge fromNode="DUMMY_METADATA_PROVIDER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge25" inPort="Port 1 (slave)" metadata="Metadata1" outPort="Port 0 (out)" toNode="ENRICH_META:1"/>
+<Edge fromNode="DUMMY_METADATA_PROVIDER1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge31" inPort="Port 0 (master)" metadataRef="#//Edge30" outPort="Port 0 (out)" toNode="ENRICH_META1:0"/>
+<Edge fromNode="DUMMY_METADATA_PROVIDER1:1" guiBendpoints="" guiRouter="Manhattan" id="Edge29" inPort="Port 1 (slave)" metadata="Metadata1" outPort="Port 1 (out)" toNode="ENRICH_META1:1"/>
+<Edge fromNode="ENRICH_META:0" guiBendpoints="" guiRouter="Manhattan" id="Edge15" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SIMPLE_COPY:0"/>
+<Edge fromNode="ENRICH_META1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge32" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="TRASH:0"/>
+<Edge fromNode="EXTRACT_PAGING:0" guiBendpoints="" guiRouter="Manhattan" id="Edge33" inPort="Port 1 (back from loop)" outPort="Port 0 (out)" toNode="LOOP:1"/>
+<Edge fromNode="EXTRACT_PAGING:1" guiBendpoints="" guiRouter="Manhattan" id="Edge34" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 1 (out)" toNode="PARSE_TO_RECORDS:0"/>
+<Edge fromNode="GENERATE_LIST_OPERATION_TOKEN:0" guiBendpoints="" guiRouter="Manhattan" id="Edge27" inPort="Port 1 (in)" metadataRef="#//Edge7" outPort="Port 0 (out)" toNode="SIMPLE_GATHER2:1"/>
+<Edge fromNode="JOIN_WITH_ORIG_RECORD1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" metadataRef="#//Edge32" outPort="Port 0 (out)" toNode="REMOVE_REQUEST_ID_FROM_META:0"/>
+<Edge fromNode="LOOP:0" guiBendpoints="" guiRouter="Manhattan" id="Edge17" inPort="Port 0 (in)" outPort="Port 0 (end of loop)" toNode="RAISE_ERROR_OR_SEND_TO_PORT:0"/>
+<Edge fromNode="LOOP:1" guiBendpoints="" guiRouter="Manhattan" id="Edge16" inPort="Port 0 (in)" outPort="Port 1 (continue loop)" toNode="CALL_HUB_SPOT_API:0"/>
+<Edge fromNode="PARSE_TO_RECORDS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge35" inPort="Port 0 (in)" metadataRef="#//Edge7" outPort="Port 0 (out)" toNode="RAISE_ERROR:0"/>
+<Edge fromNode="PREPARE_PAYLOAD_AND_URL:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (input token)" outPort="Port 0 (out)" toNode="LOOP:0"/>
+<Edge fromNode="RAISE_ERROR:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (driver)" outPort="Port 0 (out)" toNode="JOIN_WITH_ORIG_RECORD1:0"/>
+<Edge fromNode="RAISE_ERROR:1" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 1 (in)" outPort="Port 1 (out)" toNode="SIMPLE_GATHER1:1"/>
+<Edge fromNode="RAISE_ERROR_OR_SEND_TO_PORT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge36" inPort="Port 0 (in)" metadata="Metadata5" outPort="Port 0 (out)" toNode="SIMPLE_GATHER1:0"/>
+<Edge fromNode="REMOVE_REQUEST_ID_FROM_META:0" guiBendpoints="" guiRouter="Manhattan" id="Edge30" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SIMPLE_GATHER:0"/>
+<Edge fromNode="SIMPLE_COPY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 1 (slave)" outPort="Port 0 (out)" toNode="JOIN_WITH_ORIG_RECORD1:1"/>
+<Edge fromNode="SIMPLE_COPY:1" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="PREPARE_PAYLOAD_AND_URL:0"/>
+<Edge fromNode="SIMPLE_GATHER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="SIMPLE_GATHER1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:1"/>
+<Edge fromNode="SIMPLE_GATHER2:0" guiBendpoints="" guiRouter="Manhattan" id="Edge26" inPort="Port 0 (master)" outPort="Port 0 (out)" toNode="ENRICH_META:0"/>
+<Edge fromNode="SUBGRAPH_INPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SIMPLE_GATHER2:0"/>
+<Edge fromNode="SUBGRAPH_OUTPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="DATA_PORT:0"/>
+<Edge fromNode="SUBGRAPH_OUTPUT0:1" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="ERROR_PORT:0"/>
+</Phase>
+</Graph>

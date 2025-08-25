@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Record fieldDelimiter="|" name="lookup" recordDelimiter="\n" type="delimited">
+<Field name="fieldName" type="string"/>
+<Field name="fieldDescription" type="string"/>
+</Record>

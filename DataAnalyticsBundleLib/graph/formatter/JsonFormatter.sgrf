@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="writers" created="Tue May 10 18:21:48 EDT 2016" description="Implementation of a workflow that saved metadata structure in JSON format." guiVersion="5.15.0.15" id="1463009019408" largeIconPath="${DATA_ANALYTICS_DIR}/ico/fmtr-json-64.png" licenseCode="CLP1DJAVLI51655480BY" licenseType="Commercial" mediumIconPath="${DATA_ANALYTICS_DIR}/ico/fmtr-json-32.png" modified="Fri May 13 11:54:21 EDT 2016" modifiedBy="CloverDX" name="CreateMetadataFile" nature="subgraph" revision="1.27" showComponentDetails="true" smallIconPath="${DATA_ANALYTICS_DIR}/ico/fmtr-json-16.png">
+<Global>
+<inputPorts>
+<singlePort connected="false" name="0"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="true" keepEdge="false" name="0" required="false"/>
+</outputPorts>
+<EndpointSettings/>
+<Metadata fileURL="${DATA_ANALYTICS_DIR}/meta/MetadataField.fmt" id="Metadata1"/>
+<Metadata id="Metadata2" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="|" name="JsonDescriptor" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\r\n" type="delimited">
+<Field name="filename" type="string"/>
+<Field name="json" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameter label="File URL" name="FILE_URL" public="true" required="false">
+<attr name="description"><![CDATA[File URL for the outpout file.]]></attr>
+<ComponentReference referencedComponent="UNIVERSAL_DATA_WRITER" referencedProperty="fileURL"/>
+</GraphParameter>
+<GraphParameter label="Use custom metadata" name="CUSTOM_METADATA" public="true" value="false">
+<attr name="description"><![CDATA[Enable if you want to provide extended metadata on input - the component will not propagate the default metadata.]]></attr>
+<SingleType name="bool"/>
+</GraphParameter>
+<GraphParameter name="ENABLE_WRITEOUT">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function boolean getValue() {
+	return !isBlank("${FILE_URL}");
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter name="IN_METADATA">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return ${CUSTOM_METADATA} ? "" : "Metadata1";
+}
+]]></attr>
+</GraphParameter>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node createEmptyFiles="false" fileURL="port:$0.json:discrete" guiName="Create objects" guiX="572" guiY="102" id="CREATE_OBJECTS" partitionKey="__name" partitionKeySorted="true" type="JSON_WRITER">
+<attr name="mapping"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<root xmlns:clover="http://www.cloveretl.com/ns/xmlmapping" clover:inPort="0">
+  <clover:element clover:name="$1.fieldName" clover:inPort="1" clover:key="metaRecord" clover:parentKey="__name">{$1.valueBoolean}{$1.valueInteger}{$1.valueString}</clover:element>
+  <clover:collection clover:name="Fields">
+    <item clover:inPort="2" clover:key="__name" clover:parentKey="__name">
+      <clover:elements clover:include="$2.*" clover:exclude="$2.__name"/>
+    </item>
+  </clover:collection>
+</root>]]></attr>
+</Node>
+<Node guiName="Create record details" guiX="207" guiY="102" id="CREATE_RECORD_DETAILS" jobURL="${DATA_ANALYTICS_DIR}/tools/_CreateRecordDetails.sgrf" type="SUBGRAPH"/>
+<Node createEmptyFiles="false" fileURL="port:$0.json:discrete" guiName="JSONWriter" guiX="761" guiY="102" id="JSONWRITER1" type="JSON_WRITER">
+<attr name="mapping"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<clover:collection clover:name="root" clover:inPort="0" xmlns:clover="http://www.cloveretl.com/ns/xmlmapping">
+  <json clover:rawValue="true">$0.json</json>
+</clover:collection>]]></attr>
+</Node>
+<Node guiName="SimpleCopy" guiX="941" guiY="102" id="SIMPLE_COPY2" type="SIMPLE_COPY"/>
+<Node guiName="Strip prefixes" guiX="399" guiY="220" id="STRIP_PREFIXES" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.fieldName = $in.0.fieldName.replace("^_{2}","");
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="139" guiY="8" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1288" guiY="8" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="119" name="0"/>
+<Port guiY="173" name="1"/>
+</Node>
+<Node debugOutput="true" guiName="Trash" guiX="1364" guiY="88" id="TRASH" type="TRASH"/>
+<Node enabled="${ENABLE_WRITEOUT}" excludeFields="filename" fileURL="${FILE_URL}" guiName="UniversalDataWriter" guiX="1131" guiY="207" id="UNIVERSAL_DATA_WRITER" partitionFileTag="keyNameFileTag" partitionKey="filename" type="DATA_WRITER"/>
+<Edge fromNode="CREATE_OBJECTS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="JSONWRITER1:0"/>
+<Edge fromNode="CREATE_RECORD_DETAILS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="CREATE_OBJECTS:0"/>
+<Edge debugMode="false" fromNode="CREATE_RECORD_DETAILS:1" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="STRIP_PREFIXES:0"/>
+<Edge fromNode="CREATE_RECORD_DETAILS:2" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 2 (in)" outPort="Port 2 (out)" toNode="CREATE_OBJECTS:2"/>
+<Edge fromNode="JSONWRITER1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="SIMPLE_COPY2:0"/>
+<Edge debugMode="false" fromNode="SIMPLE_COPY2:0" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 0 (in)" metadataRef="#//Edge6" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="SIMPLE_COPY2:1" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="UNIVERSAL_DATA_WRITER:0"/>
+<Edge fromNode="STRIP_PREFIXES:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 1 (in)" outPort="Port 0 (out)" toNode="CREATE_OBJECTS:1"/>
+<Edge fromNode="SUBGRAPH_INPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" metadata="${IN_METADATA}" outPort="Port 0 (out)" toNode="CREATE_RECORD_DETAILS:0"/>
+<Edge fromNode="SUBGRAPH_OUTPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="TRASH:0"/>
+</Phase>
+</Graph>

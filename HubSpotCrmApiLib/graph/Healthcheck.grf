@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Martin" created="Tue Oct 03 13:56:07 CEST 2023" guiVersion="6.7.1.5" id="1696342373787" licenseCode="CLCDSCLOVE24765514SP" name="Healthcheck" showComponentDetails="true">
+<Global>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="library.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="DAD8C9" folded="false" fontSize="medium" height="124" id="Note0" textColor="444444" width="437" x="309" y="396">
+<attr name="text"><![CDATA[h3. Healthcheck
+
+Checks if HubSpot is accessible using the provided credentials. Also checks that the daily rate limit has not been reached.]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node __HTTP_CALL_RETRY_COUNT="${HTTP_CALL_RETRY_COUNT}" __HTTP_CALL_RETRY_DELAY="${HTTP_CALL_RETRY_DELAY}" __HTTP_CALL_TIMEOUT="${HTTP_CALL_TIMEOUT}" __LIMIT="${LIMIT}" __O_AUTH2_CONNECTION="${O_AUTH2_CONNECTION}" __PRIVATE_APP_TOKEN="${PRIVATE_APP_TOKEN}" guiName="AccountDetailsApiV3" guiX="309" guiY="274" id="ACCOUNT_DETAILS_API_V3" jobURL="${GRAPH_DIR}/AccountDetailsApiV3.sgrf" type="SUBGRAPH"/>
+<Node guiName="Fail" guiX="816" guiY="356" id="FAIL" type="FAIL">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.errorMessage = "Daily rate limit exceeded (" + $in.0.rateLimitDaily + ")";
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Limit ok?" guiX="563" guiY="274" id="LIMIT_OK" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.rateLimitDailyRemaining > 0]]></attr>
+</Node>
+<Node guiName="Success" guiX="816" guiY="274" id="SUCCESS" type="SUCCESS">
+<attr name="mapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.message = "Daily rate limit remaining: " + $in.0.rateLimitDailyRemaining + " of " + $in.0.rateLimitDaily;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge fromNode="ACCOUNT_DETAILS_API_V3:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="LIMIT_OK:0"/>
+<Edge fromNode="LIMIT_OK:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" outPort="Port 0 (accepted)" toNode="SUCCESS:0"/>
+<Edge fromNode="LIMIT_OK:1" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 1 (rejected)" toNode="FAIL:0"/>
+</Phase>
+</Graph>

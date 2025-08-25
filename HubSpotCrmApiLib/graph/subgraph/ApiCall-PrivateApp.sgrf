@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Martin" created="Wed Apr 06 10:27:14 CEST 2022" guiVersion="6.7.1.5" id="1649245814776" licenseCode="CLP1DCLOVE28718064BY" name="ApiCall" nature="subgraph" showComponentDetails="true">
+<Global>
+<inputPorts>
+<singlePort connected="false" name="0"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="false" name="0"/>
+</outputPorts>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="Auth" previewAttachmentCharset="UTF-8" recordDelimiter="\r\n" type="delimited">
+<Field name="apiKey" type="string"/>
+<Field name="accessToken" type="string"/>
+<Field name="isError" type="boolean"/>
+<Field name="errorMessage" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1" previewAttachmentCharset="UTF-8">
+<Record fieldDelimiter="|" name="SimpleHttpCall" previewAttachmentCharset="UTF-8" recordDelimiter="\n" type="delimited">
+<Field name="httpRequestUrl" type="string"/>
+<Field name="httpRequestBaseUrl" type="string"/>
+<Field name="httpRequestMethod" type="string"/>
+<Field containerType="map" name="httpRequestHeaders" type="string"/>
+<Field containerType="map" name="httpRequestCookies" type="string"/>
+<Field name="httpRequestBody" type="string"/>
+<Field name="httpRequestAuthenticationMethod" type="string"/>
+<Field name="httpRequestAuthenticationUsername" type="string"/>
+<Field name="httpRequestAuthenticationPassword" type="string"/>
+<Field name="httpRequestCharset" type="string"/>
+<Field name="httpRequestTimeout" type="integer"/>
+<Field name="httpRequestRetryCount" type="integer"/>
+<Field name="httpResponseStatusCode" type="integer"/>
+<Field containerType="map" name="httpResponseHeaders" type="string"/>
+<Field name="httpResponseBody" type="string"/>
+<Field name="httpResponseErrorMessage" type="string"/>
+<Field name="object_id" type="string"/>
+<Field name="request_id" type="long"/>
+<Field name="has_next" type="boolean"/>
+<Field default="false" name="is_error" type="boolean"/>
+<Field name="batch_map" type="variant"/>
+<Field name="batch_request_id" type="long"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameter label="Http call retry delay count" name="HTTP_CALL_RETRY_COUNT" public="true" value="1">
+<attr name="description"><![CDATA[Defines number of retry attempts when HTTP call fails. Set to zero to disable retry after HTTP call failure.]]></attr>
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter label="Http call retry delay" name="HTTP_CALL_RETRY_DELAY" public="true" value="5000">
+<attr name="description"><![CDATA[Defines delay between retry attempts in miliseconds.]]></attr>
+<SingleType name="int"/>
+</GraphParameter>
+<GraphParameter name="HTTP_CALL_SUCCESS_STATUS_CODE" public="true" required="true" value="200"/>
+<GraphParameter category="advanced" label="Timeout" name="HTTP_CALL_TIMEOUT" public="true" required="false" value="15s"/>
+<GraphParameter name="PRIVATE_APP_TOKEN" public="true" secure="true"/>
+<GraphParameter label="OAuth2 connection" name="O_AUTH2_CONNECTION" public="true" required="false" secure="false">
+<SingleType fileExtension="cfg" multiple="false" name="file" selectionMode="file_only"/>
+</GraphParameter>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="Delay next attempt" guiX="566" guiY="321" id="DELAY_NEXT_ATTEMPT" type="SLEEP">
+<attr name="inputMapping"><![CDATA[//#CTL2
+import "${TRANS_DIR}/Utils.ctl";
+
+boolean parse_limits = true;
+integer rate_limit_max = 100;
+integer rate_limit_window = 10000;
+long rate_limiting_default_delay = rate_limit_window / rate_limit_max;
+long rate_limiting_delay = 0; // try fast start
+long rate_limiting_delay_max = 5000;
+list[integer] success_status_codes;
+foreach(string success_status_code : split(getParamValue("HTTP_CALL_SUCCESS_STATUS_CODE"),";")){
+	success_status_codes.append(str2integer(success_status_code));
+}											
+// Transforms input record into output record.
+function integer transform() {
+	
+	long error_delay = 0;
+	
+	//add error delay in case call was not sucessful, in case error was 429 leave rate limiting take care of it
+	//429 can also be reaching daily quota, in that case waiting a few seconds would not help either
+	if(not $in.0.httpResponseStatusCode.in(success_status_codes)){
+		error_delay = str2long("${HTTP_CALL_RETRY_DELAY}");
+	}
+	
+	//check actual api limits, predict optimal pace
+	if(parse_limits){
+		try{
+			rate_limit_max = str2integer(get_field_case_insensitive($in.0.httpResponseHeaders, "X-HubSpot-RateLimit-Max"));
+			rate_limit_window = str2integer(get_field_case_insensitive($in.0.httpResponseHeaders, "X-HubSpot-RateLimit-Interval-Milliseconds"));
+			rate_limiting_default_delay = rate_limit_window / rate_limit_max;
+			rate_limiting_delay_max = rate_limit_window / 2;
+			parse_limits = false;
+		}catch (CTLException ex){
+			//do nothing continue with the default values
+			parse_limits = false;
+		}
+	}
+	
+	//adapt pace
+	integer rate_limit_remaining;
+	try{
+		rate_limit_remaining = str2integer(get_field_case_insensitive($in.0.httpResponseHeaders, "X-HubSpot-RateLimit-Remaining"));
+		printLog(debug,"Rate limit remaining: " + rate_limit_remaining);
+		if (rate_limit_remaining > 0.8 * rate_limit_max ){
+			//go faster
+			rate_limiting_delay = double2long(rate_limiting_delay*0.9);
+		}else if (rate_limit_remaining > 0.15 * rate_limit_max ){
+			//go a little faster
+			 rate_limiting_delay--;
+		}else if(rate_limit_remaining > 0.1 * rate_limit_max ){
+			//slow down a little
+			rate_limiting_delay++;
+		}else if(rate_limit_remaining > 0.08 * rate_limit_max ){
+			//slow down
+			rate_limiting_delay = double2long((max(rate_limiting_delay,10))*1.1);
+		}else{
+			//slow down a lot
+			rate_limiting_delay = max(rate_limiting_delay,rate_limiting_default_delay)*2;
+		}	
+	}catch (CTLException ex){
+		//reset to default
+		rate_limiting_delay = rate_limiting_default_delay;
+	}
+	
+	//sanity trim resulting delay
+	if(rate_limiting_delay < 0){
+		rate_limiting_delay = 0;
+	}else if(rate_limiting_delay > rate_limiting_delay_max){
+		rate_limiting_delay = rate_limiting_delay_max;
+	}
+	
+	
+	//apply delay, apply error delay if applicable (assuming it is longer than pacing delay)
+	$out.0.delayMillis = max(rate_limiting_delay,error_delay);
+	printLog(debug,"Waiting for: " + $out.0.delayMillis);
+	
+	return ALL;
+}
+]]></attr>
+</Node>
+<Node guiName="Http call" guiX="155" guiY="321" id="HTTP_CALL" redirectErrorOutput="true" timeout="${HTTP_CALL_TIMEOUT}" type="HTTP_CONNECTOR">
+<attr name="inputMapping"><![CDATA[//#CTL2
+
+string auth_header;
+
+function void init(){
+	if (not isBlank(getParamValue('PRIVATE_APP_TOKEN'))){
+		auth_header = 'Bearer ' + getParamValue('PRIVATE_APP_TOKEN');
+	}else{
+		raiseError('ERROR: Private app token required if not using Oauth 2 connection.');
+	}		
+}
+
+// Transforms input record into output record.
+function integer transform() {
+	// httpRequestUrl
+	if (isBlank($in.0.httpRequestUrl)) {
+		raiseError('ERROR: Http request URL have to be specified.');
+	}
+	else {
+		$out.0.URL = $in.0.httpRequestUrl;
+	}
+	
+	// httpRequestMethod
+	if (isBlank($in.0.httpRequestMethod)) {
+		raiseError('ERROR: Http request METHOD have to be specified.');
+	}
+	else {
+		$out.0.requestMethod = $in.0.httpRequestMethod;
+	}
+	
+	// httpRequestHeaders
+	if (!isnull($in.0.httpRequestHeaders)) {
+		$out.0.additionalHTTPHeaders = $in.0.httpRequestHeaders;
+	}else{
+		$out.0.additionalHTTPHeaders = {};	
+	}
+	
+	// add auth header
+	$out.0.additionalHTTPHeaders["Authorization"] = auth_header;
+
+	
+	// httpRequestBody
+	if (!isBlank($in.0.httpRequestBody)) {
+		$out.0.requestContent = $in.0.httpRequestBody;
+	}
+	
+	// httpRequestAuthenticationMethod
+	if (!isBlank($in.0.httpRequestAuthenticationMethod)) {
+		$out.0.authenticationMethod = $in.0.httpRequestAuthenticationMethod;
+	}
+	
+	// httpRequestAuthenticationUsername
+	if (!isBlank($in.0.httpRequestAuthenticationUsername)) {
+		$out.0.username = $in.0.httpRequestAuthenticationUsername;
+	}
+	
+	// httpRequestAuthenticationPassword
+	if (!isBlank($in.0.httpRequestAuthenticationPassword)) {
+		$out.0.password = $in.0.httpRequestAuthenticationPassword;
+	}
+	
+	// httpRequestCharset
+	if (isBlank($in.0.httpRequestCharset)) {
+		raiseError('ERROR: Http request CHARSET has to be specified.');
+	}
+	else {
+		$out.0.charset = $in.0.httpRequestCharset;
+	}
+	
+	// httpRequestTimeout
+	if (isnull($in.0.httpRequestTimeout)) {
+		$out.0.timeout = 5000;
+	}
+	else {
+		$out.0.timeout = $in.0.httpRequestTimeout;
+	}
+
+	return ALL;
+}]]></attr>
+<attr name="standardOutputMapping"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.httpResponseStatusCode = $in.1.statusCode;
+	$out.0.httpResponseHeaders = $in.1.header;
+	$out.0.httpResponseBody = $in.1.content;
+	$out.0.httpResponseErrorMessage = $in.1.errorMessage;
+	return ALL;
+}]]></attr>
+</Node>
+<Node guiName="Loop" guiX="757" guiY="179" id="LOOP" loggingLevel="info" type="LOOP">
+<attr name="whileCondition"><![CDATA[//#CTL2
+$in.0.httpRequestRetryCount > 0]]></attr>
+</Node>
+<Node guiName="Set retry count" guiX="155" guiY="179" id="SET_RETRY_COUNT" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	$out.0.httpRequestRetryCount = str2integer(getParamValue('HTTP_CALL_RETRY_COUNT')) + 1;
+
+	return ALL;
+}
+
+]]></attr>
+</Node>
+<Node guiName="SubgraphInput" guiX="38" guiY="11" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="196" name="0"/>
+<Port guiY="266" name="1"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="991" guiY="11" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="196" name="0"/>
+<Port guiY="346" name="1"/>
+</Node>
+<Node guiName="Valid response?" guiX="359" guiY="321" id="VALID_RESPONSE" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+list[integer] success_status_codes;
+foreach(string success_status_code : split(getParamValue("HTTP_CALL_SUCCESS_STATUS_CODE"),";")){
+	success_status_codes.append(str2integer(success_status_code));
+}
+integer max_attempts = str2integer(getParamValue('HTTP_CALL_RETRY_COUNT')) + 1;
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.* = $in.0.*;
+	
+	if ((isBlank($in.0.httpResponseErrorMessage)) and ($in.0.httpResponseStatusCode.in(success_status_codes))) {
+		$out.0.httpRequestRetryCount = 0; //will terminate loop
+	}
+	else {
+		if (!isBlank($in.0.httpResponseErrorMessage)) {
+			$out.0.httpResponseErrorMessage = join(': ', [join(' ', ['Http call failed after', num2str(attempts_made()), 'attempt(s)']), 'GENERAL ERROR', join('', ['ERROR_MESSAGE=[', $in.0.httpResponseErrorMessage, ']'])]);
+		}
+		else {
+			$out.0.httpResponseErrorMessage = join(': ', [join(' ', ['Http call failed after', num2str(attempts_made()), 'attempt(s)']), 'HTTP ERROR', join('', ['RESPONSE_STATUS_CODE=[', num2str($in.0.httpResponseStatusCode), ']']), join('', ['RESPONSE_BODY=[', $in.0.httpResponseBody, ']'])]);
+		}
+		
+		//if error is a client error (4xx) then it makes no sense to retry unless it is error 429 Too Many Requests 
+		if(isBlank($in.0.httpResponseErrorMessage) and 400 <= $in.0.httpResponseStatusCode and $in.0.httpResponseStatusCode <= 499 and $in.0.httpResponseStatusCode != 429){
+			$out.0.httpRequestRetryCount = 0; //will terminate loop
+		}else{
+			//429, server errors (5xx) and connector errors
+			$out.0.httpRequestRetryCount = $in.0.httpRequestRetryCount - 1;
+		}
+	}
+	
+	return 0;
+}
+
+
+function integer attempts_made(){
+	return max_attempts - $in.0.httpRequestRetryCount +1;
+}]]></attr>
+</Node>
+<Edge debugMode="false" fromNode="DELAY_NEXT_ATTEMPT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 1 (back from loop)" outPort="Port 0 (out)" toNode="LOOP:1"/>
+<Edge debugMode="false" fromNode="HTTP_CALL:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="VALID_RESPONSE:0"/>
+<Edge fromNode="LOOP:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 0 (in)" outPort="Port 0 (end of loop)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge fromNode="LOOP:1" guiBendpoints="1196:378|1196:801|-158:801|-158:509" guiLocks="1192|-162|735" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" outPort="Port 1 (continue loop)" toNode="HTTP_CALL:0"/>
+<Edge debugMode="false" fromNode="SET_RETRY_COUNT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (input token)" outPort="Port 0 (out)" toNode="LOOP:0"/>
+<Edge fromNode="SUBGRAPH_INPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="SET_RETRY_COUNT:0"/>
+<Edge debugMode="false" fromNode="VALID_RESPONSE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="DELAY_NEXT_ATTEMPT:0"/>
+</Phase>
+</Graph>

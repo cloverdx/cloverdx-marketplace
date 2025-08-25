@@ -1,0 +1,6 @@
+/data-out/*
+!/data-out/keep.me
+/data-tmp/*
+!/data-tmp/keep.me
+*.class
+.settings

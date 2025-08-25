@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="CloverDX" category="writers" created="Tue May 10 18:21:48 EDT 2016" description="Implementation of a workflow that creates .fmt file used for CloverDX metadata." guiVersion="5.15.0.15" id="1463009019408" largeIconPath="${DATA_ANALYTICS_DIR}/ico/fmtr-fmt-64.png" licenseCode="CLP1DJAVLI51655480BY" licenseType="Commercial" mediumIconPath="${DATA_ANALYTICS_DIR}/ico/fmtr-fmt-32.png" modified="Fri May 13 11:54:21 EDT 2016" modifiedBy="CloverDX" name="CreateMetadataFile" nature="subgraph" revision="1.27" showComponentDetails="true" smallIconPath="${DATA_ANALYTICS_DIR}/ico/fmtr-fmt-16.png">
+<Global>
+<inputPorts>
+<singlePort connected="true" name="0"/>
+</inputPorts>
+<outputPorts>
+<singlePort connected="false" keepEdge="false" name="0" required="false"/>
+</outputPorts>
+<EndpointSettings/>
+<Metadata fileURL="${DATA_ANALYTICS_DIR}/meta/MetadataField.fmt" id="Metadata1"/>
+<Metadata id="Metadata2" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="|" name="MetadataXml" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\r\n" type="delimited">
+<Field name="filename" type="string"/>
+<Field name="xml" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameter label="File URL" name="FILE_URL" public="true" required="false">
+<attr name="description"><![CDATA[File URL for the output file(s). Select a directory rather than a file if you expect more than 1 metadata definitions on input.]]></attr>
+<ComponentReference referencedComponent="UNIVERSAL_DATA_WRITER" referencedProperty="fileURL"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="Default record delimiter" name="DEFAULT_RECORD_DELIMITER" public="true" value="\r\n">
+<attr name="description"><![CDATA[Sets the record delimiter for the resulting metadata.]]></attr>
+</GraphParameter>
+<GraphParameter label="Use custom metadata" name="CUSTOM_METADATA" public="true" value="false">
+<attr name="description"><![CDATA[Enable if you want to provide extended metadata on input - the component will not propagate the default metadata.]]></attr>
+<SingleType name="bool"/>
+</GraphParameter>
+<GraphParameter category="advanced" label="Force File URL as directory" name="FILE_URL_IS_DIR" public="true" value="false">
+<attr name="description"><![CDATA[If enabled the component will use the path to the parent directory of FILE_URL if it does not point to directory already.]]></attr>
+<SingleType name="bool"/>
+</GraphParameter>
+<GraphParameter label="Default metadata name" name="METADATA_NAME" public="true" required="false" secure="false">
+<attr name="description"><![CDATA[Sets default metadata name.]]></attr>
+</GraphParameter>
+<GraphParameter name="ENABLE_WRITEOUT">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return !isBlank("${FILE_URL}") ? "true" : "trash";
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter name="TARGET_DIR">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return ${USE_AS_DIR} ? "${FILE_URL}" : getFilePath("${FILE_URL}");
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter name="USE_AS_DIR">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function boolean getValue() {
+	return isBlank(getFileExtension("${FILE_URL}")) || ${FILE_URL_IS_DIR};
+}
+]]></attr>
+</GraphParameter>
+<GraphParameter name="IN_METADATA">
+<attr name="dynamicValue"><![CDATA[//#CTL2
+
+function string getValue() {
+	return ${CUSTOM_METADATA} ? "" : "Metadata1";
+}
+]]></attr>
+</GraphParameter>
+</GraphParameters>
+<Sequence cached="1000" id="Sequence0" name="EntitySeq" start="0" step="1" type="PRIMITIVE_SEQUENCE"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node debugInput="true" fileURL="${DATAIN_DIR}/metadata.cdf" guiName="CloverDataReader" guiX="-155" guiY="102" id="CLOVER_DATA_READER" type="CLOVER_READER"/>
+<Node guiName="Combine" guiX="1007" guiY="102" id="COMBINE1" type="COMBINE">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.filename = !${USE_AS_DIR} ? getFileName("${FILE_URL}") : concat(nvl($in.0.__name,"${METADATA_NAME}"),".fmt");
+	$out.0.xml = $in.1.xml;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node createEmptyFiles="false" fileURL="port:$0.xml:discrete" guiName="Create file structure" guiX="605" guiY="225" id="CREATE_FILE_STRUCTURE1" makeDirs="true" partitionKeySorted="true" recordsPerFile="1" type="EXT_XML_WRITER">
+<attr name="mapping"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<Record xmlns:clover="http://www.cloveretl.com/ns/xmlmapping" clover:inPort="0" clover:include="$0.*">
+  <Field clover:inPort="1" clover:key="__name" clover:parentKey="__name" clover:writeNullElement="false" clover:include="$1.*" clover:exclude="$1.__name"/>
+</Record>]]></attr>
+</Node>
+<Node __DEFAULT_RECORD_DELIMITER="${DEFAULT_RECORD_DELIMITER}" __METADATA_NAME="${METADATA_NAME}" guiName="Create record details" guiX="160" guiY="102" id="CREATE_RECORD_DETAILS" jobURL="${DATA_ANALYTICS_DIR}/tools/_CreateRecordDetails.sgrf" type="SUBGRAPH"/>
+<Node guiName="Fix attributes" guiX="803" guiY="225" id="FIX_ATTRIBUTES" type="XSL_TRANSFORMER" xmlInputFile="port:$0.xml:discrete" xmlOutputFile="port:$0.xml:discrete">
+<attr name="xslt"><![CDATA[<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:template match="node()|@*">
+    <xsl:copy>
+      <xsl:apply-templates select="node()|@*"/>
+    </xsl:copy>
+  </xsl:template>
+  
+  <xsl:template match="Record/@*[starts-with(name(),'__')]">
+    <xsl:variable name="attr" select="substring(name(),3)"/>
+    <xsl:attribute name="{$attr}">
+      <xsl:value-of select="."/>
+    </xsl:attribute>
+  </xsl:template>
+</xsl:stylesheet>]]></attr>
+</Node>
+<Node guiName="SimpleCopy" guiX="409" guiY="102" id="SIMPLE_COPY" type="SIMPLE_COPY"/>
+<Node guiName="SimpleCopy" guiX="1181" guiY="102" id="SIMPLE_COPY2" type="SIMPLE_COPY"/>
+<Node guiName="SubgraphInput" guiX="55" guiY="6" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="119" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="1631" guiY="6" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="112" name="0"/>
+<Port guiY="180" name="1"/>
+</Node>
+<Node enabled="${ENABLE_WRITEOUT}" excludeFields="filename" fileURL="${TARGET_DIR}/#" guiName="UniversalDataWriter" guiX="1377" guiY="219" id="UNIVERSAL_DATA_WRITER" partitionFileTag="keyNameFileTag" partitionKey="filename" type="DATA_WRITER"/>
+<Edge fromNode="CLOVER_DATA_READER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge13" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="SUBGRAPH_INPUT0:0"/>
+<Edge debugMode="false" fromNode="COMBINE1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadataRef="#//Edge26" outPort="Port 0 (out)" toNode="SIMPLE_COPY2:0"/>
+<Edge fromNode="CREATE_FILE_STRUCTURE1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge26" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="FIX_ATTRIBUTES:0"/>
+<Edge fromNode="CREATE_RECORD_DETAILS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge29" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SIMPLE_COPY:0"/>
+<Edge fromNode="CREATE_RECORD_DETAILS:2" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 1 (in)" outPort="Port 2 (out)" toNode="CREATE_FILE_STRUCTURE1:1"/>
+<Edge fromNode="FIX_ATTRIBUTES:0" guiBendpoints="" guiRouter="Manhattan" id="Edge23" inPort="Port 1 (in)" metadataRef="#//Edge26" outPort="Port 0 (out)" toNode="COMBINE1:1"/>
+<Edge fromNode="SIMPLE_COPY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="COMBINE1:0"/>
+<Edge fromNode="SIMPLE_COPY:1" guiBendpoints="" guiRouter="Manhattan" id="Edge46" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="CREATE_FILE_STRUCTURE1:0"/>
+<Edge debugMode="false" fromNode="SIMPLE_COPY2:0" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 0 (in)" outPort="Port 0 (out)" toNode="SUBGRAPH_OUTPUT0:0"/>
+<Edge debugMode="true" fromNode="SIMPLE_COPY2:1" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" outPort="Port 1 (out)" toNode="UNIVERSAL_DATA_WRITER:0"/>
+<Edge fromNode="SUBGRAPH_INPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" metadata="${IN_METADATA}" outPort="Port 0 (out)" toNode="CREATE_RECORD_DETAILS:0"/>
+</Phase>
+</Graph>

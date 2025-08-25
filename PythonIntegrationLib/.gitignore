@@ -1,0 +1,8 @@
+/data-out/*.xlsx
+!/data-out/keep.me
+/data-tmp/*
+!/data-tmp/keep.me
+/data-in/*
+!/data-in/keep.me
+*.class
+.settings

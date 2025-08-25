@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Martin" category="others" created="Tue Aug 23 12:06:07 CEST 2022" description="Delete messages form a SQS queue using it's receipt hadle." guiVersion="5.15.0.15" id="1661262903075" largeIconPath="${PROJECT}/icons/amazon-sqs-deleter64.png" licenseCode="CLP1DCLOVE28718064BY" mediumIconPath="${PROJECT}/icons/amazon-sqs-deleter32.png" name="AmazonSqsDeleter" nature="subgraph" showComponentDetails="true" smallIconPath="${PROJECT}/icons/amazon-sqs-deleter16.png">
+<Global>
+<inputPorts>
+<singlePort connected="false" name="0"/>
+</inputPorts>
+<Metadata id="Metadata1" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="|" name="SqsMessageReceiptHandle" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\r\n" type="delimited">
+<Field name="receiptHandle" type="string"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+<GraphParameterFile fileURL="amazonsqs.prm"/>
+</GraphParameters>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node AWSAccessKey="${AWS_ACCESS_KEY}" AWSSecretKey="${AWS_SECRET_KEY}" SQSQueueName="${SQS_QUEUE_NAME}" SQSRegion="${SQS_REGION}" genericTransformClass="com.cloverdx.libraries.sqs.Deleter" guiName="Delete" guiX="348" guiY="100" id="DELETE" type="GENERIC_TRANSFORMER"/>
+<Node guiName="SubgraphInput" guiX="200" guiY="10" id="SUBGRAPH_INPUT0" type="SUBGRAPH_INPUT">
+<Port guiY="117" name="0"/>
+<Port guiY="187" name="1"/>
+</Node>
+<Node guiName="SubgraphOutput" guiX="505" guiY="10" id="SUBGRAPH_OUTPUT0" type="SUBGRAPH_OUTPUT">
+<Port guiY="117" name="0"/>
+</Node>
+<Edge fromNode="SUBGRAPH_INPUT0:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="DELETE:0"/>
+</Phase>
+</Graph>
